@@ -1,0 +1,78 @@
+name: validate-skill
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate skill repository contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s SKILL.md
+          test -s README.md
+          test -s LICENSE
+          test -s examples/usage.md
+
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path.cwd().resolve()
+          skill_path = root / "SKILL.md"
+          skill = skill_path.read_text(encoding="utf-8")
+          lines = skill.splitlines()
+
+          if not lines or lines[0].strip() != "---":
+              raise SystemExit("SKILL.md must start with YAML front matter")
+
+          try:
+              end = next(i for i, line in enumerate(lines[1:], start=1) if line.strip() == "---")
+          except StopIteration as exc:
+              raise SystemExit("SKILL.md front matter is not closed") from exc
+
+          fields = {}
+          for line in lines[1:end]:
+              if ":" not in line:
+                  continue
+              key, value = line.split(":", 1)
+              fields[key.strip()] = value.strip()
+
+          if fields.get("name") != "quantum-reasoning":
+              raise SystemExit("SKILL.md front matter must declare name: quantum-reasoning")
+          if not fields.get("description"):
+              raise SystemExit("SKILL.md front matter must contain a non-empty description")
+          if len(lines[end + 1 :]) < 20:
+              raise SystemExit("SKILL.md body is unexpectedly short")
+
+          readme = (root / "README.md").read_text(encoding="utf-8")
+          for required in ("SKILL.md", "examples/usage.md"):
+              if required not in readme:
+                  raise SystemExit(f"README.md must reference {required}")
+
+          markdown_files = [root / "README.md", root / "SKILL.md", root / "examples/usage.md"]
+          link_pattern = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
+          for document in markdown_files:
+              text = document.read_text(encoding="utf-8")
+              for raw_target in link_pattern.findall(text):
+                  target = raw_target.strip().split("#", 1)[0].split("?", 1)[0]
+                  if not target or "://" in target or target.startswith(("mailto:", "#")):
+                      continue
+                  resolved = (document.parent / target).resolve()
+                  try:
+                      resolved.relative_to(root)
+                  except ValueError as exc:
+                      raise SystemExit(f"{document.relative_to(root)} links outside the repository: {raw_target}") from exc
+                  if not resolved.exists():
+                      raise SystemExit(f"Broken relative link in {document.relative_to(root)}: {raw_target}")
+
+          print("Skill repository contract validated successfully.")
+          PY
