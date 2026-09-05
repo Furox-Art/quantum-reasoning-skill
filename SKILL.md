@@ -1,70 +1,122 @@
 ---
 name: quantum-reasoning
-description: Explore multiple competing hypotheses in parallel, score and verify them, prune weak branches, and synthesize the strongest surviving evidence before answering.
+description: Maintain multiple genuinely different candidate hypotheses or solution paths, test them against evidence and tools, suppress weak or contradictory paths, revive useful alternatives when new evidence appears, and collapse to the best-supported answer only at the end.
 ---
 
 # Quantum Reasoning Skill
 
-Use this skill for problems where early commitment to one reasoning path could cause errors: difficult mathematics, scientific hypotheses, debugging, planning, architecture, diagnosis of technical failures, or ambiguous multi-step analysis.
+A model-facing reasoning protocol inspired by the idea of keeping multiple possibilities alive before selection. It runs on classical models and classical hardware; it is not quantum computation.
 
-This is **quantum-inspired classical reasoning**, not quantum computation.
+## When to use
 
-## Protocol
+Use this skill when a problem is difficult, ambiguous, high-stakes, multi-step, or vulnerable to early commitment: mathematics, scientific reasoning, debugging, planning, architecture, model selection, hypothesis testing, and technical diagnosis.
 
-1. **Represent the problem precisely.**
-   - State the objective, constraints, known facts, and unknowns.
-   - Separate facts from assumptions.
+Do not add branching overhead to trivial questions.
 
-2. **Open diverse branches.**
-   - Generate multiple genuinely different candidate hypotheses or solution strategies.
-   - Avoid superficial paraphrases of the same path.
-   - Increase branch count when uncertainty or consequence is high; reduce it for easy problems.
+## Core protocol
 
-3. **Score every branch independently.**
-   Evaluate each branch on:
-   - confidence
-   - external verification
-   - novelty / independence
-   - information gain
-   - contradiction penalty
+### 1. Frame the state
 
-4. **Use tools where they can falsify a branch.**
-   Prefer executable checks, numerical tests, formal solvers, source verification, or direct inspection over intuition when available.
+Identify the objective, constraints, verified facts, assumptions, unknowns, and available tools. Keep facts separate from hypotheses.
 
-5. **Compare branches against each other.**
-   - Identify agreements that arise from independent routes.
-   - Identify contradictions.
-   - Do not treat repeated copies of one assumption as independent evidence.
+### 2. Open a diverse possibility set
 
-6. **Allocate compute dynamically.**
-   - High uncertainty: widen exploration.
-   - Strong evidence: deepen the best branches.
-   - Weak, redundant, or contradicted branches: prune early.
+Create several materially different candidate paths. Diversity is mandatory: do not count paraphrases, cosmetic variants, or branches that depend on the same hidden assumption as independent possibilities.
 
-7. **Allow recovery from premature pruning when new evidence changes the ranking.**
-   Keep a compact record of discarded high-information branches when practical.
+Prefer orthogonal strategy classes when applicable, such as:
 
-8. **Collapse only at the end.**
-   Select or synthesize the best-supported result only after comparison and verification.
+- direct derivation
+- counterexample / falsification
+- decomposition
+- alternative model or mechanism
+- numerical or executable test
+- independent reconstruction
+- adversarial critique
 
-## Branch score
+### 3. Maintain branch states
 
-A practical classical score is:
+Treat each candidate as one of:
 
-```text
-score =
-    confidence * wc
-  + verification * wv
-  + novelty * wn
-  + information_gain * wi
-  - contradiction_penalty * wp
-```
+- **active** — worth more compute now
+- **dormant** — currently weak but potentially recoverable
+- **rejected** — contradicted or decisively invalidated
 
-Normalize scores into probability-like weights. Use the uncertainty of that distribution to decide whether the next step should explore broadly or concentrate compute.
+Never permanently reject a branch merely because another branch initially looks more plausible.
 
-## Output discipline
+### 4. Evaluate each branch independently
 
-- Return the final result, not a dump of hidden internal reasoning.
-- Surface materially different surviving hypotheses when the problem genuinely remains unresolved.
-- State uncertainty explicitly when verification cannot distinguish the leading branches.
-- Never claim that classical branch search is actual quantum computation.
+Judge branches using evidence, not eloquence. Consider:
+
+- empirical or logical support
+- external verification
+- independence from other branches
+- information gain
+- contradiction count and severity
+- unresolved assumptions
+- expected value of another reasoning step
+- compute / tool cost
+
+Self-reported model confidence alone is weak evidence.
+
+### 5. Use tools to falsify, not merely confirm
+
+When available, route claims through the strongest suitable verifier: executable code, numerical tests, formal solvers, source lookup, direct file inspection, unit tests, symbolic algebra, or an independent model pass.
+
+Actively search for evidence that would disprove leading branches.
+
+### 6. Apply interference-like comparison
+
+Compare branches against each other without pretending to perform quantum interference.
+
+- Reinforce conclusions independently reached by different verified paths.
+- Penalize branches that conflict with verified facts.
+- Detect shared assumptions so correlated branches are not double-counted.
+- Transfer newly verified facts to every branch they constrain.
+- Preserve meaningful disagreement instead of averaging incompatible claims.
+
+### 7. Allocate compute dynamically
+
+Use uncertainty to control width and depth.
+
+- **Low uncertainty:** narrow quickly and deepen the strongest path.
+- **High uncertainty:** widen the possibility set.
+- **High-value unresolved branch:** spend additional tool or reasoning budget.
+- **Redundant or contradicted branch:** move to dormant or rejected.
+
+Branch count is adaptive, not fixed.
+
+### 8. Permit branch revival
+
+If new evidence invalidates a leading assumption or materially improves a dormant branch, restore that branch to active status and re-evaluate the ranking.
+
+### 9. Stop when more search has low value
+
+Collapse the possibility set when one result is sufficiently verified, remaining branches are redundant or falsified, or additional search is unlikely to change the decision enough to justify its cost.
+
+If multiple branches remain genuinely unresolved, report the alternatives and what evidence would distinguish them.
+
+### 10. Produce the answer
+
+Synthesize only from the strongest supported surviving branches. Run a final contradiction and requirement check before answering.
+
+Do not expose hidden chain-of-thought. Return the conclusion, concise supporting evidence, important uncertainty, and materially different surviving alternatives when necessary.
+
+## Adaptive intensity
+
+Use a rough internal intensity level:
+
+- **light:** 2–3 distinct candidates, one comparison pass
+- **standard:** 4–8 candidates, verification + pruning + one revival check
+- **deep:** 8+ candidates only when the problem and compute budget justify it; use repeated verification and adaptive expansion
+
+Do not mechanically maximize branch count. The goal is better search of the possibility space, not more text.
+
+## Non-negotiable rules
+
+1. Do not call this real quantum computation.
+2. Do not treat repeated wording as independent evidence.
+3. Do not let one branch evaluate itself without challenge when verification is possible.
+4. Prefer falsification and executable checks over intuition.
+5. Preserve a recoverable record of high-information dormant branches.
+6. Collapse only after cross-branch comparison.
+7. Never fabricate evidence, tool results, sources, or certainty.
