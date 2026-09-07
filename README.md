@@ -42,6 +42,7 @@ problem
 - [`benchmark/README.md`](./benchmark/README.md) — reproducible benchmark protocol and result schema
 - [`tests/`](./tests/) — behavioral tests for the controller and evaluator
 - GitHub Actions validation on pushes and pull requests
+- Automated tag and GitHub Release publishing when [`VERSION`](./VERSION) changes on `main`
 
 ## Core capabilities
 
@@ -97,6 +98,10 @@ python benchmark/evaluate.py --help
 
 CI also validates the skill contract, links, Python syntax, benchmark seed data and unit tests.
 
+## Releases
+
+Release publishing is repository-native. Update `CHANGELOG.md`, then change the root `VERSION` file to a semantic version such as `0.3.0`. The `publish-release` GitHub Actions workflow creates the corresponding `v0.3.0` tag and GitHub Release. The same workflow can also be started manually from the Actions tab.
+
 ## Status
 
-**v0.3 development — measurable prototype.** The branch-control mechanism and benchmark infrastructure now exist, but no empirical performance improvement is claimed until controlled model runs are collected and published.
+**v0.3.0 — measurable prototype.** The branch-control mechanism and benchmark infrastructure exist, but no empirical performance improvement is claimed until controlled model runs are collected and published.
