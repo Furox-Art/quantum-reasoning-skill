@@ -45,8 +45,17 @@ jobs:
           mkdir -p upstream/src/PhpWord/Writer/WPS
           cp -a /tmp/phpword-wps-patch/phpword-wps-patch/src/PhpWord/Writer/WPS/. upstream/src/PhpWord/Writer/WPS/
           cp -a /tmp/phpword-wps-patch/phpword-wps-patch/tests/PhpWordTests/Writer/WPSTest.php upstream/tests/PhpWordTests/Writer/WPSTest.php
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('upstream/src/PhpWord/IOFactory.php')
+          text = path.read_text()
+          old = "['ODText', 'RTF', 'Word2007', 'HTML', 'PDF', 'EPub3']"
+          new = "['ODText', 'RTF', 'Word2007', 'HTML', 'PDF', 'EPub3', 'WPS']"
+          if text.count(old) != 1:
+              raise SystemExit(f'Expected exactly one IOFactory writer list, found {text.count(old)}')
+          path.write_text(text.replace(old, new, 1))
+          PY
           cd upstream
-          patch -p1 < /tmp/phpword-wps-patch/phpword-wps-patch/iofactory.patch
           git diff --check
 
       - name: Validate Composer configuration
