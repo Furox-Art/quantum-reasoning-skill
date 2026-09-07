@@ -32,7 +32,7 @@ rep('Contents.php',[
 ('private function fontNameRecord($name): string','private function fontNameRecord(string $name): string'),
 ('private function rgbValue($hex): int','private function rgbValue(string $hex): int'),
 ('private function encodeStrs($mainUnits, array $tables): string','private function encodeStrs(int $mainUnits, array $tables): string'),
-('private function record($main): string','private function record(int $main): string'),
+('private function record($main): string','private function record(string $main): string'),
 ('private function dataArray3($id, $a, $b, $c): string','private function dataArray3(int $id, int $a, int $b, int $c): string'),
 ('private function dataBoolTrue($id): string','private function dataBoolTrue(int $id): string'),
 ('private function normalizeRuns(array $runs, $key): array','private function normalizeRuns(array $runs, string $key): array'),
