@@ -27,7 +27,8 @@ jobs:
             reference/branch_controller.py \
             docs/MEASUREMENT.md docs/COMPATIBILITY.md \
             benchmark/README.md benchmark/cases.jsonl benchmark/evaluate.py benchmark/validate_submission.py \
-            benchmark/schemas/result.schema.json benchmark/schemas/metadata.schema.json benchmark/schemas/comparison.schema.json \
+            benchmark/schemas/case.schema.json benchmark/schemas/result.schema.json \
+            benchmark/schemas/metadata.schema.json benchmark/schemas/comparison.schema.json \
             tests/test_reference.py tests/test_benchmark.py tests/test_submission_validation.py \
             .github/ISSUE_TEMPLATE/benchmark-result.yml .github/ISSUE_TEMPLATE/bug-report.yml \
             .github/ISSUE_TEMPLATE/feature-request.yml .github/PULL_REQUEST_TEMPLATE.md; do
@@ -109,17 +110,31 @@ jobs:
               if not isinstance(case["accepted_answers"], list) or not case["accepted_answers"]:
                   raise SystemExit(f"benchmark/cases.jsonl:{line_number}: accepted_answers must be non-empty")
 
-          for schema_path in sorted((root / "benchmark" / "schemas").glob("*.schema.json")):
+          schemas = sorted((root / "benchmark" / "schemas").glob("*.schema.json"))
+          if len(schemas) < 4:
+              raise SystemExit("expected case, result, metadata and comparison JSON Schemas")
+          for schema_path in schemas:
               schema = json.loads(schema_path.read_text(encoding="utf-8"))
               if schema.get("$schema") != "https://json-schema.org/draft/2020-12/schema":
                   raise SystemExit(f"{schema_path}: expected JSON Schema draft 2020-12")
               if schema.get("type") != "object" or not schema.get("required"):
                   raise SystemExit(f"{schema_path}: must define an object with required fields")
 
+          version = (root / "VERSION").read_text(encoding="utf-8").strip().lstrip("v")
+          if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:[.-][0-9A-Za-z.-]+)?", version):
+              raise SystemExit("VERSION is not a valid semantic version")
           cff = (root / "CITATION.cff").read_text(encoding="utf-8")
           for marker in ("cff-version: 1.2.0", "title:", "authors:", "repository-code:", "license: MIT"):
               if marker not in cff:
                   raise SystemExit(f"CITATION.cff missing {marker!r}")
+          if f"version: {version}" not in cff:
+              raise SystemExit("CITATION.cff version must match VERSION")
+
+          action_use = re.compile(r"uses:\s+(actions/[A-Za-z0-9_.-]+)@([^\s#]+)")
+          for workflow in (root / ".github" / "workflows").glob("*.yml"):
+              for action, ref in action_use.findall(workflow.read_text(encoding="utf-8")):
+                  if not re.fullmatch(r"[0-9a-f]{40}", ref):
+                      raise SystemExit(f"{workflow}: {action} must be pinned to an exact commit SHA")
 
           print("Skill repository contract validated successfully.")
           PY
