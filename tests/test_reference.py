@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import sys
 import unittest
 
 
@@ -11,6 +12,7 @@ SPEC = importlib.util.spec_from_file_location(
 )
 assert SPEC and SPEC.loader
 bc = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = bc
 SPEC.loader.exec_module(bc)
 
 
