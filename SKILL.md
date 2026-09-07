@@ -111,6 +111,29 @@ Use a rough internal intensity level:
 
 Do not mechanically maximize branch count. The goal is better search of the possibility space, not more text.
 
+## Operational reference policy
+
+When the host system can track aggregate branch metadata, use explicit normalized values in `[0, 1]` for evidence, verification, independence, information gain, contradiction severity, unresolved assumptions, compute cost, shared-assumption overlap, and semantic redundancy.
+
+A provider-agnostic reference controller is available in [`reference/branch_controller.py`](./reference/branch_controller.py). Its defaults make the qualitative protocol testable:
+
+- independence is reduced when branches share critical assumptions or are near-duplicates
+- strong contradiction can reject a branch
+- weak branches become dormant instead of disappearing
+- dormant branches can revive after a material evidence, verification, or contradiction change
+- uncertainty controls a recommended search width
+- collapse requires a verified leader, low contradiction, and a meaningful margin over surviving alternatives
+
+The exact scoring weights and thresholds are **reference defaults, not validated constants**. They must be calibrated against benchmark evidence rather than treated as universal truths. See [`docs/MEASUREMENT.md`](./docs/MEASUREMENT.md) for the auditable formulas and thresholds.
+
+Hosts that cannot expose these aggregate measurements should still follow the qualitative protocol above and must not invent numeric telemetry.
+
+## Benchmark requirement
+
+Do not claim that this skill improves reasoning merely because the protocol sounds plausible. Compare the same model and task configuration with and without the skill and measure at least accuracy, compute/token cost, latency, error recovery, contradiction resolution, and branch diversity when observable.
+
+The reproducible benchmark schema and evaluator live under [`benchmark/`](./benchmark/README.md).
+
 ## Non-negotiable rules
 
 1. Do not call this real quantum computation.
@@ -119,4 +142,5 @@ Do not mechanically maximize branch count. The goal is better search of the poss
 4. Prefer falsification and executable checks over intuition.
 5. Preserve a recoverable record of high-information dormant branches.
 6. Collapse only after cross-branch comparison.
-7. Never fabricate evidence, tool results, sources, or certainty.
+7. Never fabricate evidence, tool results, sources, certainty, or branch telemetry.
+8. Do not present reference thresholds as empirically validated until benchmark evidence exists.
