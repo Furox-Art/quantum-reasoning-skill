@@ -80,6 +80,17 @@ jobs:
         working-directory: upstream
         run: ./vendor/bin/phpunit -c phpunit.xml.dist --no-coverage tests/PhpWordTests/Writer/WPSTest.php
 
+      - name: Apply upstream coding style exactly
+        working-directory: upstream
+        run: ./vendor/bin/php-cs-fixer fix --ansi
+
+      - name: Show WPS coding-style diff
+        working-directory: upstream
+        shell: bash
+        run: |
+          git diff -- src/PhpWord/IOFactory.php src/PhpWord/Writer/WPS.php src/PhpWord/Writer/WPS tests/PhpWordTests/Writer/WPSTest.php
+          git diff --check
+
       - name: Run upstream composer check
         working-directory: upstream
         run: composer check
