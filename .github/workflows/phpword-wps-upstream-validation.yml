@@ -6,7 +6,7 @@ on:
       - ci/phpword-wps-upstream-validation
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   upstream-check:
@@ -111,3 +111,24 @@ jobs:
       - name: Run upstream composer check
         working-directory: upstream
         run: composer check
+
+      - name: Snapshot exact green sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf phpword-wps-ci/final
+          mkdir -p phpword-wps-ci/final/src/PhpWord/Writer/WPS
+          mkdir -p phpword-wps-ci/final/tests/PhpWordTests/Writer
+          cp upstream/src/PhpWord/IOFactory.php phpword-wps-ci/final/src/PhpWord/IOFactory.php
+          cp upstream/src/PhpWord/Writer/WPS.php phpword-wps-ci/final/src/PhpWord/Writer/WPS.php
+          cp upstream/src/PhpWord/Writer/WPS/*.php phpword-wps-ci/final/src/PhpWord/Writer/WPS/
+          cp upstream/tests/PhpWordTests/Writer/WPSTest.php phpword-wps-ci/final/tests/PhpWordTests/Writer/WPSTest.php
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add phpword-wps-ci/final
+          if git diff --cached --quiet; then
+            echo 'Final snapshot unchanged.'
+          else
+            git commit -m 'CI: store exact green PHPWord WPS snapshot'
+            git push origin HEAD:ci/phpword-wps-upstream-validation
+          fi
