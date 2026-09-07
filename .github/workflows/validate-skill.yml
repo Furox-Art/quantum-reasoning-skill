@@ -11,9 +11,9 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
 
@@ -21,17 +21,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s SKILL.md
-          test -s README.md
-          test -s LICENSE
-          test -s examples/usage.md
-          test -s reference/branch_controller.py
-          test -s docs/MEASUREMENT.md
-          test -s benchmark/README.md
-          test -s benchmark/cases.jsonl
-          test -s benchmark/evaluate.py
-          test -s tests/test_reference.py
-          test -s tests/test_benchmark.py
+          for required in \
+            SKILL.md README.md LICENSE CHANGELOG.md VERSION CONTRIBUTING.md SECURITY.md CITATION.cff \
+            examples/usage.md examples/host-integration.md \
+            reference/branch_controller.py \
+            docs/MEASUREMENT.md docs/COMPATIBILITY.md \
+            benchmark/README.md benchmark/cases.jsonl benchmark/evaluate.py benchmark/validate_submission.py \
+            benchmark/schemas/case.schema.json benchmark/schemas/result.schema.json \
+            benchmark/schemas/metadata.schema.json benchmark/schemas/comparison.schema.json \
+            tests/test_reference.py tests/test_benchmark.py tests/test_submission_validation.py \
+            .github/ISSUE_TEMPLATE/benchmark-result.yml .github/ISSUE_TEMPLATE/bug-report.yml \
+            .github/ISSUE_TEMPLATE/feature-request.yml .github/PULL_REQUEST_TEMPLATE.md; do
+            test -s "$required"
+          done
 
           python - <<'PY'
           from pathlib import Path
@@ -39,49 +41,39 @@ jobs:
           import re
 
           root = Path.cwd().resolve()
-          skill_path = root / "SKILL.md"
-          skill = skill_path.read_text(encoding="utf-8")
+          skill = (root / "SKILL.md").read_text(encoding="utf-8")
           lines = skill.splitlines()
-
           if not lines or lines[0].strip() != "---":
               raise SystemExit("SKILL.md must start with YAML front matter")
-
           try:
               end = next(i for i, line in enumerate(lines[1:], start=1) if line.strip() == "---")
           except StopIteration as exc:
               raise SystemExit("SKILL.md front matter is not closed") from exc
-
           fields = {}
           for line in lines[1:end]:
-              if ":" not in line:
-                  continue
-              key, value = line.split(":", 1)
-              fields[key.strip()] = value.strip()
-
+              if ":" in line:
+                  key, value = line.split(":", 1)
+                  fields[key.strip()] = value.strip()
           if fields.get("name") != "quantum-reasoning":
               raise SystemExit("SKILL.md front matter must declare name: quantum-reasoning")
           if not fields.get("description"):
               raise SystemExit("SKILL.md front matter must contain a non-empty description")
-          if len(lines[end + 1 :]) < 20:
+          if len(lines[end + 1:]) < 20:
               raise SystemExit("SKILL.md body is unexpectedly short")
 
           readme = (root / "README.md").read_text(encoding="utf-8")
           for required in (
-              "SKILL.md",
-              "examples/usage.md",
-              "reference/branch_controller.py",
-              "docs/MEASUREMENT.md",
-              "benchmark/README.md",
+              "SKILL.md", "examples/usage.md", "examples/host-integration.md",
+              "reference/branch_controller.py", "docs/MEASUREMENT.md", "docs/COMPATIBILITY.md",
+              "benchmark/README.md", "CONTRIBUTING.md", "SECURITY.md", "CITATION.cff",
           ):
               if required not in readme:
                   raise SystemExit(f"README.md must reference {required}")
 
           markdown_files = [
-              root / "README.md",
-              root / "SKILL.md",
-              root / "examples/usage.md",
-              root / "benchmark/README.md",
-              root / "docs/MEASUREMENT.md",
+              root / "README.md", root / "SKILL.md", root / "CONTRIBUTING.md", root / "SECURITY.md",
+              root / "examples/usage.md", root / "examples/host-integration.md",
+              root / "benchmark/README.md", root / "docs/MEASUREMENT.md", root / "docs/COMPATIBILITY.md",
           ]
           link_pattern = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
           for document in markdown_files:
@@ -94,13 +86,9 @@ jobs:
                   try:
                       resolved.relative_to(root)
                   except ValueError as exc:
-                      raise SystemExit(
-                          f"{document.relative_to(root)} links outside the repository: {raw_target}"
-                      ) from exc
+                      raise SystemExit(f"{document.relative_to(root)} links outside repository: {raw_target}") from exc
                   if not resolved.exists():
-                      raise SystemExit(
-                          f"Broken relative link in {document.relative_to(root)}: {raw_target}"
-                      )
+                      raise SystemExit(f"Broken relative link in {document.relative_to(root)}: {raw_target}")
 
           case_path = root / "benchmark" / "cases.jsonl"
           seen_ids = set()
@@ -114,17 +102,39 @@ jobs:
               required = {"id", "domain", "prompt", "accepted_answers"}
               missing = required - set(case)
               if missing:
-                  raise SystemExit(
-                      f"benchmark/cases.jsonl:{line_number}: missing {sorted(missing)}"
-                  )
+                  raise SystemExit(f"benchmark/cases.jsonl:{line_number}: missing {sorted(missing)}")
               case_id = str(case["id"])
               if case_id in seen_ids:
                   raise SystemExit(f"duplicate benchmark case id: {case_id}")
               seen_ids.add(case_id)
               if not isinstance(case["accepted_answers"], list) or not case["accepted_answers"]:
-                  raise SystemExit(
-                      f"benchmark/cases.jsonl:{line_number}: accepted_answers must be non-empty"
-                  )
+                  raise SystemExit(f"benchmark/cases.jsonl:{line_number}: accepted_answers must be non-empty")
+
+          schemas = sorted((root / "benchmark" / "schemas").glob("*.schema.json"))
+          if len(schemas) < 4:
+              raise SystemExit("expected case, result, metadata and comparison JSON Schemas")
+          for schema_path in schemas:
+              schema = json.loads(schema_path.read_text(encoding="utf-8"))
+              if schema.get("$schema") != "https://json-schema.org/draft/2020-12/schema":
+                  raise SystemExit(f"{schema_path}: expected JSON Schema draft 2020-12")
+              if schema.get("type") != "object" or not schema.get("required"):
+                  raise SystemExit(f"{schema_path}: must define an object with required fields")
+
+          version = (root / "VERSION").read_text(encoding="utf-8").strip().lstrip("v")
+          if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:[.-][0-9A-Za-z.-]+)?", version):
+              raise SystemExit("VERSION is not a valid semantic version")
+          cff = (root / "CITATION.cff").read_text(encoding="utf-8")
+          for marker in ("cff-version: 1.2.0", "title:", "authors:", "repository-code:", "license: MIT"):
+              if marker not in cff:
+                  raise SystemExit(f"CITATION.cff missing {marker!r}")
+          if f"version: {version}" not in cff:
+              raise SystemExit("CITATION.cff version must match VERSION")
+
+          action_use = re.compile(r"uses:\s+(actions/[A-Za-z0-9_.-]+)@([^\s#]+)")
+          for workflow in (root / ".github" / "workflows").glob("*.yml"):
+              for action, ref in action_use.findall(workflow.read_text(encoding="utf-8")):
+                  if not re.fullmatch(r"[0-9a-f]{40}", ref):
+                      raise SystemExit(f"{workflow}: {action} must be pinned to an exact commit SHA")
 
           print("Skill repository contract validated successfully.")
           PY
@@ -135,5 +145,10 @@ jobs:
       - name: Run behavioral tests
         run: python -m unittest discover -s tests -v
 
-      - name: Check benchmark CLI
-        run: python benchmark/evaluate.py --help > /dev/null
+      - name: Validate community benchmark bundles
+        run: python benchmark/validate_submission.py --root benchmark/results/community --allow-empty
+
+      - name: Check benchmark CLIs
+        run: |
+          python benchmark/evaluate.py --help > /dev/null
+          python benchmark/validate_submission.py --help > /dev/null

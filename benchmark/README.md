@@ -4,7 +4,7 @@ This directory measures whether the skill improves results rather than merely pr
 
 ## Who runs the benchmarks
 
-Real model evaluations are intentionally **community-run**. The repository supplies the benchmark protocol, seed cases, result schema and evaluator; users run experiments on the models/providers they have access to.
+Real model evaluations are intentionally **community-run**. The repository supplies the benchmark protocol, seed cases, JSON Schemas, evaluator and submission validator; users run experiments on the models/providers they have access to.
 
 Maintainer-run access to every commercial or local model is not required. The project therefore separates **benchmark infrastructure** from **third-party empirical results**.
 
@@ -29,9 +29,16 @@ Each case has:
 {"id":"...","domain":"...","prompt":"...","accepted_answers":["..."]}
 ```
 
-## Result schema
+## Machine-readable schemas
 
-A runner should write one JSON object per case. Required fields:
+The contracts are versioned with the repository:
+
+- [`schemas/case.schema.json`](./schemas/case.schema.json) — one benchmark case
+- [`schemas/result.schema.json`](./schemas/result.schema.json) — one baseline/skill result row
+- [`schemas/metadata.schema.json`](./schemas/metadata.schema.json) — experiment metadata
+- [`schemas/comparison.schema.json`](./schemas/comparison.schema.json) — evaluator comparison output
+
+A result row requires:
 
 ```json
 {
@@ -43,20 +50,9 @@ A runner should write one JSON object per case. Required fields:
 }
 ```
 
-Skill-aware runners should additionally record, when observable without exposing hidden chain-of-thought:
+Failed/refused runs should still be represented rather than silently removed. The optional `status` field may be `ok`, `refusal`, `timeout`, or `error`.
 
-```json
-{
-  "branches_total": 5,
-  "branches_distinct": 4,
-  "revived_branches": 1,
-  "recovered_errors": 1,
-  "contradictions_found": 2,
-  "contradictions_resolved": 2
-}
-```
-
-These are aggregate control-plane measurements. Do not store private chain-of-thought.
+Skill-aware runners may additionally record observable aggregate telemetry such as `branches_total`, `branches_distinct`, `revived_branches`, `recovered_errors`, `contradictions_found`, and `contradictions_resolved`. Do not store private chain-of-thought.
 
 ## Evaluate one run
 
@@ -73,20 +69,10 @@ python benchmark/evaluate.py \
   --cases benchmark/cases.jsonl \
   --baseline path/to/baseline-results.jsonl \
   --skill path/to/skill-results.jsonl \
-  --output benchmark/results/comparison.json
+  --output comparison.json
 ```
 
-The evaluator reports:
-
-- exact-answer accuracy
-- mean token use
-- mean tool calls
-- mean latency
-- branch diversity ratio
-- branch revival count per case
-- recovered-error count per case
-- contradiction resolution rate
-- baseline-to-skill deltas
+The evaluator reports exact-answer accuracy, mean token use, tool calls, latency, branch diversity, revival/error recovery, contradiction resolution, and baseline-to-skill deltas.
 
 ## Required experimental controls
 
@@ -116,17 +102,26 @@ Results can be submitted in either of two ways:
 benchmark/results/community/<provider>-<model>-<YYYY-MM-DD>/
 ```
 
-A benchmark-result PR should contain, where applicable:
+Every benchmark-result PR bundle must contain:
 
 ```text
 metadata.json
+cases.jsonl
 baseline.jsonl
 skill.jsonl
 comparison.json
 README.md
 ```
 
-Generate `comparison.json` with `benchmark/evaluate.py`; do not hand-edit the comparison to improve the reported result.
+Including `cases.jsonl` inside the bundle makes the exact evaluated case set immutable and reviewable even when custom cases are used.
+
+Generate `comparison.json` with `benchmark/evaluate.py`; do not hand-edit it. Before opening a PR, validate the bundle:
+
+```bash
+python benchmark/validate_submission.py --root benchmark/results/community
+```
+
+CI runs the same validator. It rejects missing artifacts, incomplete metadata, duplicate/missing case results, and a `comparison.json` that differs from a fresh evaluator recomputation.
 
 See [`../CONTRIBUTING.md`](../CONTRIBUTING.md) for the complete submission and integrity policy.
 

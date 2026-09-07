@@ -1,0 +1,38 @@
+name: Bug report
+description: Report a reproducible defect in the skill, reference controller, benchmark tooling, or CI.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Include commands, inputs, or a small example that reproduces the problem.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Repository version or commit
+      placeholder: v0.3.0 or commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Python version, host/agent integration, OS, and relevant tool versions.
+  - type: checkboxes
+    id: sensitive
+    attributes:
+      label: Safety check
+      options:
+        - label: I have not included secrets, credentials, private chain-of-thought, or sensitive benchmark data.
+          required: true
