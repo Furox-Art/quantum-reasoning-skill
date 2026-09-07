@@ -33,6 +33,7 @@ Each case has:
 
 The contracts are versioned with the repository:
 
+- [`schemas/case.schema.json`](./schemas/case.schema.json) — one benchmark case
 - [`schemas/result.schema.json`](./schemas/result.schema.json) — one baseline/skill result row
 - [`schemas/metadata.schema.json`](./schemas/metadata.schema.json) — experiment metadata
 - [`schemas/comparison.schema.json`](./schemas/comparison.schema.json) — evaluator comparison output
