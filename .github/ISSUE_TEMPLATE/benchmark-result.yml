@@ -6,13 +6,13 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for testing Quantum Reasoning Skill. Submit reproducible measurements only. Do not include private chain-of-thought.
+        Submit reproducible measurements only. Do not include private chain-of-thought. For PR submissions, validate the full bundle with `python benchmark/validate_submission.py --root benchmark/results/community`.
 
   - type: input
     id: provider
     attributes:
       label: Provider
-      placeholder: OpenAI, Anthropic, Google, local runtime, etc.
+      placeholder: Provider or local runtime
     validations:
       required: true
 
@@ -21,6 +21,14 @@ body:
     attributes:
       label: Exact model / version
       placeholder: Exact model identifier and version if available
+    validations:
+      required: true
+
+  - type: input
+    id: skill_version
+    attributes:
+      label: Skill version / commit
+      placeholder: v0.3.1 or commit SHA
     validations:
       required: true
 
@@ -36,7 +44,7 @@ body:
     id: controls
     attributes:
       label: Experimental controls
-      description: Describe sampling settings, token/context limits, tools, repetitions, seeds, prompt wrapper and hardware/runtime when relevant.
+      description: Describe sampling settings, context/output limits, tools, repetitions, seeds, prompt wrapper and hardware/runtime when relevant.
     validations:
       required: true
 
@@ -44,7 +52,7 @@ body:
     id: artifacts
     attributes:
       label: Result artifacts
-      description: Link or attach baseline.jsonl, skill.jsonl, comparison.json and metadata.json when available.
+      description: Link or attach metadata.json, cases.jsonl, baseline.jsonl, skill.jsonl, comparison.json and README.md. State whether the bundle passed validate_submission.py.
     validations:
       required: true
 
@@ -63,9 +71,11 @@ body:
       options:
         - label: Baseline and skill used the same model/version, task set, tools, sampling settings and budget policy.
           required: true
-        - label: I did not remove failed runs, refusals or timeouts.
+        - label: I included the exact evaluated cases and did not remove failed runs, refusals or timeouts.
+          required: true
+        - label: comparison.json was generated from the submitted raw files and was not edited to improve the result.
           required: true
         - label: I did not include private chain-of-thought or fabricate unavailable telemetry.
           required: true
-        - label: I disclosed any modifications to SKILL.md, benchmark cases, wrappers or provider adapters.
+        - label: I disclosed modifications to SKILL.md, benchmark cases, wrappers or provider adapters.
           required: true
