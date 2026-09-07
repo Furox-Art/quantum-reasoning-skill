@@ -42,7 +42,7 @@ problem
 - [`benchmark/README.md`](./benchmark/README.md) — reproducible benchmark protocol and result schema
 - [`tests/`](./tests/) — behavioral tests for the controller and evaluator
 - GitHub Actions validation on pushes and pull requests
-- Automated tag and GitHub Release publishing when [`VERSION`](./VERSION) changes on `main`
+- Automated tag and GitHub Release publishing when the root `VERSION` file changes on `main`
 
 ## Core capabilities
 
