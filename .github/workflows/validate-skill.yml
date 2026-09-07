@@ -13,6 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Validate skill repository contract
         shell: bash
         run: |
@@ -21,9 +25,17 @@ jobs:
           test -s README.md
           test -s LICENSE
           test -s examples/usage.md
+          test -s reference/branch_controller.py
+          test -s docs/MEASUREMENT.md
+          test -s benchmark/README.md
+          test -s benchmark/cases.jsonl
+          test -s benchmark/evaluate.py
+          test -s tests/test_reference.py
+          test -s tests/test_benchmark.py
 
           python - <<'PY'
           from pathlib import Path
+          import json
           import re
 
           root = Path.cwd().resolve()
@@ -54,11 +66,23 @@ jobs:
               raise SystemExit("SKILL.md body is unexpectedly short")
 
           readme = (root / "README.md").read_text(encoding="utf-8")
-          for required in ("SKILL.md", "examples/usage.md"):
+          for required in (
+              "SKILL.md",
+              "examples/usage.md",
+              "reference/branch_controller.py",
+              "docs/MEASUREMENT.md",
+              "benchmark/README.md",
+          ):
               if required not in readme:
                   raise SystemExit(f"README.md must reference {required}")
 
-          markdown_files = [root / "README.md", root / "SKILL.md", root / "examples/usage.md"]
+          markdown_files = [
+              root / "README.md",
+              root / "SKILL.md",
+              root / "examples/usage.md",
+              root / "benchmark/README.md",
+              root / "docs/MEASUREMENT.md",
+          ]
           link_pattern = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
           for document in markdown_files:
               text = document.read_text(encoding="utf-8")
@@ -70,9 +94,46 @@ jobs:
                   try:
                       resolved.relative_to(root)
                   except ValueError as exc:
-                      raise SystemExit(f"{document.relative_to(root)} links outside the repository: {raw_target}") from exc
+                      raise SystemExit(
+                          f"{document.relative_to(root)} links outside the repository: {raw_target}"
+                      ) from exc
                   if not resolved.exists():
-                      raise SystemExit(f"Broken relative link in {document.relative_to(root)}: {raw_target}")
+                      raise SystemExit(
+                          f"Broken relative link in {document.relative_to(root)}: {raw_target}"
+                      )
+
+          case_path = root / "benchmark" / "cases.jsonl"
+          seen_ids = set()
+          for line_number, raw in enumerate(case_path.read_text(encoding="utf-8").splitlines(), start=1):
+              if not raw.strip():
+                  continue
+              try:
+                  case = json.loads(raw)
+              except json.JSONDecodeError as exc:
+                  raise SystemExit(f"benchmark/cases.jsonl:{line_number}: invalid JSON: {exc}") from exc
+              required = {"id", "domain", "prompt", "accepted_answers"}
+              missing = required - set(case)
+              if missing:
+                  raise SystemExit(
+                      f"benchmark/cases.jsonl:{line_number}: missing {sorted(missing)}"
+                  )
+              case_id = str(case["id"])
+              if case_id in seen_ids:
+                  raise SystemExit(f"duplicate benchmark case id: {case_id}")
+              seen_ids.add(case_id)
+              if not isinstance(case["accepted_answers"], list) or not case["accepted_answers"]:
+                  raise SystemExit(
+                      f"benchmark/cases.jsonl:{line_number}: accepted_answers must be non-empty"
+                  )
 
           print("Skill repository contract validated successfully.")
           PY
+
+      - name: Compile Python sources
+        run: python -m compileall -q reference benchmark tests
+
+      - name: Run behavioral tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Check benchmark CLI
+        run: python benchmark/evaluate.py --help > /dev/null
