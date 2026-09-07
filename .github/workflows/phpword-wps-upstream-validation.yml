@@ -47,13 +47,23 @@ jobs:
           cp -a /tmp/phpword-wps-patch/phpword-wps-patch/tests/PhpWordTests/Writer/WPSTest.php upstream/tests/PhpWordTests/Writer/WPSTest.php
           python3 - <<'PY'
           from pathlib import Path
-          path = Path('upstream/src/PhpWord/IOFactory.php')
-          text = path.read_text()
+
+          io = Path('upstream/src/PhpWord/IOFactory.php')
+          text = io.read_text()
           old = "['ODText', 'RTF', 'Word2007', 'HTML', 'PDF', 'EPub3']"
           new = "['ODText', 'RTF', 'Word2007', 'HTML', 'PDF', 'EPub3', 'WPS']"
           if text.count(old) != 1:
               raise SystemExit(f'Expected exactly one IOFactory writer list, found {text.count(old)}')
-          path.write_text(text.replace(old, new, 1))
+          io.write_text(text.replace(old, new, 1))
+
+          test = Path('upstream/tests/PhpWordTests/Writer/WPSTest.php')
+          text = test.read_text()
+          text = text.replace('use PhpOffice\\PhpWord\\Writer\\WPS\\Validator;\n', '')
+          old = '            $validation = (new Validator())->validateFile($file, "Hello Works\\rSecond paragraph\\r");\n'
+          new = '            $validation = $writer->getLastValidation();\n            self::assertNotNull($validation);\n'
+          if text.count(old) != 1:
+              raise SystemExit(f'Expected exactly one legacy text-only validation call, found {text.count(old)}')
+          test.write_text(text.replace(old, new, 1))
           PY
           cd upstream
           git diff --check
