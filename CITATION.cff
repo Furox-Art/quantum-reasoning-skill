@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software or reasoning protocol, please cite it using the metadata below."
+title: "Quantum Reasoning Skill"
+type: software
+authors:
+  - name: "Furox-Art"
+repository-code: "https://github.com/Furox-Art/quantum-reasoning-skill"
+url: "https://github.com/Furox-Art/quantum-reasoning-skill"
+license: MIT
+version: 0.3.0
+date-released: 2026-09-07
+keywords:
+  - reasoning
+  - language-models
+  - agent-systems
+  - test-time-compute
+  - benchmarking
