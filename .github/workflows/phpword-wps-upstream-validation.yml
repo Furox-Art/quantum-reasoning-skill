@@ -1,0 +1,58 @@
+name: PHPWord WPS upstream validation
+
+on:
+  push:
+    branches:
+      - ci/phpword-wps-upstream-validation
+
+permissions:
+  contents: read
+
+jobs:
+  upstream-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout CI harness
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, gd, xml, dom, json, fileinfo, curl, zip, iconv
+          coverage: none
+
+      - name: Clone current PHPWord master
+        run: git clone --depth 1 https://github.com/PHPOffice/PHPWord.git upstream
+
+      - name: Overlay WPS patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/phpword-wps-patch
+          mkdir -p /tmp/phpword-wps-patch
+          unzip -q phpword-wps-ci/phpword-wps-patch.zip -d /tmp/phpword-wps-patch
+          cp -a /tmp/phpword-wps-patch/phpword-wps-patch/src/PhpWord/Writer/WPS.php upstream/src/PhpWord/Writer/WPS.php
+          mkdir -p upstream/src/PhpWord/Writer/WPS
+          cp -a /tmp/phpword-wps-patch/phpword-wps-patch/src/PhpWord/Writer/WPS/. upstream/src/PhpWord/Writer/WPS/
+          cp -a /tmp/phpword-wps-patch/phpword-wps-patch/tests/PhpWordTests/Writer/WPSTest.php upstream/tests/PhpWordTests/Writer/WPSTest.php
+          cd upstream
+          patch -p1 < /tmp/phpword-wps-patch/phpword-wps-patch/iofactory.patch
+          git diff --check
+
+      - name: Validate Composer configuration
+        working-directory: upstream
+        run: composer validate --strict
+
+      - name: Install PHPWord development dependencies
+        working-directory: upstream
+        run: composer install --ansi --prefer-dist --no-interaction --no-progress
+
+      - name: Run WPS tests first
+        working-directory: upstream
+        run: ./vendor/bin/phpunit -c phpunit.xml.dist --no-coverage tests/PhpWordTests/Writer/WPSTest.php
+
+      - name: Run upstream composer check
+        working-directory: upstream
+        run: composer check
