@@ -43,7 +43,7 @@ problem
 - [`benchmark/cases.jsonl`](./benchmark/cases.jsonl) — deterministic seed cases
 - [`benchmark/evaluate.py`](./benchmark/evaluate.py) — baseline-vs-skill evaluator
 - [`benchmark/validate_submission.py`](./benchmark/validate_submission.py) — reproducible community-result bundle validator
-- [`benchmark/schemas/`](./benchmark/schemas/) — JSON Schema contracts for metadata, result rows and comparison output
+- [`benchmark/schemas/`](./benchmark/schemas/) — JSON Schema contracts for cases, metadata, result rows and comparison output
 - [`benchmark/README.md`](./benchmark/README.md) — reproducible benchmark protocol
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) — contribution and independent benchmark-submission policy
 - [`SECURITY.md`](./SECURITY.md) — vulnerability-reporting policy
@@ -125,4 +125,4 @@ Release publishing is repository-native and CI-gated. Update `CHANGELOG.md`, the
 
 ## Status
 
-**v0.3.0 — measurable prototype.** The branch-control mechanism, benchmark infrastructure, host compatibility contract and reproducibility controls are implemented. Real-model evaluation is intentionally delegated to independent users and contributors, and the project makes no universal performance claim without reproducible external evidence.
+**v0.3.1 — hardened measurable prototype.** The branch-control mechanism, benchmark infrastructure, host compatibility contract, community-result validation, repository security/citation metadata and CI-gated release controls are implemented. Real-model evaluation is intentionally delegated to independent users and contributors, and the project makes no universal performance claim without reproducible external evidence.
