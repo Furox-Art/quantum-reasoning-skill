@@ -2,6 +2,14 @@
 
 This directory measures whether the skill improves results rather than merely producing more reasoning text.
 
+## Who runs the benchmarks
+
+Real model evaluations are intentionally **community-run**. The repository supplies the benchmark protocol, seed cases, result schema and evaluator; users run experiments on the models/providers they have access to.
+
+Maintainer-run access to every commercial or local model is not required. The project therefore separates **benchmark infrastructure** from **third-party empirical results**.
+
+Submitted results are evidence from the contributor who produced them. They are not automatically endorsed by the project and should not be generalized beyond the tested model/version/configuration without replication.
+
 ## Principle
 
 Run the **same model, model version, task set, tool access, temperature/sampling settings, and token budget policy** twice:
@@ -97,8 +105,35 @@ For a publishable comparison, record at minimum:
 
 Use multiple repetitions for stochastic models and report confidence intervals. Keep benchmark cases separate from any prompts used while designing or tuning the skill.
 
+## Submitting community results
+
+Results can be submitted in either of two ways:
+
+1. Open a **Benchmark result** issue and provide the required metadata plus links/attachments to the result artifacts.
+2. Open a pull request containing a reproducible result bundle under:
+
+```text
+benchmark/results/community/<provider>-<model>-<YYYY-MM-DD>/
+```
+
+A benchmark-result PR should contain, where applicable:
+
+```text
+metadata.json
+baseline.jsonl
+skill.jsonl
+comparison.json
+README.md
+```
+
+Generate `comparison.json` with `benchmark/evaluate.py`; do not hand-edit the comparison to improve the reported result.
+
+See [`../CONTRIBUTING.md`](../CONTRIBUTING.md) for the complete submission and integrity policy.
+
 ## Interpretation
 
 A useful result is not simply "skill accuracy is higher". Report the trade-off between accuracy and compute. A skill that gains 1 percentage point while using 5x tokens may be undesirable for many workloads.
 
 The reference thresholds in `reference/branch_controller.py` are defaults to test, not validated constants. Benchmark evidence should drive later calibration.
+
+The project makes no universal performance claim from a single model, provider, benchmark or contributor submission. Independent replication is preferred.
