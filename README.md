@@ -29,21 +29,28 @@ problem
 - Expand search when uncertainty is high and concentrate compute when evidence is strong.
 - Detect correlated branches so repeated assumptions are not counted as independent evidence.
 - Keep high-information alternatives recoverable instead of deleting them too early.
-- Work across models and providers that support instruction-following skills.
+- Work across hosts that can preserve the skill instruction contract.
 - Make reasoning-control decisions measurable without exposing private chain-of-thought.
 
-## What the repository now contains
+## Repository contents
 
 - [`SKILL.md`](./SKILL.md) — model-facing protocol
 - [`reference/branch_controller.py`](./reference/branch_controller.py) — deterministic reference scoring, state transition, revival, uncertainty and collapse logic
 - [`docs/MEASUREMENT.md`](./docs/MEASUREMENT.md) — explicit formulas, thresholds and calibration requirements
+- [`docs/COMPATIBILITY.md`](./docs/COMPATIBILITY.md) — capability-based host compatibility contract
+- [`examples/usage.md`](./examples/usage.md) — task examples
+- [`examples/host-integration.md`](./examples/host-integration.md) — generic host integration patterns
 - [`benchmark/cases.jsonl`](./benchmark/cases.jsonl) — deterministic seed cases
-- [`benchmark/evaluate.py`](./benchmark/evaluate.py) — baseline-vs-skill evaluator for accuracy, cost, latency and control telemetry
-- [`benchmark/README.md`](./benchmark/README.md) — reproducible benchmark protocol and result schema
+- [`benchmark/evaluate.py`](./benchmark/evaluate.py) — baseline-vs-skill evaluator
+- [`benchmark/validate_submission.py`](./benchmark/validate_submission.py) — reproducible community-result bundle validator
+- [`benchmark/schemas/`](./benchmark/schemas/) — JSON Schema contracts for metadata, result rows and comparison output
+- [`benchmark/README.md`](./benchmark/README.md) — reproducible benchmark protocol
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) — contribution and independent benchmark-submission policy
-- [`tests/`](./tests/) — behavioral tests for the controller and evaluator
+- [`SECURITY.md`](./SECURITY.md) — vulnerability-reporting policy
+- [`CITATION.cff`](./CITATION.cff) — citation metadata
+- [`tests/`](./tests/) — behavioral and validation tests
 - GitHub Actions validation on pushes and pull requests
-- Automated tag and GitHub Release publishing when the root `VERSION` file changes on `main`
+- CI-gated automated tag and GitHub Release publishing
 
 ## Core capabilities
 
@@ -64,7 +71,7 @@ problem
 
 Install or provide `SKILL.md` to a compatible agent/skill system, then invoke it for difficult reasoning tasks. No Python package or model fine-tuning is required to use the skill itself.
 
-See [`examples/usage.md`](./examples/usage.md) for prompt examples.
+See [`docs/COMPATIBILITY.md`](./docs/COMPATIBILITY.md) before integrating a new host and [`examples/host-integration.md`](./examples/host-integration.md) for generic installation patterns.
 
 The Python reference implementation is optional. It exists to make the qualitative policy auditable and testable:
 
@@ -74,7 +81,7 @@ from reference.branch_controller import Branch, BranchMetrics, collapse_decision
 
 ## Benchmarking
 
-The repository provides the **protocol, cases, result schema and evaluator** needed to test the skill. Real model evaluations are intentionally **community-run**: users test the models/providers they have access to and may submit reproducible results back to the project.
+The repository provides the **protocol, cases, schemas, evaluator and submission validator** needed to test the skill. Real model evaluations are intentionally **community-run**: users test the models/providers they have access to and may submit reproducible results back to the project.
 
 The project does not require the maintainer to run every commercial or local model, and it does not treat the absence of maintainer-run model tests as a missing implementation feature.
 
@@ -85,10 +92,16 @@ python benchmark/evaluate.py \
   --cases benchmark/cases.jsonl \
   --baseline path/to/baseline-results.jsonl \
   --skill path/to/skill-results.jsonl \
-  --output benchmark/results/comparison.json
+  --output comparison.json
 ```
 
-The evaluator measures exact-answer accuracy, token use, tool calls, latency, branch diversity, revival/error recovery and contradiction resolution when those telemetry fields are available.
+Community PR bundles are machine-checked. They must contain their own `cases.jsonl`, raw baseline and skill JSONL files, metadata, the generated comparison output and a short README. CI recomputes the comparison and rejects tampered or incomplete bundles.
+
+```bash
+python benchmark/validate_submission.py \
+  --root benchmark/results/community \
+  --allow-empty
+```
 
 Third-party results remain measurements from their submitters, not automatic project endorsements or universal performance claims. A single positive run is not enough to claim general improvement.
 
@@ -101,14 +114,15 @@ Run the repository checks locally with:
 ```bash
 python -m unittest discover -s tests -v
 python benchmark/evaluate.py --help
+python benchmark/validate_submission.py --root benchmark/results/community --allow-empty
 ```
 
-CI also validates the skill contract, links, Python syntax, benchmark seed data and unit tests.
+CI validates the skill contract, local links, Python syntax, benchmark seed data, JSON Schema files, community benchmark bundles and behavioral tests. Third-party GitHub Actions are pinned to exact commit SHAs.
 
 ## Releases
 
-Release publishing is repository-native. Update `CHANGELOG.md`, then change the root `VERSION` file to a semantic version such as `0.3.0`. The `publish-release` GitHub Actions workflow creates the corresponding `v0.3.0` tag and GitHub Release. The same workflow can also be started manually from the Actions tab.
+Release publishing is repository-native and CI-gated. Update `CHANGELOG.md`, then change the root `VERSION` file to a semantic version. A release is considered only after the `validate-skill` workflow succeeds on `main`; the `publish-release` workflow then creates the corresponding `v<version>` tag and GitHub Release if it does not already exist.
 
 ## Status
 
-**v0.3.0 — measurable prototype.** The branch-control mechanism and benchmark infrastructure are implemented. Real-model evaluation is intentionally delegated to independent users and contributors, and the project makes no universal performance claim without reproducible external evidence.
+**v0.3.0 — measurable prototype.** The branch-control mechanism, benchmark infrastructure, host compatibility contract and reproducibility controls are implemented. Real-model evaluation is intentionally delegated to independent users and contributors, and the project makes no universal performance claim without reproducible external evidence.
