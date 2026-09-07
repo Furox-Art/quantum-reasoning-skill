@@ -1,0 +1,31 @@
+name: Feature request
+description: Propose a change to the reasoning protocol, tooling, benchmarks, or integration contract.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or limitation
+      description: What concrete limitation does this proposal address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the behavior or interface you want to add or change.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence or evaluation plan
+      description: If this affects reasoning quality, explain how it could be tested without relying on anecdotal examples alone.
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This proposal does not present unverified benchmark claims as established results.
+          required: true
