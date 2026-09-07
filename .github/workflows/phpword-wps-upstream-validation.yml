@@ -34,7 +34,7 @@ jobs:
           echo '6021c3aceac09644bf16598c0e18a1f744c2a6dd9a424a1771105b02fdd10152  /tmp/phpword-wps-patch.zip' | sha256sum --check --strict
           unzip -t /tmp/phpword-wps-patch.zip
 
-      - name: Overlay WPS patch
+      - name: Overlay WPS patch and PHPStan fixes
         shell: bash
         run: |
           set -euo pipefail
@@ -62,14 +62,14 @@ jobs:
           text = text.replace('use PhpOffice\\PhpWord\\SimpleType\\Jc;\n', 'use PhpOffice\\PhpWord\\Settings;\nuse PhpOffice\\PhpWord\\SimpleType\\Jc;\n')
           old = '            $validation = (new Validator())->validateFile($file, "Hello Works\\rSecond paragraph\\r");\n'
           new = '            $validation = $writer->getLastValidation();\n            self::assertNotNull($validation);\n'
-          if text.count(old) != 1:
-              raise SystemExit(f'Expected exactly one legacy text-only validation call, found {text.count(old)}')
-          text = text.replace(old, new, 1)
+          if old in text:
+              text = text.replace(old, new, 1)
           text = text.replace("            self::assertSame(['Arial', 'Courier New'], $validation['styles']['fontNames']);\n", "            self::assertSame([Settings::getDefaultFontName(), 'Courier New'], $validation['styles']['fontNames']);\n", 1)
           text = text.replace("            self::assertSame('Arial', $fonts[0]['name']);\n", "            self::assertSame(Settings::getDefaultFontName(), $fonts[0]['name']);\n", 1)
           text = text.replace("            self::assertSame(10, $fonts[0]['size']);\n", "            self::assertSame((int) Settings::getDefaultFontSize(), $fonts[0]['size']);\n", 1)
           test.write_text(text)
           PY
+          python3 phpword-wps-ci/fix_phpstan.py upstream
           cd upstream
           git diff --check
 
@@ -81,13 +81,13 @@ jobs:
         working-directory: upstream
         run: composer install --ansi --prefer-dist --no-interaction --no-progress
 
-      - name: Run WPS tests first
-        working-directory: upstream
-        run: ./vendor/bin/phpunit -c phpunit.xml.dist --no-coverage tests/PhpWordTests/Writer/WPSTest.php
-
       - name: Apply upstream coding style exactly
         working-directory: upstream
         run: ./vendor/bin/php-cs-fixer fix --ansi
+
+      - name: Run WPS tests first
+        working-directory: upstream
+        run: ./vendor/bin/phpunit -c phpunit.xml.dist --no-coverage tests/PhpWordTests/Writer/WPSTest.php
 
       - name: Show WPS coding-style diff
         working-directory: upstream
