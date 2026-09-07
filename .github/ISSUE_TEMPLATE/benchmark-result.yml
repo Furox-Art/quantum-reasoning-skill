@@ -1,0 +1,71 @@
+name: Benchmark result
+description: Submit an independently run baseline-vs-skill model evaluation
+title: "[Benchmark] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing Quantum Reasoning Skill. Submit reproducible measurements only. Do not include private chain-of-thought.
+
+  - type: input
+    id: provider
+    attributes:
+      label: Provider
+      placeholder: OpenAI, Anthropic, Google, local runtime, etc.
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Exact model / version
+      placeholder: Exact model identifier and version if available
+    validations:
+      required: true
+
+  - type: input
+    id: run_date
+    attributes:
+      label: Run date
+      placeholder: YYYY-MM-DD
+    validations:
+      required: true
+
+  - type: textarea
+    id: controls
+    attributes:
+      label: Experimental controls
+      description: Describe sampling settings, token/context limits, tools, repetitions, seeds, prompt wrapper and hardware/runtime when relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: Result artifacts
+      description: Link or attach baseline.jsonl, skill.jsonl, comparison.json and metadata.json when available.
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Result summary
+      description: Report accuracy and compute/cost trade-offs. Include failures, refusals and timeouts.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: integrity
+    attributes:
+      label: Integrity checks
+      options:
+        - label: Baseline and skill used the same model/version, task set, tools, sampling settings and budget policy.
+          required: true
+        - label: I did not remove failed runs, refusals or timeouts.
+          required: true
+        - label: I did not include private chain-of-thought or fabricate unavailable telemetry.
+          required: true
+        - label: I disclosed any modifications to SKILL.md, benchmark cases, wrappers or provider adapters.
+          required: true

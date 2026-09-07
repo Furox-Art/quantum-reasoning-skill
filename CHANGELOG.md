@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- Community benchmark contribution policy in `CONTRIBUTING.md`.
+- GitHub **Benchmark result** issue template for independently run baseline-vs-skill evaluations.
+
+### Changed
+
+- Benchmark documentation now explicitly assigns real-model evaluation to users and contributors rather than requiring maintainer-run access to every model/provider.
+- Third-party benchmark submissions are treated as reproducible external measurements, not automatic project endorsements or universal performance claims.
+
 ## [0.3.0] - 2026-09-07
 
 ### Added

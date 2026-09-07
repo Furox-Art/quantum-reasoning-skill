@@ -40,6 +40,7 @@ problem
 - [`benchmark/cases.jsonl`](./benchmark/cases.jsonl) — deterministic seed cases
 - [`benchmark/evaluate.py`](./benchmark/evaluate.py) — baseline-vs-skill evaluator for accuracy, cost, latency and control telemetry
 - [`benchmark/README.md`](./benchmark/README.md) — reproducible benchmark protocol and result schema
+- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — contribution and independent benchmark-submission policy
 - [`tests/`](./tests/) — behavioral tests for the controller and evaluator
 - GitHub Actions validation on pushes and pull requests
 - Automated tag and GitHub Release publishing when the root `VERSION` file changes on `main`
@@ -73,7 +74,11 @@ from reference.branch_controller import Branch, BranchMetrics, collapse_decision
 
 ## Benchmarking
 
-Do not treat the repository's reference thresholds as proof that the skill improves a model. The intended test is a controlled A/B comparison using the **same model, task set, tools and decoding configuration** with and without `SKILL.md`.
+The repository provides the **protocol, cases, result schema and evaluator** needed to test the skill. Real model evaluations are intentionally **community-run**: users test the models/providers they have access to and may submit reproducible results back to the project.
+
+The project does not require the maintainer to run every commercial or local model, and it does not treat the absence of maintainer-run model tests as a missing implementation feature.
+
+A valid comparison uses the **same model, model version, task set, tool access, temperature/sampling settings and token-budget policy** with and without `SKILL.md`.
 
 ```bash
 python benchmark/evaluate.py \
@@ -85,7 +90,9 @@ python benchmark/evaluate.py \
 
 The evaluator measures exact-answer accuracy, token use, tool calls, latency, branch diversity, revival/error recovery and contradiction resolution when those telemetry fields are available.
 
-See [`benchmark/README.md`](./benchmark/README.md) for the complete protocol.
+Third-party results remain measurements from their submitters, not automatic project endorsements or universal performance claims. A single positive run is not enough to claim general improvement.
+
+Users can submit results through the **Benchmark result** issue template or as a reproducible benchmark-result pull request. See [`benchmark/README.md`](./benchmark/README.md) and [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## Validation
 
@@ -104,4 +111,4 @@ Release publishing is repository-native. Update `CHANGELOG.md`, then change the 
 
 ## Status
 
-**v0.3.0 — measurable prototype.** The branch-control mechanism and benchmark infrastructure exist, but no empirical performance improvement is claimed until controlled model runs are collected and published.
+**v0.3.0 — measurable prototype.** The branch-control mechanism and benchmark infrastructure are implemented. Real-model evaluation is intentionally delegated to independent users and contributors, and the project makes no universal performance claim without reproducible external evidence.
