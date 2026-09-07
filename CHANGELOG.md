@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-07
+
 ### Added
 
 - Deterministic reference branch controller with explicit scoring and state transitions.
@@ -17,6 +19,7 @@ All notable changes to this project are documented here.
 - Benchmark evaluator for accuracy, token/tool cost, latency, branch diversity, error recovery and contradiction resolution.
 - Behavioral unit tests for the branch controller and benchmark evaluator.
 - CI checks for Python compilation, benchmark schema validation and behavioral tests.
+- Automated GitHub tag and Release publishing driven by the `VERSION` file.
 
 ### Changed
 
