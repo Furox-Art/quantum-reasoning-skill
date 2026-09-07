@@ -59,11 +59,16 @@ jobs:
           test = Path('upstream/tests/PhpWordTests/Writer/WPSTest.php')
           text = test.read_text()
           text = text.replace('use PhpOffice\\PhpWord\\Writer\\WPS\\Validator;\n', '')
+          text = text.replace('use PhpOffice\\PhpWord\\SimpleType\\Jc;\n', 'use PhpOffice\\PhpWord\\Settings;\nuse PhpOffice\\PhpWord\\SimpleType\\Jc;\n')
           old = '            $validation = (new Validator())->validateFile($file, "Hello Works\\rSecond paragraph\\r");\n'
           new = '            $validation = $writer->getLastValidation();\n            self::assertNotNull($validation);\n'
           if text.count(old) != 1:
               raise SystemExit(f'Expected exactly one legacy text-only validation call, found {text.count(old)}')
-          test.write_text(text.replace(old, new, 1))
+          text = text.replace(old, new, 1)
+          text = text.replace("            self::assertSame(['Arial', 'Courier New'], $validation['styles']['fontNames']);\n", "            self::assertSame([Settings::getDefaultFontName(), 'Courier New'], $validation['styles']['fontNames']);\n", 1)
+          text = text.replace("            self::assertSame('Arial', $fonts[0]['name']);\n", "            self::assertSame(Settings::getDefaultFontName(), $fonts[0]['name']);\n", 1)
+          text = text.replace("            self::assertSame(10, $fonts[0]['size']);\n", "            self::assertSame((int) Settings::getDefaultFontSize(), $fonts[0]['size']);\n", 1)
+          test.write_text(text)
           PY
           cd upstream
           git diff --check
