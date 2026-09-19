@@ -1,4 +1,9 @@
 # Quantum Reasoning Skill
+> **Superseded:** this standalone skill was merged into **Axiomize 2.0** and now lives as
+> `axiomize.reasoning` in **[Furox-Art/axiomize-quantum-skills-2.0](https://github.com/Furox-Art/axiomize-quantum-skills-2.0)**,
+> where it ships next to the scientific modeling engine as `skills/quantum-reasoning/`.
+> New work, issues, and contributions should go to the Axiomize repo. This repository is kept
+> for historical reference and will be archived.
 
 A **model-agnostic reasoning skill** that keeps multiple genuinely different possibilities alive, verifies and compares them, suppresses weak paths, revives useful alternatives when evidence changes, and selects the best-supported result only at the end.
 
