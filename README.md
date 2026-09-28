@@ -4,30 +4,29 @@
 [![npm](https://img.shields.io/npm/v/quantum-reasoning-skill)](https://www.npmjs.com/package/quantum-reasoning-skill)  
 ![License](https://img.shields.io/badge/license-MIT-blue)  
   
-A **model-agnostic reasoning skill** that keeps multiple genuinely different possibilities alive, verifies and compares them, suppresses weak paths, revives useful alternatives when evidence changes, and selects the best-supported result only at the end.  
+I built this because I noticed that most AI reasoning goes like this:  
   
-## When to use  
+1. Here's a plausible answer  
+2. Let me justify it  
+3. Done  
   
-Use this skill when a problem is difficult, ambiguous, high-stakes, multi-step, or vulnerable to early commitment: mathematics, scientific reasoning, debugging, planning, architecture, model selection, hypothesis testing, and technical diagnosis.  
+That's backwards. Real thinking explores multiple paths, tests them against evidence, and only commits when the alternatives have been genuinely eliminated.  
   
-Do not add branching overhead to trivial questions.  
+This skill forces that process. It keeps multiple hypotheses alive, assigns them probabilities based on actual evidence (not just "sounds good"), and collapses to a conclusion only when one path is clearly better supported than the rest.  
   
-## Core protocol  
+## The protocol  
   
-### 1. Frame the state  
+1. **Frame the problem** - what do we actually know vs. assume?  
+2. **Open branches** - generate genuinely different approaches, not paraphrases  
+3. **Evaluate independently** - each branch gets judged on evidence, not eloquence  
+4. **Cross-check** - branches that reach the same conclusion independently get boosted  
+5. **Prune and revive** - kill contradicted paths, but keep dormant ones that might come back  
+6. **Collapse** - only when one answer is clearly better than the rest  
   
-Identify the objective, constraints, verified facts, assumptions, unknowns, and available tools. Keep facts separate from hypotheses.  
+## Why "quantum"?  
   
-### 2. Open a diverse possibility set  
+It's a metaphor, not a claim about actual quantum computing. The idea is to keep possibilities in superposition until measurement (evidence) forces a collapse. Most AI systems measure too early.  
   
-Create several materially different candidate paths. Diversity is mandatory: do not count paraphrases, cosmetic variants, or branches that depend on the same hidden assumption as independent possibilities.  
+## License  
   
-Prefer orthogonal strategy classes when applicable, such as:  
-  
-- direct derivation  
-- counterexample / falsification  
-- decomposition  
-- alternative model or mechanism  
-- numerical or executable test  
-- independent reconstruction  
-- adversarial critique 
+MIT. 
