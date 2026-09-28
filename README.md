@@ -1,10 +1,15 @@
-# Quantum Reasoning Skill
-> **Superseded:** this standalone skill was merged into **Axiomize 2.0** and now lives as
-> `axiomize.reasoning` in **[Furox-Art/axiomize-quantum-skills-2.0](https://github.com/Furox-Art/axiomize-quantum-skills-2.0)**,
-> where it ships next to the scientific modeling engine as `skills/quantum-reasoning/`.
-> New work, issues, and contributions should go to the Axiomize repo. This repository is kept
-> for historical reference and will be archived.
-
+# Quantum Reasoning Skill  
+  
+[![PyPI](https://img.shields.io/pypi/v/quantum-reasoning-skill)](https://pypi.org/project/quantum-reasoning-skill/)  
+[![npm](https://img.shields.io/npm/v/quantum-reasoning-skill)](https://www.npmjs.com/package/quantum-reasoning-skill)  
+![License](https://img.shields.io/badge/license-MIT-blue)  
+  
+> **Superseded:** this standalone skill was merged into **Axiomize 2.0** and now lives as  
+> `axiomize.reasoning` in **[Furox-Art/axiomize-quantum-skills-2.0](https://github.com/Furox-Art/axiomize-quantum-skills-2.0)**,  
+> where it ships next to the scientific modeling engine as `skills/quantum-reasoning/`.  
+> New work, issues, and contributions should go to the Axiomize repo. This repository is kept  
+> for historical reference and will be archived.  
+  
 A **model-agnostic reasoning skill** that keeps multiple genuinely different possibilities alive, verifies and compares them, suppresses weak paths, revives useful alternatives when evidence changes, and selects the best-supported result only at the end.
 
 > This is quantum-inspired classical reasoning, not quantum computation.
@@ -131,3 +136,4 @@ Release publishing is repository-native and CI-gated. Update `CHANGELOG.md`, the
 ## Status
 
 **v0.3.1 — hardened measurable prototype.** The branch-control mechanism, benchmark infrastructure, host compatibility contract, community-result validation, repository security/citation metadata and CI-gated release controls are implemented. Real-model evaluation is intentionally delegated to independent users and contributors, and the project makes no universal performance claim without reproducible external evidence.
+
