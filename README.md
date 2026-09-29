@@ -27,6 +27,14 @@ This skill forces that process. It keeps multiple hypotheses alive, assigns them
   
 It's a metaphor, not a claim about actual quantum computing. The idea is to keep possibilities in superposition until measurement (evidence) forces a collapse. Most AI systems measure too early.  
   
+## Common use cases
+
+- **Multi-branch reasoning** for difficult questions where one early answer can anchor the rest of the analysis.
+- **AI agent planning and decision support** with explicit competing hypotheses.
+- Evidence-based **problem solving, search, pruning, and branch selection**.
+- Scientific or technical analysis where independent approaches should be compared before a conclusion is chosen.
+- Benchmarking reasoning systems that need an inspectable explore-score-prune-merge protocol.
+
 ## Documentation
 
 - [SKILL.md](SKILL.md) — agent skill contract and protocol
