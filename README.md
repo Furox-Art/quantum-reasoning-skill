@@ -27,6 +27,19 @@ This skill forces that process. It keeps multiple hypotheses alive, assigns them
   
 It's a metaphor, not a claim about actual quantum computing. The idea is to keep possibilities in superposition until measurement (evidence) forces a collapse. Most AI systems measure too early.  
   
+## Documentation
+
+- [SKILL.md](SKILL.md) — agent skill contract and protocol
+- [Usage examples](examples/usage.md)
+- [Host integration](examples/host-integration.md)
+- [Branch controller reference](reference/branch_controller.py)
+- [Measurement methodology](docs/MEASUREMENT.md)
+- [Compatibility notes](docs/COMPATIBILITY.md)
+- [Benchmark documentation](benchmark/README.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security](SECURITY.md)
+- [Citation metadata](CITATION.cff)
+
 ## License  
   
 MIT. 
