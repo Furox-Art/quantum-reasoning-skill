@@ -5,17 +5,21 @@ build-backend = "hatchling.build"
 [project]  
 name = "quantum-reasoning-skill"  
 version = "1.0.0"  
-description = "Quantum-inspired reasoning skill for exploring multiple solution paths"  
+description = "Quantum-inspired multi-branch reasoning for AI agents: explore, score, prune, and merge solution paths"  
 readme = "README.md"  
 license = "MIT"  
 requires-python = ">=3.10"  
 authors = [{ name = "Furox-Art" }]  
-keywords = ["ai-agents", "reasoning", "quantum-inspired", "multi-branch"]  
+keywords = ["ai-agents", "llm-agents", "agent-skills", "reasoning", "quantum-inspired", "multi-branch", "decision-making", "problem-solving", "planning", "search"]  
 classifiers = [  
   "Development Status :: 4 - Beta",  
-  "Intended Audience :: Developers",  
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",  
   "License :: OSI Approved :: MIT License",  
-  "Programming Language :: Python :: 3",  
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Utilities",  
 ]  
 dependencies = []  
   
