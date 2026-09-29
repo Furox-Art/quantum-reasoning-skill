@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"  
 requires-python = ">=3.10"  
 authors = [{ name = "Furox-Art" }]  
-keywords = ["ai-agents", "llm-agents", "agent-skills", "reasoning", "quantum-inspired", "multi-branch", "decision-making", "problem-solving", "planning", "search"]  
+keywords = ["ai-agents", "llm-agents", "agent-skills", "claude-skill", "reasoning", "quantum-inspired", "multi-branch", "multi-hypothesis", "decision-making", "problem-solving", "planning", "search", "tree-of-thought", "exploration", "mcp", "verification"]  
 classifiers = [  
   "Development Status :: 4 - Beta",  
   "Intended Audience :: Developers",
