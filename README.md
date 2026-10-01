@@ -2,8 +2,8 @@
   
 [![PyPI](https://img.shields.io/pypi/v/quantum-reasoning-skill)](https://pypi.org/project/quantum-reasoning-skill/)  
 [![npm](https://img.shields.io/npm/v/quantum-reasoning-skill)](https://www.npmjs.com/package/quantum-reasoning-skill)  
-![PyPI Downloads](https://img.shields.io/pypi/dm/quantum-reasoning-skill)  
-![License](https://img.shields.io/badge/license-MIT-blue)  
+[![PyPI stats](https://img.shields.io/badge/PyPI%20stats-informational)](https://pypi.org/project/quantum-reasoning-skill/#stats)  
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)  
   
 I built this because I noticed that most AI reasoning goes like this:  
   
