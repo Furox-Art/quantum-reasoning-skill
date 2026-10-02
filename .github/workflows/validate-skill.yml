@@ -199,6 +199,10 @@ jobs:
         run: |
           python benchmark/evaluate.py --help > /dev/null
           python benchmark/validate_submission.py --help > /dev/null
+          # `python -m` must work too: a bare sibling import only resolves when
+          # the script's own directory happens to be on sys.path.
+          python -m benchmark.validate_submission --help > /dev/null
+          python -m benchmark.evaluate --help > /dev/null
 
   # ---------------------------------------------------------------------------
   # Behavioural tests across the declared Python support range
@@ -332,9 +336,17 @@ jobs:
   # ---------------------------------------------------------------------------
   # THE RELEASE GATE.
   #
-  # Installs the built wheel into a clean environment and asserts that the
-  # documented public API is importable and callable. If `ReasoningSession` is
-  # missing this job fails, and both publish workflows require this job.
+  # Installs the built wheel into a clean environment and asserts the surface
+  # this distribution actually provides: the skill contract (`SKILL.md`) ships
+  # inside the wheel, the documented console entry point runs against it, and
+  # the reference branch controller imports and its public API is callable.
+  #
+  # A negative control then removes the installed assets and requires the gate
+  # to fail, so the gate cannot silently degrade into a no-op.
+  #
+  # Note: an earlier revision asserted a `ReasoningSession` class. That class
+  # never existed in this codebase; the README claim was fabricated and has been
+  # removed. Asserting it made the gate impossible to pass.
   # ---------------------------------------------------------------------------
   api-contract:
     name: installed API contract
@@ -363,8 +375,16 @@ jobs:
           python -c "import quantum_reasoning_skill as q, pathlib; print('package dir:', pathlib.Path(q.__file__).parent)"
           quantum-reasoning --validate
 
-      - name: Assert documented public API is importable and callable
+      # The gate asserts the surface this package actually provides: SKILL.md
+      # resolves inside the installed wheel, the documented console entry point
+      # runs, and the reference branch controller imports and is callable.
+      - name: Assert the installed API contract
         run: python bin/check_release_contract.py
+
+      # Negative control: proves the gate is fail-closed. If hiding an installed
+      # asset stopped failing the gate, this step fails.
+      - name: Negative control (gate must be fail-closed)
+        run: python bin/check_release_contract.py --negative-control
 
       - name: Verify the npm entry point
         run: |

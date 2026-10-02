@@ -19,12 +19,21 @@ All notable changes to this project are documented here.
   `CITATION.cff`, `CHANGELOG.md` and the installed metadata are now asserted to
   be identical by CI.
 
+### Fixed
+
+- `benchmark/validate_submission.py` used a bare `import evaluate`, which only
+  resolved when the script's own directory happened to be on `sys.path`.
+  `python -m benchmark.validate_submission` failed with `ModuleNotFoundError`;
+  both invocations now work.
+
 ### Added
 
 - `bin/quantum-reasoning` console script that validates the packaged skill
   contract, installable via `pip install quantum-reasoning-skill`.
 - A release contract gate that installs the built wheel and fails the release
-  unless the documented public API is importable and callable.
+  unless the skill contract ships in the distribution, the documented console
+  entry point runs, and the reference branch controller imports and is callable.
+  A negative control proves the gate fails when an installed asset is removed.
 - CI jobs for lint (`ruff`), type checking (`mypy --strict`) and coverage with a
   ratcheting threshold.
 - CI build job that runs `python -m build` and `twine check` on every change.

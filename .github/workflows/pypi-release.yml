@@ -76,9 +76,10 @@ jobs:
           python -m build --outdir dist
           python -m twine check --strict dist/*
 
-      # The API gate is re-run here so a release can never be produced from a
-      # commit whose wheel does not expose the documented public API. It is the
-      # same check CI enforces, re-executed against the freshly built wheel.
+      # The contract gate is re-run here so a release can never be produced from
+      # a commit whose wheel does not carry the skill contract, the console entry
+      # point, and a working reference controller. Same check CI enforces,
+      # re-executed against the freshly built wheel.
       - name: Install the built wheel
         run: |
           set -euo pipefail
@@ -87,8 +88,11 @@ jobs:
           python -m pip install --disable-pip-version-check "$wheel"
           quantum-reasoning --validate
 
-      - name: Assert documented public API is importable and callable
+      - name: Assert the installed distribution contract
         run: python bin/check_release_contract.py
+
+      - name: Negative control (gate must be fail-closed)
+        run: python bin/check_release_contract.py --negative-control
 
       - name: Detect API token fallback
         id: auth
