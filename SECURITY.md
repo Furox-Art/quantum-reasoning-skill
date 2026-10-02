@@ -6,12 +6,43 @@ Security fixes are applied to the current `main` branch and the latest published
 
 ## Reporting a vulnerability
 
-Do not publish exploit details, credentials, tokens, private benchmark data, or other sensitive material in a public issue.
+**Do not open a public issue containing vulnerability details.** Not in the body, not in an
+attachment, not in a linked gist or paste.
 
-Prefer GitHub's private **Report a vulnerability** / Security Advisory flow when it is available for this repository. If that private channel is unavailable, open a minimal public issue that only requests a private contact path and does not include vulnerability details.
+This repository does not publish a security contact address. To reach the maintainer
+privately, use whichever channel is available to you:
+
+1. **GitHub private reporting** — if this repository has GitHub's private vulnerability
+   reporting enabled, use *Security* → *Report a vulnerability* on the Security tab. This
+   opens a private advisory visible only to the maintainer and you.
+2. **GitHub private message** — send a private message to the maintainer's GitHub profile
+   asking for a private channel. Describe only the component and the rough impact.
+3. **Public issue without details** — as a last resort, open an issue titled
+   `Security: private contact requested`, stating only that you have a security report and
+   asking for a private contact path. Do not describe the vulnerability, the affected file,
+   or a proof of concept in that issue.
+
+Include in the private report, when you can:
+
+- the affected component and file paths;
+- the `git commit` you tested (`git rev-parse HEAD`);
+- reproduction steps or a proof of concept;
+- the impact you believe it has, and any suggested mitigation.
+
+## What to expect
+
+- Acknowledgement of a valid report, and a fix or a documented decision not to fix.
+- Credit in the release notes, if you want it.
+- Please give maintainers reasonable time to publish a fix before disclosing publicly.
 
 ## Scope
 
-Relevant reports include vulnerabilities in repository automation, benchmark ingestion/validation, release workflows, or reference code that could cause untrusted contributed content to execute unexpectedly, alter releases, or expose secrets.
+Relevant reports include vulnerabilities in repository automation, benchmark ingestion and
+validation, release workflows, or reference code that could cause untrusted contributed
+content to execute unexpectedly, alter a published release, or expose secrets. The CI
+supply chain — pinned GitHub Actions, PyPI trusted publishing, npm publish — is in scope.
 
-Reasoning-quality disagreements and ordinary protocol bugs are not security vulnerabilities; use the normal bug-report issue form for those.
+Reasoning-quality disagreements and ordinary protocol bugs are **not** security
+vulnerabilities. Use the [bug report](https://github.com/Furox-Art/quantum-reasoning-skill/issues/new?template=bug-report.yml)
+form for those, and the
+[Code of Conduct](CODE_OF_CONDUCT.md) for conduct concerns.
