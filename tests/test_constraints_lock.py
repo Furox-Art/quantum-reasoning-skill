@@ -22,8 +22,20 @@ CONSTRAINTS = ROOT / "constraints.txt"
 PIN_RE = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)==([A-Za-z0-9][A-Za-z0-9.*+!-]*)\s*\\?$")
 HASH_RE = re.compile(r"^--hash=sha256:([0-9a-f]{64})\s*\\?$")
 
-#: Tools whose absence would reintroduce the unpinned-install problem.
-REQUIRED_TOOLS = ("build", "twine", "pip-audit", "hatchling")
+#: Tools the repository pins in pyproject.toml, plus the scanner used to verify
+#: this lock. A missing entry means the lock has drifted from the declared pins.
+REQUIRED_TOOLS = ("build", "coverage", "mypy", "ruff", "twine", "hatchling", "pip-audit")
+
+#: Versions pyproject.toml pins directly. These must match exactly, otherwise the
+#: lock and the build configuration disagree about what CI will run.
+PYPROJECT_PINS = {
+    "build": "1.2.2.post1",
+    "coverage": "7.6.12",
+    "mypy": "1.11.2",
+    "ruff": "0.7.4",
+    "twine": "6.1.0",
+    "hatchling": "1.27.0",
+}
 
 #: Markers that would mean the lock accepts floating versions.
 FLOATING_MARKERS = (">=", "<=", "~=", "==*", " @ ", "latest")
@@ -108,6 +120,31 @@ class ConstraintsLockTests(unittest.TestCase):
         for tool in REQUIRED_TOOLS:
             with self.subTest(tool=tool):
                 self.assertIn(tool, present, f"{tool} is missing from the lock")
+
+    def test_lock_agrees_with_the_pins_in_pyproject(self):
+        """The lock must match the versions pyproject.toml pins directly."""
+        for tool, expected in PYPROJECT_PINS.items():
+            with self.subTest(tool=tool):
+                entry = self.entries.get(tool)
+                self.assertIsNotNone(entry, f"{tool} missing from the lock")
+                self.assertEqual(
+                    entry["version"],
+                    expected,
+                    f"constraints.txt pins {tool}=={entry['version']} but "
+                    f"pyproject.toml pins {tool}=={expected}",
+                )
+
+    def test_pyproject_dev_group_is_fully_covered(self):
+        """Every ``name==version`` in pyproject's dev group must appear in the lock."""
+        pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+        declared = set(re.findall(r'"([A-Za-z0-9][A-Za-z0-9._-]*)==([^"]+)"', pyproject))
+        self.assertTrue(declared, "no pinned requirement found in pyproject.toml")
+        for name, version in sorted(declared):
+            key = name.lower().replace("_", "-")
+            with self.subTest(requirement=name):
+                entry = self.entries.get(key)
+                self.assertIsNotNone(entry, f"pyproject pins {name} but the lock omits it")
+                self.assertEqual(entry["version"], version)
 
     def test_no_top_level_install_requires_other_than_the_pin(self):
         """Nothing may smuggle in an unpinned install alongside the pins."""

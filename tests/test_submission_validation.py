@@ -1,4 +1,5 @@
 from __future__ import annotations
+import importlib
 import json
 import sys
 import tempfile
@@ -9,11 +10,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-# Imported through the package so these tests exercise the same import path the
+# Resolved through the package so these tests exercise the same import path the
 # tooling uses, and so nothing is registered in sys.modules under a bare name
 # that could shadow (or be shadowed by) the repository's own modules.
-from benchmark import evaluate
-from benchmark import validate_submission as validator
+evaluate = importlib.import_module("benchmark.evaluate")
+validator = importlib.import_module("benchmark.validate_submission")
 
 
 class SubmissionValidationTests(unittest.TestCase):

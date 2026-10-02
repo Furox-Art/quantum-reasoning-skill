@@ -1,26 +1,70 @@
 name: publish-release
 
+# GitHub Releases are tagged from the `VERSION` file.
+#
+# This workflow previously used `workflow_run`, which is a privilege-escalation
+# risk: it runs in the base repository's context and checks out a caller-supplied
+# `head_sha`, so a fork could cause privileged code to run. It is now triggered
+# by `push` to the default branch, gated on that same branch, and additionally
+# requires the unprivileged `validate-skill` check to have passed for the exact
+# commit being released.
 on:
-  workflow_run:
-    workflows: ["validate-skill"]
-    types: [completed]
+  push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: publish-release
   cancel-in-progress: false
 
 jobs:
-  publish:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  # ---------------------------------------------------------------------------
+  # Unprivileged gate: confirm validation passed for this exact commit.
+  # ---------------------------------------------------------------------------
+  verify:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.sha }}
+
+      - name: Confirm the API contract gate passed for this commit
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          result="$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/check-runs" --paginate \
+            --jq '[.check_runs[] | select(.name == "installed API contract")] | if length == 0 then "pending" elif all(.[]; .conclusion == "success") then "yes" else "no" end')"
+          echo "installed API contract check-runs: $result"
+          if [ "$result" != "yes" ]; then
+            echo "::error::The 'installed API contract' check has not passed for ${{ github.sha }}. Refusing to tag." >&2
+            exit 1
+          fi
+          echo "ready=yes" >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------------
+  # Privileged job: only reached from a default-branch push, and only after the
+  # unprivileged gate confirms the API contract check passed.
+  # ---------------------------------------------------------------------------
+  publish:
+    needs: [verify]
+    if: github.ref == 'refs/heads/main' && needs.verify.outputs.ready == 'yes'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Resolve and validate version
@@ -49,6 +93,18 @@ jobs:
             exit 1
           }
 
+      - name: Require version lockstep across all manifests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import conftest
+          failures = conftest.version_lockstep_failures()
+          if failures:
+              raise SystemExit("version lockstep violated: " + "; ".join(failures))
+          print("Version lockstep OK:", conftest.repo_version())
+          PY
+
       - name: Check existing release
         id: existing
         shell: bash
@@ -70,7 +126,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
-          TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
+          TARGET_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           gh release create "$TAG" \

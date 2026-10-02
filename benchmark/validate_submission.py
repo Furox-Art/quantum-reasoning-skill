@@ -17,11 +17,15 @@ import argparse
 import json
 from datetime import date
 from pathlib import Path
-
-try:  # normal package import, and the supported way to reach this module
+try:  # `python -m benchmark.validate_submission`
     from benchmark import evaluate
     from benchmark.paths import PathBoundaryError, safe_bundle_member
-except ImportError:  # pragma: no cover - direct `python benchmark/validate_submission.py`
+except ImportError:  # `python benchmark/validate_submission.py`
+    # Running as a script puts ``benchmark/`` on sys.path, not the repository
+    # root, so the package-qualified import above cannot resolve. Anchor the
+    # repository root and import the same package modules, rather than falling
+    # back to a bare ``import evaluate`` that any module named ``evaluate`` on
+    # sys.path could satisfy.
     import sys
 
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -167,7 +171,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         bundles = sorted(p for p in root.iterdir() if p.is_dir())
     except OSError as exc:
-        raise SystemExit(f"community benchmark root not readable: {root}: {exc}")
+        raise SystemExit(
+            f"community benchmark root not readable: {root}: {exc}"
+        ) from exc
     if not bundles and not args.allow_empty:
         raise SystemExit("no community benchmark bundles found")
     for bundle in bundles:

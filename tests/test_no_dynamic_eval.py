@@ -168,14 +168,13 @@ class NoDynamicEvaluationTests(unittest.TestCase):
             "popen_call": "import subprocess\nsubprocess.Popen('id')\n",
         }
         for label, source in cases.items():
-            with self.subTest(case=label):
-                with tempfile.TemporaryDirectory() as tmp:
-                    planted = Path(tmp) / "planted.py"
-                    planted.write_text(source, encoding="utf-8")
-                    self.assertTrue(
-                        scan_source(planted),
-                        f"scanner failed to flag {label}: {source.strip()}",
-                    )
+            with self.subTest(case=label), tempfile.TemporaryDirectory() as tmp:
+                planted = Path(tmp) / "planted.py"
+                planted.write_text(source, encoding="utf-8")
+                self.assertTrue(
+                    scan_source(planted),
+                    f"scanner failed to flag {label}: {source.strip()}",
+                )
 
     def test_scanner_accepts_the_json_escape_hatch(self):
         with tempfile.TemporaryDirectory() as tmp:

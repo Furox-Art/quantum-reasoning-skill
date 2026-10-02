@@ -53,9 +53,8 @@ class ResolveWithinTests(unittest.TestCase):
             paths.resolve_within(self.base, "a/../../outside.txt")
 
     def test_rejects_absolute_path_outside_base(self):
-        with tempfile.TemporaryDirectory() as other:
-            with self.assertRaises(PathBoundaryError):
-                paths.resolve_within(self.base, Path(other) / "evil.txt")
+        with tempfile.TemporaryDirectory() as other, self.assertRaises(PathBoundaryError):
+            paths.resolve_within(self.base, Path(other) / "evil.txt")
 
     def test_rejects_sibling_with_shared_prefix(self):
         """``anchor-evil`` must not pass as being inside ``anchor``."""
