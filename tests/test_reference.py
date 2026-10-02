@@ -10,7 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
     "branch_controller", ROOT / "reference" / "branch_controller.py"
 )
-assert SPEC and SPEC.loader
+if SPEC is None or SPEC.loader is None:
+    raise ImportError("cannot load reference/branch_controller.py")
 bc = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = bc
 SPEC.loader.exec_module(bc)
