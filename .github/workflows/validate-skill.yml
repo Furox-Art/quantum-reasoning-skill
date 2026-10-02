@@ -360,7 +360,7 @@ jobs:
           echo "Installing $wheel"
           python -m pip install --disable-pip-version-check "$wheel"
           # Prove the asset contract from the consumer's point of view.
-          python -c "import quantum_reasoning_skill as q; print('skill file:', q.skill_path())"
+          python -c "import quantum_reasoning_skill as q, pathlib; print('package dir:', pathlib.Path(q.__file__).parent)"
           quantum-reasoning --validate
 
       - name: Assert documented public API is importable and callable

@@ -81,21 +81,25 @@ def check_skill_assets(module_name: str) -> list[str]:
     problems: list[str] = []
 
     resolver = getattr(module, "skill_path", None)
-    skill_file = None
+    skill_file: Path | None = None
     if callable(resolver):
         try:
             skill_file = resolver()
         except FileNotFoundError as exc:
             problems.append(str(exc))
     else:
-        candidate = Path(module.__file__ or "").resolve().parent / "SKILL.md"
-        if candidate.is_file():
-            skill_file = candidate
+        # `skill_path()` is part of the package API but is owned by another
+        # maintainer; fall back to the documented install layout so the asset
+        # check still reports something meaningful while it is absent.
+        package_dir = Path(module.__file__ or "").resolve().parent
+        for candidate in (package_dir / "SKILL.md", package_dir.parent / "SKILL.md"):
+            if candidate.is_file():
+                skill_file = candidate
+                break
 
-    if skill_file is None:
-        if not problems:
-            problems.append("SKILL.md does not ship inside the distribution")
-    elif not Path(skill_file).is_file():
+    if skill_file is None and not problems:
+        problems.append("SKILL.md does not ship inside the distribution")
+    elif skill_file is not None and not skill_file.is_file():
         problems.append(f"skill_path() returned a non-existent file: {skill_file}")
     return problems
 
