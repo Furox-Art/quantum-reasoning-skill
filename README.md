@@ -35,19 +35,17 @@ one candidate open", and "measurement" means "let evidence collapse it".
 
 `SKILL.md` is the deliverable. Three verified paths reach it:
 
+The deliverable is [`SKILL.md`](SKILL.md). Copy that file into the host skill directory. npm is no longer published.
+
 ```bash
-# Option 1 — from a clone (nothing to install)
+# from a clone
 git clone https://github.com/Furox-Art/quantum-reasoning-skill.git
 cd quantum-reasoning-skill
 python docs/quickstart.py
 
-# Option 2 — from the wheel; `SKILL.md` ships inside the distribution
+# or from PyPI; SKILL.md ships inside the wheel
 pip install quantum-reasoning-skill
 quantum-reasoning --validate
-
-# Option 3 — from npm
-npm i quantum-reasoning-skill
-npx quantum-reasoning --validate
 ```
 
 Then copy `SKILL.md` into your host's skill directory, preserving the YAML front matter.
