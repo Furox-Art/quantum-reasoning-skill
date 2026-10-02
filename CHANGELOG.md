@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- The `publish-release` workflow no longer fails on green commits. Its `verify`
+  job queried the required check runs exactly once, saw `pending` while the
+  validation workflow was still starting, and refused to tag. It now polls with a
+  bounded 5-minute deadline and refuses only on a genuine `failure`,
+  `cancelled`, `timed_out`, or a check that never reaches a terminal state.
+
 ## [1.1.0] - 2026-10-02
 
 ### Fixed
@@ -47,8 +55,16 @@ All notable changes to this project are documented here.
   untrusted events.
 - Actions are pinned to full commit SHAs, workflow permissions are least
   privilege, and `continue-on-error` was removed from publish steps.
-- `main` is protected by a ruleset requiring a passing `validate-skill` check
-  and a pull request.
+- Branch protection on `main` requires these six check contexts before a push
+  can land: `repository contract`, `lint`, `types`, `coverage`,
+  `build distributions`, `installed API contract`. It also blocks force-push,
+  branch deletion and non-linear history, and applies to administrators.
+  Separately, ruleset `main-protection` (id `24343853`) blocks deletion and
+  force-push with no bypass actors. Required status checks are enforced by
+  branch protection, **not** by the ruleset: `required_status_checks` could not
+  be added to the ruleset through the API on this plan, and neither could
+  `required_pull_request`. Direct pushes to `main` are therefore still
+  permitted as long as the six checks pass. This is a known gap.
 - Python CI matrix covers 3.10 through 3.14 on Linux plus a Windows job.
 
 ## [0.3.1] - 2026-09-07

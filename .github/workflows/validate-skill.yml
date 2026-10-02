@@ -46,9 +46,9 @@ jobs:
             benchmark/schemas/case.schema.json benchmark/schemas/result.schema.json \
             benchmark/schemas/metadata.schema.json benchmark/schemas/comparison.schema.json \
             tests/test_reference.py tests/test_benchmark.py tests/test_submission_validation.py \
-            tests/test_readme_badges.py \
+            tests/test_readme_badges.py tests/test_release_check_polling.py \
             package.json index.js pyproject.toml conftest.py \
-            bin/quantum-reasoning bin/check_release_contract.py \
+            bin/quantum-reasoning bin/check_release_contract.py bin/wait_for_required_checks.py \
             .github/ISSUE_TEMPLATE/benchmark-result.yml .github/ISSUE_TEMPLATE/bug-report.yml \
             .github/ISSUE_TEMPLATE/feature-request.yml .github/PULL_REQUEST_TEMPLATE.md; do
             test -s "$required"

@@ -36,19 +36,23 @@ jobs:
         with:
           ref: ${{ github.sha }}
 
-      - name: Confirm the API contract gate passed for this commit
+      # This workflow is triggered by the same push that starts `validate-skill`,
+      # so on the first query the check runs usually do not exist yet. Treating
+      # that as a refusal makes every release fail on a green commit. Poll with a
+      # bounded deadline instead, and refuse only on a genuine terminal failure.
+      - name: Wait for required checks to finish
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          result="$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/check-runs" --paginate \
-            --jq '[.check_runs[] | select(.name == "installed API contract")] | if length == 0 then "pending" elif all(.[]; .conclusion == "success") then "yes" else "no" end')"
-          echo "installed API contract check-runs: $result"
-          if [ "$result" != "yes" ]; then
-            echo "::error::The 'installed API contract' check has not passed for ${{ github.sha }}. Refusing to tag." >&2
-            exit 1
-          fi
+          python bin/wait_for_required_checks.py \
+            --repo "${{ github.repository }}" \
+            --ref "${{ github.sha }}" \
+            --context "installed API contract" \
+            --context "repository contract" \
+            --timeout 300 \
+            --interval 15
           echo "ready=yes" >> "$GITHUB_OUTPUT"
 
   # ---------------------------------------------------------------------------
