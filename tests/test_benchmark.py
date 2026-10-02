@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-import importlib.util
+import importlib
+import sys
 from pathlib import Path
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SPEC = importlib.util.spec_from_file_location(
-    "benchmark_evaluate", ROOT / "benchmark" / "evaluate.py"
-)
-assert SPEC and SPEC.loader
-evaluate = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(evaluate)
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+# Resolved through the package so the evaluator is always benchmark.evaluate,
+# never a bare top-level module name that a local file could shadow.
+evaluate = importlib.import_module("benchmark.evaluate")
 
 
 CASES = [

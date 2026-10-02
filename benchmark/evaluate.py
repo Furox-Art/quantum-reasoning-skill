@@ -3,6 +3,16 @@
 The evaluator uses only the Python standard library. It does not call a model.
 External runners can write one result row per case and this script will validate,
 score, summarize, and compare those runs without inventing missing measurements.
+
+Results files are untrusted contributed content, so this module treats them as
+data only:
+
+* JSON is parsed with :func:`json.loads` and never passed to ``eval``/``exec``;
+* input files are read through :func:`benchmark.paths.require_within`, so a
+  symlink or ``..`` segment cannot make the evaluator read outside ``--cases-dir``
+  (default: the current directory);
+* reads are bounded by ``--max-bytes`` so an oversized submission fails fast
+  instead of exhausting memory.
 """
 
 from __future__ import annotations
@@ -13,6 +23,20 @@ import math
 import statistics
 from pathlib import Path
 from typing import Any, Iterable
+
+try:  # normal package import, and the supported way to reach this module
+    from benchmark.paths import require_within
+except ImportError:  # pragma: no cover - direct `python benchmark/evaluate.py`
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from benchmark.paths import require_within
+
+DEFAULT_MAX_BYTES = 32 * 1024 * 1024
+
+
+class UnsafeJsonError(ValueError):
+    """Raised when an input file cannot be read within the configured limits."""
 
 
 REQUIRED_RESULT_FIELDS = {
@@ -33,20 +57,41 @@ OPTIONAL_TELEMETRY_FIELDS = {
 }
 
 
-def read_jsonl(path: Path) -> list[dict[str, Any]]:
+def read_text_limited(path: Path, max_bytes: int) -> str:
+    """Read ``path`` refusing to load more than ``max_bytes`` of text.
+
+    The size is checked before reading so an oversized file never lands in memory.
+    """
+    size = path.stat().st_size
+    if size > max_bytes:
+        raise UnsafeJsonError(
+            f"{path}: {size} bytes exceeds the {max_bytes} byte limit"
+        )
+    return path.read_text(encoding="utf-8")
+
+
+def read_jsonl(path: Path, *, base: Path | None = None, max_bytes: int = DEFAULT_MAX_BYTES) -> list[dict[str, Any]]:
+    """Parse a JSON Lines file into a list of objects.
+
+    ``base`` confines the read to a directory; when omitted the file's own parent
+    is used, which keeps relative paths working while still rejecting symlinks
+    that point outside that parent.
+    """
+    anchor = Path(base) if base is not None else Path(path).parent
+    resolved = require_within(anchor, path, what="input file")
+    text = read_text_limited(resolved, max_bytes)
     rows: list[dict[str, Any]] = []
-    with path.open("r", encoding="utf-8") as handle:
-        for line_number, raw in enumerate(handle, start=1):
-            line = raw.strip()
-            if not line:
-                continue
-            try:
-                value = json.loads(line)
-            except json.JSONDecodeError as exc:
-                raise ValueError(f"{path}:{line_number}: invalid JSON: {exc}") from exc
-            if not isinstance(value, dict):
-                raise ValueError(f"{path}:{line_number}: row must be a JSON object")
-            rows.append(value)
+    for line_number, raw in enumerate(text.splitlines(), start=1):
+        line = raw.strip()
+        if not line:
+            continue
+        try:
+            value = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"{resolved}:{line_number}: invalid JSON: {exc}") from exc
+        if not isinstance(value, dict):
+            raise ValueError(f"{resolved}:{line_number}: row must be a JSON object")
+        rows.append(value)
     return rows
 
 
@@ -55,6 +100,8 @@ def normalize_answer(value: Any) -> str:
 
 
 def validate_case(case: dict[str, Any]) -> None:
+    if not isinstance(case, dict):
+        raise ValueError("case must be a JSON object")
     for field in ("id", "domain", "prompt", "accepted_answers"):
         if field not in case:
             raise ValueError(f"case missing required field: {field}")
@@ -63,6 +110,8 @@ def validate_case(case: dict[str, Any]) -> None:
 
 
 def validate_result(result: dict[str, Any]) -> None:
+    if not isinstance(result, dict):
+        raise ValueError("result must be a JSON object")
     missing = REQUIRED_RESULT_FIELDS - set(result)
     if missing:
         raise ValueError(
@@ -71,12 +120,12 @@ def validate_result(result: dict[str, Any]) -> None:
         )
     for field in ("tokens", "tool_calls", "latency_ms"):
         value = result[field]
-        if not isinstance(value, (int, float)) or value < 0:
+        if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
             raise ValueError(f"result {result['case_id']!r}: {field} must be non-negative")
     for field in OPTIONAL_TELEMETRY_FIELDS:
         if field in result:
             value = result[field]
-            if not isinstance(value, (int, float)) or value < 0:
+            if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
                 raise ValueError(
                     f"result {result['case_id']!r}: {field} must be non-negative"
                 )
@@ -221,21 +270,41 @@ def ensure_finite(value: Any, label: str) -> None:
         raise ValueError(f"{label} is not finite")
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--cases", type=Path, required=True)
     parser.add_argument("--skill", type=Path, required=True)
     parser.add_argument("--baseline", type=Path)
     parser.add_argument("--output", type=Path)
-    args = parser.parse_args()
+    parser.add_argument(
+        "--cases-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Directory that input files must stay inside. "
+            "Defaults to each input file's own parent directory."
+        ),
+    )
+    parser.add_argument(
+        "--max-bytes",
+        type=int,
+        default=DEFAULT_MAX_BYTES,
+        help="Maximum size in bytes of each input file (default: %(default)s)",
+    )
+    args = parser.parse_args(argv)
 
-    cases = read_jsonl(args.cases)
-    skill_results = read_jsonl(args.skill)
+    if args.max_bytes < 1:
+        parser.error("--max-bytes must be positive")
+
+    cases = read_jsonl(args.cases, base=args.cases_dir, max_bytes=args.max_bytes)
+    skill_results = read_jsonl(args.skill, base=args.cases_dir, max_bytes=args.max_bytes)
     skill_summary = summarize(cases, skill_results)
 
     payload: dict[str, Any] = {"skill": skill_summary}
     if args.baseline:
-        baseline_results = read_jsonl(args.baseline)
+        baseline_results = read_jsonl(
+            args.baseline, base=args.cases_dir, max_bytes=args.max_bytes
+        )
         baseline_summary = summarize(cases, baseline_results)
         payload["baseline"] = baseline_summary
         payload["comparison"] = compare(baseline_summary, skill_summary)
@@ -248,8 +317,11 @@ def main() -> int:
     rendered = json.dumps(payload, indent=2, sort_keys=True)
     print(rendered)
     if args.output:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(rendered + "\n", encoding="utf-8")
+        output = args.output
+        anchor = args.cases_dir if args.cases_dir is not None else Path.cwd()
+        resolved_output = require_within(anchor, output, what="--output")
+        resolved_output.parent.mkdir(parents=True, exist_ok=True)
+        resolved_output.write_text(rendered + "\n", encoding="utf-8")
     return 0
 
 
