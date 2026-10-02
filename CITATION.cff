@@ -16,11 +16,11 @@ authors:
 repository-code: "https://github.com/Furox-Art/quantum-reasoning-skill"
 url: "https://github.com/Furox-Art/quantum-reasoning-skill"
 license: MIT
-# Authoritative release version. Kept in step with the VERSION file, the git tag, the
-# GitHub Release and the CHANGELOG section. The PyPI and npm channel versions are
-# packaging metadata and are not yet aligned with the release version.
-version: 0.3.1
-date-released: 2026-09-07
+# Authoritative release version, kept in lockstep with VERSION, pyproject.toml,
+# package.json and the CHANGELOG section by the CI version-lockstep check and by
+# both release workflows.
+version: 1.1.0
+date-released: 2026-10-02
 keywords:
   - agent-skills
   - reasoning
