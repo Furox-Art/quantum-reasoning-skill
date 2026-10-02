@@ -39,8 +39,21 @@ Executable behavior changes should include tests.
    pip install --force-reinstall dist/*.whl && python bin/check_release_contract.py
    ```
 
-   Plus `python docs/quickstart.py` for the user-facing path. `pip install -e .[dev]` or
-   the `dev` dependency group in `pyproject.toml` pins the exact tool versions CI uses.
+   Plus `python docs/quickstart.py` for the user-facing path.
+
+   Tool versions are pinned twice, and the two are not interchangeable:
+
+   - the `dev` dependency group in `pyproject.toml` pins the **direct** tools
+     (`build`, `coverage`, `mypy`, `ruff`, `twine`) with `==`;
+   - [`constraints.txt`](constraints.txt) pins those plus `pip-audit` and the whole
+     transitive closure with `==` **and** `--hash` digests — 52 entries, every one
+     version-locked and hashed.
+
+   Install with `pip install -r constraints.txt` when you want the locked, hash-verified
+   set. `tests/test_constraints_lock.py` fails if the lock regresses to floating versions or
+   loses hashes, so do not loosen it. Note that CI installs the workflow's inline `==` pins
+   rather than `-c constraints.txt`; if you change a tool version, change the group, the
+   lock and the workflow together.
 
 4. Open a pull request and complete [`PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md).
 
