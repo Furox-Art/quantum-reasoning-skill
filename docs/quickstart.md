@@ -30,14 +30,19 @@ check, not a measurement.
 ## Verified output
 
 Captured on Windows 11 / AMD64, CPython 3.12.10, at commit
-`3824b19d261a9847278087b82efd669bbd4c79c7` — the commit that reconciled this document with
-the security hardening in `benchmark/` and `tests/`.
+`6bd9c9b35835fadc46763915b012b025ceec53eb` — the branch head immediately after
+`origin/main` was merged in and this document was reconciled with the security hardening in
+`benchmark/` and `tests/`.
+
+Committing this paste does not invalidate the block. Later commits touch only this file and
+`README.md`, and `docs/quickstart.py` is byte-identical at `6bd9c9b`, so re-running at a
+later commit changes exactly one line of the output below: the `commit` line.
 
 **Provenance for the block below:**
 
 - Script: `docs/quickstart.py`
 - Skill version: `1.1.0` (from `VERSION`)
-- Skill commit: `3824b19d261a9847278087b82efd669bbd4c79c7`
+- Skill commit: `6bd9c9b35835fadc46763915b012b025ceec53eb`
 - Controller: `reference/branch_controller.py`, `DEFAULT_THRESHOLDS`
 - Benchmark inputs: `benchmark/cases.jsonl`, evaluated by `benchmark/evaluate.py`
 - Platform: Windows 11 (AMD64), CPython 3.12.10
@@ -50,7 +55,7 @@ Quantum Reasoning Skill - quickstart verification
 --------------------------------------------------------------
 
 [1/4] Checkout identity
-    commit      : 3824b19d261a9847278087b82efd669bbd4c79c7
+    commit      : 6bd9c9b35835fadc46763915b012b025ceec53eb
     VERSION     : 1.1.0
     SKILL.md    : 7291 bytes  sha256:a63dd27330017a3c
     branch      : docs/honest-discoverability
@@ -89,7 +94,7 @@ Provenance for every number printed above
 --------------------------------------------------------------
     script      : docs/quickstart.py
     skill ver   : 1.1.0   (VERSION)
-    commit      : 3824b19d261a9847278087b82efd669bbd4c79c7
+    commit      : 6bd9c9b35835fadc46763915b012b025ceec53eb
     platform    : Windows 11 (AMD64)
     python      : 3.12.10 (CPython)
     controller  : reference/branch_controller.py DEFAULT_THRESHOLDS
