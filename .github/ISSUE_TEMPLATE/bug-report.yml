@@ -21,7 +21,8 @@ body:
     id: version
     attributes:
       label: Repository version or commit
-      placeholder: v0.3.0 or commit SHA
+      description: Output of `git rev-parse HEAD`, plus the `VERSION` file content if you know it.
+      placeholder: git rev-parse HEAD
     validations:
       required: true
   - type: textarea

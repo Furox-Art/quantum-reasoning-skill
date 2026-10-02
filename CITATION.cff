@@ -1,17 +1,34 @@
 cff-version: 1.2.0
-message: "If you use this software or reasoning protocol, please cite it using the metadata below."
+message: "If you use this software or reasoning protocol, please cite it using the metadata below. See https://github.com/Furox-Art/quantum-reasoning-skill#benchmark-status for the limits of what this project has measured."
 title: "Quantum Reasoning Skill"
 type: software
+abstract: >-
+  A model-facing Agent Skill and reference implementation that keeps several materially
+  different hypotheses alive, evaluates each against evidence, revives recoverable
+  alternatives when new evidence arrives, and collapses to the best-supported answer only
+  at the end. Ships the skill contract, a deterministic reference branch controller, and a
+  reproducible baseline-versus-skill benchmark harness. Quantum-inspired as a metaphor
+  only; it performs no quantum computation. No model evaluation has been published, so no
+  performance claim is made.
 authors:
-  - name: "Furox-Art"
+  - family-names: "Furox"
+    alias: "Furox-Art"
 repository-code: "https://github.com/Furox-Art/quantum-reasoning-skill"
 url: "https://github.com/Furox-Art/quantum-reasoning-skill"
 license: MIT
+# Authoritative release version, kept in lockstep with VERSION, pyproject.toml,
+# package.json and the CHANGELOG section by the CI version-lockstep check and by
+# both release workflows.
 version: 1.1.0
 date-released: 2026-10-02
 keywords:
+  - agent-skills
   - reasoning
   - language-models
   - agent-systems
+  - multi-hypothesis
+  - hypothesis-testing
   - test-time-compute
+  - decision-making
   - benchmarking
+  - reproducibility

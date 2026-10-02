@@ -1,0 +1,67 @@
+name: Question
+description: Ask about usage, interpretation, or unclear documentation. Not for bug reports or feature proposals.
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for **how do I use / what does this mean** questions.
+
+        - Defect with a reproduction? Use the **Bug report** template.
+        - Proposal for new or changed behavior? Use the **Feature request** template.
+        - Model evaluation to submit? Use the **Benchmark result** template.
+
+  - type: input
+    id: topic
+    attributes:
+      label: Topic area
+      description: Which part of the project is this about?
+      placeholder: SKILL.md protocol / branch controller / benchmark harness / docs / packaging
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What are you trying to find out?
+    validations:
+      required: true
+
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What you already tried or read
+      description: Include the exact command you ran, or the document section you read.
+      placeholder: python docs/quickstart.py  /  docs/MEASUREMENT.md section 4
+
+  - type: input
+    id: version
+    attributes:
+      label: Skill version or commit
+      description: Output of `git rev-parse HEAD`, or the VERSION file content.
+      placeholder: git rev-parse HEAD
+    validations:
+      required: true
+
+  - type: dropdown
+    id: host
+    attributes:
+      label: Host or runtime
+      description: Where did you try to use the skill?
+      options:
+        - Native skill directory in an agent host
+        - Persistent system / developer instruction layer
+        - Controller-assisted agent loop
+        - Local Python only
+        - Other
+        - Not applicable
+
+  - type: checkboxes
+    id: sensitive
+    attributes:
+      label: Safety check
+      options:
+        - label: I have not included secrets, credentials, or private chain-of-thought.
+          required: true

@@ -8,6 +8,11 @@ body:
       value: |
         Submit reproducible measurements only. Do not include private chain-of-thought. For PR submissions, validate the full bundle with `python benchmark/validate_submission.py --root benchmark/results/community`.
 
+        No model evaluation has been published for this project yet, so yours would be among
+        the first. A single positive run is not sufficient to establish a general performance
+        claim — report the accuracy/compute trade-off and keep failed runs, refusals and
+        timeouts in the set.
+
   - type: input
     id: provider
     attributes:
@@ -28,7 +33,8 @@ body:
     id: skill_version
     attributes:
       label: Skill version / commit
-      placeholder: v0.3.1 or commit SHA
+      description: Output of `git rev-parse HEAD` in the tested checkout, plus the VERSION file content.
+      placeholder: git rev-parse HEAD
     validations:
       required: true
 
@@ -45,6 +51,18 @@ body:
     attributes:
       label: Experimental controls
       description: Describe sampling settings, context/output limits, tools, repetitions, seeds, prompt wrapper and hardware/runtime when relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Provenance for each reported number
+      description: >-
+        Every reported number must be traceable. State the script that produced it and its
+        version or commit, the skill commit under test, the platform and runtime (OS,
+        CPU/GPU, library versions), and where the raw result files live so a reader can
+        recompute it. See CONTRIBUTING.md, "Benchmark provenance requirements".
     validations:
       required: true
 

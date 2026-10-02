@@ -1,14 +1,31 @@
 # Host integration examples
 
 These examples describe integration shapes without depending on a specific provider.
+Requirements expressed as capabilities are in [`../docs/COMPATIBILITY.md`](../docs/COMPATIBILITY.md).
 
-## Native skill host
+**Install from a clone, the PyPI wheel, or npm** — all three ship `SKILL.md`. See
+[the distribution status table](../README.md#distribution-status). After copying `SKILL.md`,
+verify the copy with `python docs/quickstart.py`, or against an installed package with
+`quantum-reasoning --validate`. `SKILL.md` is the only artifact a host needs to load.
 
-Install the repository or copy `SKILL.md` into the host's skill directory. Preserve the YAML front matter and load the file as a persistent skill instruction.
+## 1. Native skill directory
 
-## Persistent instruction host
+If the host supports a skill or plugin directory, install the repository so that
+`SKILL.md` is the skill entry point, and keep its YAML front matter intact.
 
-Conceptually, the host should build the request as:
+Verify after copying:
+
+```bash
+python docs/quickstart.py
+```
+
+The script fails if `SKILL.md` is truncated or its front matter is damaged, which is the
+usual outcome of a lossy copy.
+
+## 2. Persistent instruction wrapper
+
+If the host has no native skill format, load the contents of `SKILL.md` into the persistent
+system or developer instruction layer before the user task:
 
 ```text
 persistent instructions:
@@ -18,11 +35,17 @@ task:
   <user request>
 ```
 
-Do not require the model to print private reasoning. The final answer may remain concise while the host records only observable aggregate telemetry.
+Do not require the model to print private reasoning. The final answer may remain concise
+while the host records only observable aggregate telemetry.
 
-## Controller-assisted host
+Do not prepend `SKILL.md` to benchmark prompts in the skill condition only, unless the
+baseline wrapper is otherwise identical. An asymmetric wrapper invalidates the comparison.
 
-A host-side agent loop may use the optional reference controller:
+## 3. Controller-assisted agent
+
+A host with an explicit agent loop can map observable aggregate branch measurements to
+`BranchMetrics` and use [`../reference/branch_controller.py`](../reference/branch_controller.py)
+for ranking, state changes and collapse decisions:
 
 ```python
 from reference.branch_controller import Branch, BranchMetrics, collapse_decision
@@ -43,9 +66,15 @@ branch = Branch(
 )
 ```
 
-The host supplies only measurements it can actually observe. Missing telemetry must not be guessed.
+That snippet is taken from [`../docs/quickstart.md`](../docs/quickstart.md) step 3, which
+also shows what the controller does with a full branch set — including refusing to
+collapse when the leader score is below threshold.
 
-## Benchmark wrapper
+The host supplies only measurements it can actually observe. Missing telemetry must not be
+guessed. The weights and thresholds are reference defaults, not validated constants; see
+[`../docs/MEASUREMENT.md`](../docs/MEASUREMENT.md).
+
+## 4. Benchmark wrapper
 
 For an A/B benchmark, keep everything fixed except the presence of the skill:
 
@@ -54,4 +83,8 @@ baseline = normal persistent instructions + task
 skill    = normal persistent instructions + SKILL.md + same task
 ```
 
-Use the same model/version, tools, sampling settings and budget policy for both conditions. See [`../benchmark/README.md`](../benchmark/README.md).
+Use the same model and version, tools, sampling settings and budget policy for both
+conditions. Every number you publish from such a run must carry the provenance listed in
+[`../CONTRIBUTING.md`](../CONTRIBUTING.md#benchmark-provenance-requirements).
+
+See [`../benchmark/README.md`](../benchmark/README.md) for cases, schemas and the evaluator.

@@ -1,0 +1,44 @@
+# Local preview
+
+#   python -m pip install mkdocs
+#   mkdocs serve
+
+# Build the site you would publish to GitHub Pages:
+#
+#   python -m pip install mkdocs
+#   mkdocs build
+#
+# Deploying is intentionally not configured here. Publishing a hosted site needs a
+# GitHub Pages workflow, which this repository does not ship; until that exists there is
+# no documentation URL to point at, and pointing at one would be a broken link.
+
+site_name: Quantum Reasoning Skill
+site_description: >-
+  Model-agnostic Agent Skill that keeps multiple hypotheses alive, tests them against
+  evidence, revives alternatives, and collapses to the best-supported answer.
+site_author: Furox
+repo_url: https://github.com/Furox-Art/quantum-reasoning-skill
+repo_name: Furox-Art/quantum-reasoning-skill
+copyright: MIT licensed.
+
+docs_dir: docs
+# strict is left off on purpose. Several documents in docs/ link to files at the
+# repository root (SKILL.md, CONTRIBUTING.md, benchmark/README.md). Those links resolve
+# correctly when the Markdown is read on GitHub, which is where this project is
+# published, but they point outside docs_dir and mkdocs cannot follow them.
+strict: false
+use_directory_urls: true
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Quickstart: quickstart.md
+  - Protocol and implementation:
+      - Measurement methodology: MEASUREMENT.md
+      - Host compatibility: COMPATIBILITY.md
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true

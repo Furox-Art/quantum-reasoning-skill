@@ -2,6 +2,17 @@
 
 This document turns the qualitative protocol in `SKILL.md` into an auditable reference policy. It does **not** claim that these constants are optimal or scientifically validated. They are initial defaults that must be calibrated against benchmark data.
 
+**Calibration status: nothing in this document has been calibrated.** Every weight and
+threshold below is transcribed from `DEFAULT_THRESHOLDS` and `WEIGHTS` in
+[`../reference/branch_controller.py`](../reference/branch_controller.py) and is unchanged by
+`SKILL.md`. They are specified so they can be measured and replaced, not because they have
+been tuned. [`quickstart.md`](quickstart.md) step 3 shows the practical consequence: with
+defensible inputs the controller refuses to collapse, because the leader falls short of the
+collapse threshold.
+
+**No benchmark result in this repository has been produced with these constants.** See
+[the benchmark status section](../README.md#benchmark-status).
+
 ## 1. Observable branch metrics
 
 Each branch is represented by normalized values in `[0, 1]`:
