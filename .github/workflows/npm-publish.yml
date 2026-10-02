@@ -1,8 +1,19 @@
 name: npm Publish
 
-# Default-branch `push` only. No `workflow_run`, no `pull_request`. Publishing
-# requires write access to main.
+# npm is a supported distribution channel again, so publishing is real.
+#
+# Triggering is deliberately narrow: a default-branch push that changes a file
+# capable of changing what ships. The job then refuses unless the new version is
+# actually unpublished and lockstep-consistent, so merging a docs-only change
+# cannot attempt a release.
 on:
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "index.js"
+      - "VERSION"
+      - "SKILL.md"
   workflow_dispatch:
 
 concurrency:
@@ -14,22 +25,27 @@ permissions:
 
 jobs:
   publish:
+    # Belt and braces: the privileged path is only ever reachable from a
+    # default-branch push or a manual dispatch, never from a pull request.
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment: npm
     permissions:
-      # Provenance attestation only; the registry write is done with the token.
+      # OIDC token exchange for npm Trusted Publishing and provenance.
       id-token: write
       contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
+      # npm CLI 11.5.1 or newer is required for Trusted Publishing. Node 24
+      # ships npm 11.x, and the step is kept explicit so the requirement is
+      # visible rather than implied by a runtime bump.
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: "20"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Resolve version and require version lockstep
+      - name: Resolve version and require lockstep across all five surfaces
         id: meta
         shell: bash
         run: |
@@ -42,28 +58,110 @@ jobs:
             echo "::error::package.json ($version) does not match VERSION ($version_file)." >&2
             exit 1
           fi
+          # VERSION, pyproject.toml, package.json, CITATION.cff and CHANGELOG.md
+          # must all agree. Same helper the other release workflows use.
+          python - <<'PY'
+          import conftest
+
+          failures = conftest.version_lockstep_failures()
+          if failures:
+              raise SystemExit("version lockstep violated: " + "; ".join(failures))
+          print("Version lockstep OK across all five surfaces:", conftest.repo_version())
+          PY
           echo "name=$name" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Verify the package before publishing
+      # The exact class of bug that shipped in 1.0.0: a `main` entry point that
+      # throws on require, because SKILL.md was required as if it were
+      # JavaScript. The exit status is asserted explicitly because a Windows
+      # shim can swallow a non-zero exit.
+      - name: Verify the entry point before packing
         run: |
           set -euo pipefail
           npm test
-          # Fail early on the exact class of error that broke 1.0.0: a `main`
-          # entry that throws on require.
-          node -e "const s = require('./index.js'); if (!s.loadSkill().valid) { throw new Error('invalid skill contract'); } console.log('npm entry OK', s.version);"
-          npm pack --dry-run
+          if ! out="$(node index.js --validate)"; then
+            echo "::error::index.js --validate failed in the working tree:" >&2
+            echo "$out" >&2
+            exit 1
+          fi
+          if ! out="$(node -e "const s = require('./index.js'); if (!s.loadSkill().valid) { process.exit(1); } console.log('npm entry OK', s.version);")"; then
+            echo "::error::require('./index.js') failed in the working tree:" >&2
+            echo "$out" >&2
+            exit 1
+          fi
+          echo "$out"
 
+      # The published tarball must contain exactly the intended file set. This is
+      # what stops `.github/`, `tests/` and `pyproject.toml` from being shipped
+      # again, and what guarantees the launcher is present at all.
+      - name: Enforce the tarball content allowlist
+        run: |
+          set -euo pipefail
+          expected='LICENSE
+          README.md
+          SKILL.md
+          VERSION
+          index.js
+          package.json'
+          actual="$(npm pack --dry-run --json | node -e '
+            let raw = "";
+            process.stdin.on("data", (c) => (raw += c));
+            process.stdin.on("end", () => {
+              const parsed = JSON.parse(raw);
+              const files = parsed[0].files.map((f) => f.path).sort();
+              process.stdout.write(files.join("\n"));
+            });
+          ')"
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::Tarball contents differ from the allowlist." >&2
+            echo "expected:" >&2
+            echo "$expected" >&2
+            echo "actual:" >&2
+            echo "$actual" >&2
+            exit 1
+          fi
+          echo "tarball allowlist OK:"
+          echo "$actual"
+
+      # Prove the launcher works from a real install of the real tarball, not
+      # just from the working tree.
+      #
+      # `npx` alone is not trusted here: on Windows the generated `.cmd` shim can
+      # exit 0 even when the underlying script throws, which would let a broken
+      # launcher reach the registry. So the exit status is asserted explicitly by
+      # invoking the installed module directly.
       - name: Smoke test the packed tarball
         run: |
           set -euo pipefail
           tarball="$(npm pack --silent)"
-          mkdir -p /tmp/qrs-npm-consumer
-          cd /tmp/qrs-npm-consumer
+          echo "packed $tarball"
+          workdir="$(mktemp -d)"
+          cd "$workdir"
           npm init -y > /dev/null
           npm install --silent "$OLDPWD/$tarball"
+
+          installed="./node_modules/quantum-reasoning-skill"
+          test -f "$installed/SKILL.md" || { echo "::error::SKILL.md missing from the packed tarball" >&2; exit 1; }
+          test -f "$installed/index.js" || { echo "::error::index.js missing from the packed tarball" >&2; exit 1; }
+          test -f "$installed/package.json" || { echo "::error::package.json missing from the packed tarball" >&2; exit 1; }
+
+          # Assert the exit status rather than trusting the launcher shim.
+          if ! out="$(node "$installed/index.js" --validate)"; then
+            echo "::error::The packed launcher's --validate failed:" >&2
+            echo "$out" >&2
+            exit 1
+          fi
+          echo "$out"
+
           npx quantum-reasoning --validate
-          node -e "const s = require('quantum-reasoning-skill'); if (!s.loadSkill().valid) { throw new Error('invalid'); } console.log('installed npm OK', s.version);"
+
+          # And assert `require()` works, which is what broke in 1.0.0.
+          if ! out="$(node -e "const s = require('quantum-reasoning-skill'); if (!s.loadSkill().valid) { process.exit(1); } console.log('installed npm OK', s.version);")"; then
+            echo "::error::require('quantum-reasoning-skill') failed against the packed tarball:" >&2
+            echo "$out" >&2
+            exit 1
+          fi
+          echo "$out"
 
       - name: Check the version is not already published
         shell: bash
@@ -75,8 +173,76 @@ jobs:
             echo "::error::$name $version is already published to npm. Bump VERSION and package.json." >&2
             exit 1
           fi
+          echo "$name@$version is not published yet"
 
-      - name: Publish to npm
-        run: echo "npm publishing is disabled; PyPI is the install path" && exit 0
+      # Decide which credential path to use. Trusted Publishing is primary and
+      # needs no long-lived secret. The token fallback exists only for the case
+      # where the npmjs.com trusted publisher has not been configured yet; it is
+      # reported clearly so the fallback is never silent.
+      - name: Detect authentication path
+        id: auth
+        shell: bash
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -n "$NPM_TOKEN" ]; then
+            echo "path=token" >> "$GITHUB_OUTPUT"
+            echo "::warning::NPM_TOKEN is present; publishing with the token fallback. Configure the npmjs.com trusted publisher to use OIDC instead." >&2
+          else
+            echo "path=trusted" >> "$GITHUB_OUTPUT"
+            echo "publishing with OIDC Trusted Publishing"
+          fi
+
+      # Trusted Publishing: no NODE_AUTH_TOKEN is exported, so npm exchanges the
+      # OIDC token itself. These two steps are mutually exclusive via `if`, and
+      # neither tolerates failure.
+      - name: Publish with OIDC Trusted Publishing
+        id: trusted
+        if: steps.auth.outputs.path == 'trusted'
+        run: npm publish --access public --provenance
+
+      - name: Publish with NPM_TOKEN fallback
+        id: token
+        if: steps.auth.outputs.path == 'token'
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Require a successful upload
+        shell: bash
+        env:
+          NAME: ${{ steps.meta.outputs.name }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          TRUSTED_OUTCOME: ${{ steps.trusted.outcome }}
+          TOKEN_OUTCOME: ${{ steps.token.outcome }}
+          TRUSTED_PATH: ${{ steps.auth.outputs.path }}
+        run: |
+          set -euo pipefail
+          if [ "$TRUSTED_PATH" = "trusted" ]; then
+            if [ "$TRUSTED_OUTCOME" != "success" ]; then
+              echo "::error::npm Trusted Publishing failed. Configure a trusted publisher on npmjs.com for this repository, workflow and environment." >&2
+              exit 1
+            fi
+          elif [ "$TOKEN_OUTCOME" != "success" ]; then
+            echo "::error::npm publish failed using the NPM_TOKEN fallback." >&2
+            exit 1
+          fi
+          echo "npm accepted $NAME@$VERSION"
+
+      - name: Verify the published version
+        shell: bash
+        env:
+          NAME: ${{ steps.meta.outputs.name }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 20); do
+            if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+              echo "npm reports $NAME@$VERSION"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::Upload succeeded but $NAME@$VERSION is not visible on the registry yet." >&2
+          exit 1

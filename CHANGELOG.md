@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- npm is a supported distribution channel again and `npm publish` is
+  re-enabled. Trusted Publishing via OIDC is the primary credential path; a
+  long-lived `NPM_TOKEN` fallback remains but emits an explicit warning when used.
+  No version bump is included: the published 1.1.0 tarball was verified healthy
+  (`require()` and `npx quantum-reasoning --validate` both succeed).
+
 ### Fixed
 
 - The `publish-release` workflow no longer fails on green commits. Its `verify`
