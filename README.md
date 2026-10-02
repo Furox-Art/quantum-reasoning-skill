@@ -1,86 +1,205 @@
-# Quantum Reasoning Skill  
-  
-[![PyPI](https://img.shields.io/pypi/v/quantum-reasoning-skill)](https://pypi.org/project/quantum-reasoning-skill/)  
-[![npm](https://img.shields.io/npm/v/quantum-reasoning-skill)](https://www.npmjs.com/package/quantum-reasoning-skill)  
-[![PyPI stats](https://img.shields.io/badge/PyPI%20stats-informational)](https://pypi.org/project/quantum-reasoning-skill/#stats)  
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)  
-  
-I built this because I noticed that most AI reasoning goes like this:  
-  
-1. Here's a plausible answer  
-2. Let me justify it  
-3. Done  
-  
-That's backwards. Real thinking explores multiple paths, tests them against evidence, and only commits when the alternatives have been genuinely eliminated.  
-  
-This skill forces that process. It keeps multiple hypotheses alive, assigns them probabilities based on actual evidence (not just "sounds good"), and collapses to a conclusion only when one path is clearly better supported than the rest.  
-  
-## Quick Start  
-  
+# Quantum Reasoning Skill
+
+[![PyPI](https://img.shields.io/pypi/v/quantum-reasoning-skill)](https://pypi.org/project/quantum-reasoning-skill/)
+[![npm](https://img.shields.io/npm/v/quantum-reasoning-skill)](https://www.npmjs.com/package/quantum-reasoning-skill)
+[![PyPI stats](https://img.shields.io/badge/PyPI%20stats-informational)](https://pypi.org/project/quantum-reasoning-skill/#stats)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+A model-facing [Agent Skill](SKILL.md) that keeps several genuinely different hypotheses
+alive, tests each one against evidence and tools, revives alternatives when new evidence
+arrives, and collapses to the best-supported answer only at the end.
+
+> **Status: protocol implemented, effectiveness not yet demonstrated.**
+> The skill contract, the reference branch controller and the benchmark harness are in
+> this repository and run. **No baseline-vs-skill model evaluation has been published,**
+> so this project makes **no claim that it improves accuracy or costs less compute.**
+> Read [Benchmark status](#benchmark-status) before citing any number from this repository.
+
+## Why
+
+Most assistant answers follow one path and then justify it:
+
+1. Here's a plausible answer
+2. Let me justify it
+3. Done
+
+Real thinking explores multiple paths, tests them against evidence, and commits only when
+the alternatives have been genuinely eliminated. This skill makes that process explicit
+and auditable instead of implicit.
+
+It is a **metaphor, not quantum computing.** It runs on ordinary models and ordinary
+hardware. Nothing here uses quantum primitives; "superposition" means "keep more than
+one candidate open", and "measurement" means "let evidence collapse it".
+
+## Quick start
+
+The deliverable is `SKILL.md`. Install it as a persistent skill instruction in your host:
+
 ```bash
-pip install quantum-reasoning-skill
+git clone https://github.com/Furox-Art/quantum-reasoning-skill.git
+cd quantum-reasoning-skill
+python docs/quickstart.py
 ```
 
-```python
-from quantum_reasoning_skill import ReasoningSession
+`docs/quickstart.py` verifies the checkout, exercises the reference branch controller, and
+smoke-tests the benchmark harness. It calls no language model and invents no metrics.
 
-session = ReasoningSession(problem="Should we migrate our monolith to microservices?")
-session.open_branch("strangler-fig incremental")
-session.open_branch("big-bang rewrite")
-session.open_branch("modular monolith refactor")
+Then copy `SKILL.md` into your host's skill directory, preserving the YAML front matter.
+`docs/getting-started.md` covers the three integration shapes, and
+`examples/host-integration.md` shows the persistent-instruction wrapper.
 
-session.evaluate(evidence="team has zero k8s experience", branch="big-bang rewrite", impact=-0.4)
-session.evaluate(evidence="current deploys take 45min", branch="modular monolith", impact=+0.2)
+<details>
+<summary>Verified <code>docs/quickstart.py</code> output</summary>
 
-verdict = session.collapse()
-print(verdict.winner, verdict.confidence, verdict.rejected)
+Captured by running `python docs/quickstart.py` on Windows 11 / CPython 3.12.10 at
+commit `94a92494badfc39b7b09111b5ee4c6d3a10556c8`. The `commit`, `branch` and
+`SKILL.md` digest lines change with your checkout; every other line is deterministic
+for a given commit.
+
+```text
+Quantum Reasoning Skill - quickstart verification
+--------------------------------------------------------------
+
+[1/4] Checkout identity
+    commit      : 94a92494badfc39b7b09111b5ee4c6d3a10556c8
+    VERSION     : 0.3.1
+    SKILL.md    : 7291 bytes  sha256:a63dd27330017a3c
+    branch      : docs/honest-discoverability
+
+[2/4] Agent Skill contract (SKILL.md)
+    name        : quantum-reasoning
+    description : 266 chars
+    body        : 142 lines
+    status      : front matter parses and is host-ready
+
+[3/4] Reference controller (reference/branch_controller.py)
+    scenario: 'should we migrate our monolith to microservices?'
+      strangler-fig-incremental  active
+      big-bang-rewrite           rejected
+      modular-monolith           active
+      feature-flag-carveout      dormant
+    uncertainty : 0.9651
+    next width  : 6-10 branches (high uncertainty -> widen)
+    leader      : strangler-fig-incremental
+    collapse    : BLOCKED - leader score below collapse threshold
+    revival     : feature-flag-carveout -> active (evidence +0.25 >= 0.15)
+    surviving   : 3 branches
+
+[4/4] Benchmark evaluator smoke run - SYNTHETIC PLACEHOLDER ROWS
+    No language model is called. Baseline and skill rows below are
+    byte-identical placeholders that exist only to prove the harness runs.
+    The resulting accuracy is NOT a measurement of this skill.
+    cases       : 6 seed cases
+    accuracy    : 0.1667 (both conditions)
+    delta       : +0.0000 accuracy, +0.0% tokens
+    reading     : 0.00 delta is the expected result for identical
+                 placeholder rows. It is a harness check, not evidence.
+
+--------------------------------------------------------------
+Provenance for every number printed above
+--------------------------------------------------------------
+    script      : docs/quickstart.py
+    skill ver   : 0.3.1   (VERSION)
+    commit      : 94a92494badfc39b7b09111b5ee4c6d3a10556c8
+    platform    : Windows 11 (AMD64)
+    python      : 3.12.10 (CPython)
+    controller  : reference/branch_controller.py DEFAULT_THRESHOLDS
+    benchmark   : benchmark/cases.jsonl + benchmark/evaluate.py
+
+RESULT: PASS (structure verified; no performance claim implied)
 ```
 
-Also available as an [Agent Skill](SKILL.md) for Claude and MCP-compatible hosts, and on npm: `npm i quantum-reasoning-skill`.
+Note step 3: the reference thresholds **refuse to collapse** in that scenario because the
+leader's score is below the collapse threshold. That refusal is the intended behaviour, and
+it is the clearest illustration that these numbers are uncalibrated defaults rather than
+tuned constants.
+
+</details>
+
+## Distribution status
+
+Read this before choosing an install method. Only the first row is a supported integration
+surface today.
+
+| Channel | Ships | Usable as a skill today? |
+| --- | --- | --- |
+| `git clone` + copy `SKILL.md` | `SKILL.md`, reference controller, benchmark harness | **Yes — the supported path.** |
+| `pip install quantum-reasoning-skill` | A Python distribution whose published wheel contains only an empty `quantum_reasoning_skill/__init__.py` | No. It does not ship `SKILL.md`. |
+| `npm i quantum-reasoning-skill` | A package whose `main` entry point requires a Markdown file as if it were JavaScript | No. Its entry point throws on `require()`. |
+
+The PyPI and npm distros are published and their version badges above are accurate, but
+**neither is an integration surface for this skill.** Packaging corrections are tracked
+separately; until they land, clone the repository. See
+[issue tracker](https://github.com/Furox-Art/quantum-reasoning-skill/issues) for status.
+
+## The protocol
+
+1. **Frame the problem** — what is verified versus assumed?
+2. **Open branches** — genuinely different approaches, not paraphrases
+3. **Evaluate independently** — each branch judged on evidence, not eloquence
+4. **Cross-check** — conclusions reached independently by separate paths get reinforced
+5. **Prune and revive** — kill contradicted paths, keep dormant ones recoverable
+6. **Collapse** — only when one path is clearly better supported than the rest
+
+`SKILL.md` is the normative contract. The weights and thresholds in
+[`reference/branch_controller.py`](reference/branch_controller.py) are
+**reference defaults, not validated constants**; see
+[`docs/MEASUREMENT.md`](docs/MEASUREMENT.md) for the formulas and the list of values that
+must be calibrated before they mean anything.
+
+## Benchmark status
+
+**There are no published benchmark results.** `benchmark/README.md` describes the
+protocol, `benchmark/cases.jsonl` holds six deterministic smoke-test cases, and
+`benchmark/evaluate.py` computes baseline-versus-skill deltas. Those seed cases are
+explicitly **not sufficient evidence of reasoning improvement** — they exist to prove the
+harness runs.
+
+Anyone can run the evaluation on models they already have access to. The required metadata
+and integrity rules are in [`CONTRIBUTING.md`](CONTRIBUTING.md), and every submitted number
+must carry provenance: script path and version, skill commit, provider and exact model
+version, run date, sampling parameters, repetition count, and platform. A single positive
+run is not sufficient to establish a general performance claim.
 
 ## How it compares
 
-| Approach | What it does | Where it falls short |
-|---|---|---|
-| Chain-of-Thought | One linear reasoning path | Early anchoring; no alternatives kept alive |
-| Tree-of-Thought | Branches + scoring | Static scoring; no evidence weighting or revival |
-| Self-consistency | Samples the same prompt N times | Paraphrase diversity, not genuine hypothesis diversity |
-| **This skill** | Branches with evidence-weighted probabilities, cross-checking, pruning with revival, and explicit collapse criteria | — |
+This table describes *mechanisms*, not measured performance. Nothing here has been
+benchmarked against the rows above it.
 
-## The protocol  
-  
-1. **Frame the problem** - what do we actually know vs. assume?  
-2. **Open branches** - generate genuinely different approaches, not paraphrases  
-3. **Evaluate independently** - each branch gets judged on evidence, not eloquence  
-4. **Cross-check** - branches that reach the same conclusion independently get boosted  
-5. **Prune and revive** - kill contradicted paths, but keep dormant ones that might come back  
-6. **Collapse** - only when one answer is clearly better than the rest  
-  
-## Why "quantum"?  
-  
-It's a metaphor, not a claim about actual quantum computing. The idea is to keep possibilities in superposition until measurement (evidence) forces a collapse. Most AI systems measure too early.  
-  
-## Common use cases
+| Approach | Mechanism | Limitation |
+| --- | --- | --- |
+| Chain-of-Thought ([Wei et al., 2022](https://arxiv.org/abs/2201.11903)) | One linear reasoning path | Early anchoring; alternatives are never kept alive |
+| Tree-of-Thought ([Yao et al., 2023](https://arxiv.org/abs/2305.10601)) | Branch plus heuristic scoring | Scoring is fixed in advance; no evidence weighting or revival |
+| Self-consistency ([Wang et al., 2022](https://arxiv.org/abs/2203.11171)) | Samples one prompt N times | Paraphrase diversity, not hypothesis diversity |
+| **This skill** | Branches with explicit evidence-weighted scores, correlation penalties, dormancy with revival, and explicit collapse criteria | **Not yet validated:** no published baseline-vs-skill result. Branch breadth costs tokens and latency. Requires a host that can persist instructions; it is not a drop-in model call. |
 
-- **Multi-branch reasoning** for difficult questions where one early answer can anchor the rest of the analysis.
-- **AI agent planning and decision support** with explicit competing hypotheses.
-- Evidence-based **problem solving, search, pruning, and branch selection**.
-- Scientific or technical analysis where independent approaches should be compared before a conclusion is chosen.
-- Benchmarking reasoning systems that need an inspectable explore-score-prune-merge protocol.
+## When to use it
+
+Use it for problems that are difficult, ambiguous, multi-step, or vulnerable to early
+commitment: mathematics, scientific reasoning, debugging, planning, architecture, model
+selection, hypothesis testing, technical diagnosis.
+
+Do not add branching overhead to trivial questions.
 
 ## Documentation
 
-- [SKILL.md](SKILL.md) — agent skill contract and protocol
+- [Documentation home](docs/index.md)
+- [Getting started](docs/getting-started.md) — install and first use
+- [Quickstart and verified output](docs/quickstart.md) — runnable check with provenance
+- [Skill contract](SKILL.md) — normative protocol
 - [Usage examples](examples/usage.md)
 - [Host integration](examples/host-integration.md)
 - [Branch controller reference](reference/branch_controller.py)
 - [Measurement methodology](docs/MEASUREMENT.md)
 - [Compatibility notes](docs/COMPATIBILITY.md)
 - [Benchmark documentation](benchmark/README.md)
-- [Contributing](CONTRIBUTING.md)
-- [Security](SECURITY.md)
+- [Contributing](CONTRIBUTING.md) — including benchmark submission rules
+- [Code of conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+- [Changelog](CHANGELOG.md)
 - [Citation metadata](CITATION.cff)
+- [Version file](VERSION)
 
-## License  
-  
-MIT. 
+## License
+
+[MIT](LICENSE)

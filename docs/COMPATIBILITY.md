@@ -2,6 +2,13 @@
 
 Quantum Reasoning is model-agnostic, but not every host exposes the same controls. Compatibility is therefore defined by capabilities rather than by provider branding.
 
+## What to install
+
+`SKILL.md` is the entire integration surface. Install it from a clone of this repository;
+the published PyPI and npm packages do not ship it — see
+[the distribution status table](../README.md#distribution-status). Copy `SKILL.md`, keep
+its YAML front matter intact, then confirm the copy with `python docs/quickstart.py`.
+
 ## Compatibility levels
 
 | Level | Required capabilities | What works |

@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Bug report
+    url: https://github.com/Furox-Art/quantum-reasoning-skill/issues/new?template=bug-report.yml
+    about: Reproducible defect in the protocol, controller, benchmark tooling, or CI.
+  - name: Feature request
+    url: https://github.com/Furox-Art/quantum-reasoning-skill/issues/new?template=feature-request.yml
+    about: Propose new or changed behavior, with an evidence plan.
+  - name: Question
+    url: https://github.com/Furox-Art/quantum-reasoning-skill/issues/new?template=question.yml
+    about: Usage, interpretation, or unclear documentation.
+  - name: Benchmark result
+    url: https://github.com/Furox-Art/quantum-reasoning-skill/issues/new?template=benchmark-result.yml
+    about: Submit an independently run baseline-vs-skill model evaluation.
+  - name: Security report
+    url: https://github.com/Furox-Art/quantum-reasoning-skill/blob/main/SECURITY.md
+    about: Do NOT open a public issue with vulnerability details. Follow the security policy.
