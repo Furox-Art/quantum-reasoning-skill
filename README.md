@@ -52,16 +52,16 @@ Then copy `SKILL.md` into your host's skill directory, preserving the YAML front
 <summary>Verified <code>docs/quickstart.py</code> output</summary>
 
 Captured by running `python docs/quickstart.py` on Windows 11 / CPython 3.12.10 at
-commit `94a92494badfc39b7b09111b5ee4c6d3a10556c8`. The `commit`, `branch` and
-`SKILL.md` digest lines change with your checkout; every other line is deterministic
-for a given commit.
+commit `727baf8fe7452532bc014bc864931fc5b9f1b4ca`, the commit that introduced the
+script. The `commit`, `branch` and `SKILL.md` digest lines change with your checkout;
+every other line is deterministic for a given commit.
 
 ```text
 Quantum Reasoning Skill - quickstart verification
 --------------------------------------------------------------
 
 [1/4] Checkout identity
-    commit      : 94a92494badfc39b7b09111b5ee4c6d3a10556c8
+    commit      : 727baf8fe7452532bc014bc864931fc5b9f1b4ca
     VERSION     : 0.3.1
     SKILL.md    : 7291 bytes  sha256:a63dd27330017a3c
     branch      : docs/honest-discoverability
@@ -100,7 +100,7 @@ Provenance for every number printed above
 --------------------------------------------------------------
     script      : docs/quickstart.py
     skill ver   : 0.3.1   (VERSION)
-    commit      : 94a92494badfc39b7b09111b5ee4c6d3a10556c8
+    commit      : 727baf8fe7452532bc014bc864931fc5b9f1b4ca
     platform    : Windows 11 (AMD64)
     python      : 3.12.10 (CPython)
     controller  : reference/branch_controller.py DEFAULT_THRESHOLDS
