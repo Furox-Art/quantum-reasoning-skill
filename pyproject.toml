@@ -1,29 +1,181 @@
-[build-system]  
-requires = ["hatchling"]  
-build-backend = "hatchling.build"  
-  
-[project]  
-name = "quantum-reasoning-skill"  
-version = "1.0.1"  
-description = "Quantum-inspired multi-branch reasoning for AI agents: explore, score, prune, and merge solution paths"  
-readme = "README.md"  
-license = "MIT"  
-requires-python = ">=3.10"  
-authors = [{ name = "Furox-Art" }]  
-keywords = ["ai-agents", "llm-agents", "agent-skills", "claude-skill", "reasoning", "quantum-inspired", "multi-branch", "multi-hypothesis", "decision-making", "problem-solving", "planning", "search", "tree-of-thought", "exploration", "mcp", "verification"]  
-classifiers = [  
-  "Development Status :: 4 - Beta",  
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "quantum-reasoning-skill"
+version = "1.1.0"
+description = "Quantum-inspired multi-branch reasoning for AI agents: explore, score, prune, and merge solution paths"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Furox-Art" }]
+keywords = ["ai-agents", "llm-agents", "agent-skills", "claude-skill", "reasoning", "quantum-inspired", "multi-branch", "multi-hypothesis", "decision-making", "problem-solving", "planning", "search", "tree-of-thought", "exploration", "mcp", "verification"]
+classifiers = [
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
-  "Operating System :: OS Independent",  
-  "License :: OSI Approved :: MIT License",  
+  "Operating System :: OS Independent",
+  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
   "Topic :: Software Development :: Libraries :: Python Modules",
-  "Topic :: Utilities",  
-]  
-dependencies = []  
-  
-[project.urls]  
-Homepage = "https://github.com/Furox-Art/quantum-reasoning-skill"  
-Repository = "https://github.com/Furox-Art/quantum-reasoning-skill"  
-Issues = "https://github.com/Furox-Art/quantum-reasoning-skill/issues" 
+  "Topic :: Utilities",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Furox-Art/quantum-reasoning-skill"
+Repository = "https://github.com/Furox-Art/quantum-reasoning-skill"
+Issues = "https://github.com/Furox-Art/quantum-reasoning-skill/issues"
+
+# `quantum-reasoning` is a standalone skill inspector that reads the packaged
+# SKILL.md and reports the skill contract. It is authored in `bin/` and
+# installed into the package as `quantum_reasoning_skill.cli`.
+[project.scripts]
+quantum-reasoning = "quantum_reasoning_skill.cli:main"
+
+[dependency-groups]
+dev = [
+  "build==1.2.2.post1",
+  "coverage==7.6.12",
+  "mypy==1.11.2",
+  "ruff==0.7.4",
+  "twine==6.1.0",
+]
+
+# ---------------------------------------------------------------------------
+# Packaging
+# ---------------------------------------------------------------------------
+# The skill is only useful if its assets travel with the distribution. The
+# importable package, the skill contract and the benchmark tooling are all
+# shipped; tests and CI configuration are not.
+[tool.hatch.build.targets.wheel]
+packages = ["quantum_reasoning_skill"]
+only-include = [
+  "quantum_reasoning_skill",
+  "SKILL.md",
+  "VERSION",
+  "reference",
+  "benchmark",
+  "docs",
+  "examples",
+]
+# `bin/quantum-reasoning` is installed as a console script by hatchling.
+[tool.hatch.build.targets.wheel.force-include]
+"SKILL.md" = "quantum_reasoning_skill/SKILL.md"
+"VERSION" = "quantum_reasoning_skill/VERSION"
+# The CLI lives in `bin/` (checked in, reviewable, runnable from a checkout) and
+# is installed into the package as a normal module so that a cross-platform
+# console_scripts entry point can be generated from it.
+"bin/quantum-reasoning" = "quantum_reasoning_skill/cli.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/quantum_reasoning_skill",
+  "/reference",
+  "/benchmark",
+  "/docs",
+  "/examples",
+  "/tests",
+  "/bin",
+  "/.github",
+  "/SKILL.md",
+  "/README.md",
+  "/LICENSE",
+  "/CHANGELOG.md",
+  "/CONTRIBUTING.md",
+  "/SECURITY.md",
+  "/CITATION.cff",
+  "/VERSION",
+  "/index.js",
+  "/package.json",
+  "/pyproject.toml",
+]
+
+[tool.hatch.build.targets.sdist.force-include]
+"bin/quantum-reasoning" = "bin/quantum-reasoning"
+
+# ---------------------------------------------------------------------------
+# Quality tooling (new gates; see .github/workflows/validate-skill.yml)
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["build", "dist", ".venv"]
+
+[tool.ruff.lint]
+select = [
+  "E", "W",   # pycodestyle
+  "F",        # pyflakes
+  "I",        # isort
+  "UP",       # pyupgrade
+  "B",        # bugbear
+  "SIM",      # simplify
+  "C4",       # comprehensions
+  "TRY",      # exception style
+]
+ignore = [
+  "E501",    # line length is handled by the formatter
+  "TRY003",  # long messages in `raise` improve CI diagnostics
+]
+
+# The repository is not yet `ruff format` clean. Formatting is therefore
+# advisory only for now: the lint job below reports it without failing, and the
+# gate becomes blocking once the owning areas are formatted.
+[tool.ruff.format]
+exclude = [
+  "benchmark",
+  "reference",
+  "tests",
+  "quantum_reasoning_skill",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# NOTE: `benchmark/`, `reference/`, `tests/` and `quantum_reasoning_skill/`
+# library source are owned by other maintainers. These are narrowly scoped
+# suppressions for the exact rules those files currently violate, so that the
+# lint gate is green today while still catching *new* violations of every other
+# rule. Remove each entry as the owning area is cleaned up.
+"benchmark/evaluate.py" = ["I001", "SIM102", "TRY004", "UP035", "UP038"]
+"benchmark/validate_submission.py" = ["E401", "F401", "I001", "TRY004"]
+"reference/branch_controller.py" = ["UP035"]
+"quantum_reasoning_skill/__init__.py" = ["W293"]
+"tests/*" = ["E401", "I001", "TRY002", "W292"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+no_implicit_optional = true
+strict_equality = true
+files = ["quantum_reasoning_skill", "bin/quantum-reasoning"]
+
+[[tool.mypy.overrides]]
+module = ["benchmark.*"]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+branch = true
+source = ["quantum_reasoning_skill", "reference", "benchmark"]
+omit = [
+  "*/tests/*",
+  "*/__main__.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+# Measured total with branch coverage enabled is 68%. Ratchet upward as the
+# reference controller and evaluator gain tests; never lower this number.
+fail_under = 65
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+]

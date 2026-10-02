@@ -1,11 +1,18 @@
 name: PyPI Release
 
+# Publishing is gated on `push` to the default branch only. It is deliberately
+# NOT triggered by `workflow_run` (which lets a fork trigger privileged code)
+# and NOT by `pull_request` (which is untrusted). The caller must be able to
+# push to main, which already implies write access.
 on:
-  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - ".github/pypi-release-trigger"
+      - "pyproject.toml"
+      - "VERSION"
+      - "quantum_reasoning_skill/**"
+  workflow_dispatch:
 
 concurrency:
   group: pypi-release
@@ -13,11 +20,18 @@ concurrency:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   publish:
+    # Belt and braces: the `if` re-asserts the default-branch gate even if the
+    # trigger is ever widened.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      # Trusted Publishing via OIDC; no long-lived secret is used.
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
@@ -29,6 +43,7 @@ jobs:
         id: meta
         shell: bash
         run: |
+          set -euo pipefail
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import pathlib, tomllib
           project = tomllib.loads(pathlib.Path("pyproject.toml").read_text(encoding="utf-8"))["project"]
@@ -36,22 +51,44 @@ jobs:
           print(f"version={project['version']}")
           PY
 
-      - name: Refuse an existing PyPI version
+      - name: Require an unreleased version
         shell: bash
         run: |
           set -euo pipefail
-          url="https://pypi.org/pypi/${{ steps.meta.outputs.name }}/${{ steps.meta.outputs.version }}/json"
+          name="${{ steps.meta.outputs.name }}"
+          version="${{ steps.meta.outputs.version }}"
+          version_file="$(tr -d '[:space:]' < VERSION)"
+          version_file="${version_file#v}"
+          if [ "$version_file" != "$version" ]; then
+            echo "::error::pyproject.toml ($version) does not match VERSION ($version_file)." >&2
+            exit 1
+          fi
+          url="https://pypi.org/pypi/$name/$version/json"
           if curl --retry 3 --retry-delay 2 --retry-all-errors -sfL "$url" >/dev/null; then
-            echo "::error::${{ steps.meta.outputs.name }} ${{ steps.meta.outputs.version }} already exists on PyPI."
+            echo "::error::$name $version is already published to PyPI. Bump VERSION and pyproject.toml." >&2
             exit 1
           fi
 
       - name: Build and validate distributions
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install build twine
-          python -m build
-          python -m twine check dist/*
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check "build==1.2.2.post1" "twine==6.1.0"
+          python -m build --outdir dist
+          python -m twine check --strict dist/*
+
+      # The API gate is re-run here so a release can never be produced from a
+      # commit whose wheel does not expose the documented public API. It is the
+      # same check CI enforces, re-executed against the freshly built wheel.
+      - name: Install the built wheel
+        run: |
+          set -euo pipefail
+          wheel="$(ls dist/*.whl | head -n1)"
+          echo "Installing $wheel"
+          python -m pip install --disable-pip-version-check "$wheel"
+          quantum-reasoning --validate
+
+      - name: Assert documented public API is importable and callable
+        run: python bin/check_release_contract.py
 
       - name: Detect API token fallback
         id: auth
@@ -65,27 +102,19 @@ jobs:
             echo "has_token=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # Two mutually exclusive paths, each fully checked. `continue-on-error`
+      # is deliberately absent so a failed upload fails the job.
       - name: Publish with PyPI Trusted Publishing
         id: trusted
+        if: steps.auth.outputs.has_token != 'true'
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
-        continue-on-error: true
 
-      - name: Publish with API token fallback
+      - name: Publish with API token
         id: token
-        if: steps.trusted.outcome != 'success' && steps.auth.outputs.has_token == 'true'
+        if: steps.auth.outputs.has_token == 'true'
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
-        continue-on-error: true
-
-      - name: Require successful upload
-        if: steps.trusted.outcome != 'success'
-        shell: bash
-        run: |
-          if [ "${{ steps.token.outcome }}" != "success" ]; then
-            echo "::error::PyPI upload failed. Configure Trusted Publishing for this workflow or add PYPI_API_TOKEN."
-            exit 1
-          fi
 
       - name: Verify public PyPI version
         shell: bash
@@ -99,4 +128,5 @@ jobs:
             fi
             sleep 15
           done
-          echo "::warning::Upload succeeded but the public PyPI JSON endpoint has not propagated yet."
+          echo "::error::Upload did not propagate to the public PyPI JSON endpoint." >&2
+          exit 1

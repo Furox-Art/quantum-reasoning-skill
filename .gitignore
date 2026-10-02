@@ -1,8 +1,16 @@
+# Defaults for the maintenance toolchain.
+/.venv/
+venv/
 __pycache__/
 *.py[cod]
 *.egg-info/
 .pytest_cache/
-.venv/
-venv/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
 dist/
 build/
+node_modules/
+*.tgz
