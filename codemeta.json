@@ -1,0 +1,27 @@
+{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "name": "quantum-reasoning-skill",
+  "version": "1.1.0",
+  "description": "Agent skill and reference controller that keeps several hypotheses alive and collapses only when evidence supports it. No performance claim is made.",
+  "license": "https://spdx.org/licenses/MIT",
+  "codeRepository": "https://github.com/Furox-Art/quantum-reasoning-skill",
+  "url": "https://github.com/Furox-Art/quantum-reasoning-skill",
+  "programmingLanguage": {
+    "@type": "ComputerLanguage",
+    "name": "Python"
+  },
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Furox-Art"
+    }
+  ],
+  "datePublished": "2026-10-02",
+  "keywords": [
+    "agent skills",
+    "reasoning",
+    "benchmark"
+  ],
+  "applicationCategory": "scientific computing"
+}

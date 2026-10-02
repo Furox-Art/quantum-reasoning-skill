@@ -3,13 +3,6 @@ name: npm Publish
 # Default-branch `push` only. No `workflow_run`, no `pull_request`. Publishing
 # requires write access to main.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "package.json"
-      - "index.js"
-      - "VERSION"
-      - "SKILL.md"
   workflow_dispatch:
 
 concurrency:
@@ -84,6 +77,6 @@ jobs:
           fi
 
       - name: Publish to npm
-        run: npm publish --access public --provenance
+        run: echo "npm publishing is disabled; PyPI is the install path" && exit 0
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
