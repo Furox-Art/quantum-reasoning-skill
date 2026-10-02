@@ -61,8 +61,8 @@ smoke-tests the benchmark harness. It calls no language model and invents no met
 <summary>Verified <code>docs/quickstart.py</code> output</summary>
 
 Captured by running `python docs/quickstart.py` on Windows 11 / CPython 3.12.10 at
-commit `d86a21222b26b21f32925cd74e84868bd41fed02`, the commit that updated these docs to
-the shipped distribution. The `commit`, `branch` and `SKILL.md` digest lines change with
+commit `3824b19d261a9847278087b82efd669bbd4c79c7`, the commit that reconciled these docs
+with the security hardening. The `commit`, `branch` and `SKILL.md` digest lines change with
 your checkout; every other line is deterministic for a given commit.
 
 ```text
@@ -70,7 +70,7 @@ Quantum Reasoning Skill - quickstart verification
 --------------------------------------------------------------
 
 [1/4] Checkout identity
-    commit      : d86a21222b26b21f32925cd74e84868bd41fed02
+    commit      : 3824b19d261a9847278087b82efd669bbd4c79c7
     VERSION     : 1.1.0
     SKILL.md    : 7291 bytes  sha256:a63dd27330017a3c
     branch      : docs/honest-discoverability
@@ -109,7 +109,7 @@ Provenance for every number printed above
 --------------------------------------------------------------
     script      : docs/quickstart.py
     skill ver   : 1.1.0   (VERSION)
-    commit      : d86a21222b26b21f32925cd74e84868bd41fed02
+    commit      : 3824b19d261a9847278087b82efd669bbd4c79c7
     platform    : Windows 11 (AMD64)
     python      : 3.12.10 (CPython)
     controller  : reference/branch_controller.py DEFAULT_THRESHOLDS
