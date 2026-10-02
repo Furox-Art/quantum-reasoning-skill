@@ -42,7 +42,7 @@ quantum-reasoning = "quantum_reasoning_skill.cli:main"
 [dependency-groups]
 dev = [
   "build==1.2.2.post1",
-  "coverage==7.6.12",
+  "coverage==7.16.2",
   "mypy==1.11.2",
   "ruff==0.7.4",
   "twine==6.1.0",
