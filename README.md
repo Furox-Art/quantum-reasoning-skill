@@ -33,20 +33,29 @@ one candidate open", and "measurement" means "let evidence collapse it".
 
 ## Quick start
 
-The deliverable is `SKILL.md`. Install it as a persistent skill instruction in your host:
+`SKILL.md` is the deliverable. Three verified paths reach it:
 
 ```bash
+# Option 1 — from a clone (nothing to install)
 git clone https://github.com/Furox-Art/quantum-reasoning-skill.git
 cd quantum-reasoning-skill
 python docs/quickstart.py
+
+# Option 2 — from the wheel; `SKILL.md` ships inside the distribution
+pip install quantum-reasoning-skill
+quantum-reasoning --validate
+
+# Option 3 — from npm
+npm i quantum-reasoning-skill
+npx quantum-reasoning --validate
 ```
+
+Then copy `SKILL.md` into your host's skill directory, preserving the YAML front matter.
+`docs/getting-started.md` covers the integration shapes, and
+`examples/host-integration.md` shows the persistent-instruction wrapper.
 
 `docs/quickstart.py` verifies the checkout, exercises the reference branch controller, and
 smoke-tests the benchmark harness. It calls no language model and invents no metrics.
-
-Then copy `SKILL.md` into your host's skill directory, preserving the YAML front matter.
-`docs/getting-started.md` covers the three integration shapes, and
-`examples/host-integration.md` shows the persistent-instruction wrapper.
 
 <details>
 <summary>Verified <code>docs/quickstart.py</code> output</summary>
@@ -118,19 +127,49 @@ tuned constants.
 
 ## Distribution status
 
-Read this before choosing an install method. Only the first row is a supported integration
-surface today.
+All three channels ship `SKILL.md` and are verified by CI against the **built**
+distribution, not against a checkout.
 
-| Channel | Ships | Usable as a skill today? |
+| Channel | Ships | Verified by |
 | --- | --- | --- |
-| `git clone` + copy `SKILL.md` | `SKILL.md`, reference controller, benchmark harness | **Yes — the supported path.** |
-| `pip install quantum-reasoning-skill` | A Python distribution whose published wheel contains only an empty `quantum_reasoning_skill/__init__.py` | No. It does not ship `SKILL.md`. |
-| `npm i quantum-reasoning-skill` | A package whose `main` entry point requires a Markdown file as if it were JavaScript | No. Its entry point throws on `require()`. |
+| `git clone` | `SKILL.md`, `VERSION`, `reference/`, `benchmark/`, `docs/`, `examples/`, `bin/` | — |
+| `pip install quantum-reasoning-skill` | `SKILL.md` and `VERSION` inside the package as `quantum_reasoning_skill/SKILL.md` and `.../VERSION`; the `reference/`, `benchmark/`, `docs/` and `examples/` trees; plus the `quantum-reasoning` console script | installed API contract gate |
+| `npm i quantum-reasoning-skill` | `SKILL.md`, `VERSION`, `index.js`, `LICENSE`, `README.md` and the `quantum-reasoning` bin | `npm pack` + `npx` smoke test |
 
-The PyPI and npm distros are published and their version badges above are accurate, but
-**neither is an integration surface for this skill.** Packaging corrections are tracked
-separately; until they land, clone the repository. See
-[issue tracker](https://github.com/Furox-Art/quantum-reasoning-skill/issues) for status.
+Locate the installed asset and check the contract:
+
+```bash
+quantum-reasoning --validate   # Python: exits non-zero on an invalid contract
+npx quantum-reasoning --validate  # npm: same report
+```
+
+`bin/check_release_contract.py` is the gate CI runs. It asserts that `SKILL.md` resolves
+inside the installed wheel, that the `quantum-reasoning` console entry point is installed
+and returns success against the installed asset, that `reference.branch_controller` imports
+from the installed distribution with a callable API, and that the release version agrees
+across `VERSION`, `pyproject.toml`, `package.json` and `CITATION.cff`. A negative-control
+mode removes each installed asset and requires the gate to fail, so the gate cannot degrade
+into a no-op.
+
+Version numbers are locked: one release version across `VERSION`, `pyproject.toml`,
+`package.json`, `CITATION.cff` and `CHANGELOG.md`, enforced in CI and in both release
+workflows. Read the authoritative value from the `VERSION` file rather than from a badge.
+
+### What the Python distribution actually exposes
+
+There is **no `ReasoningSession` class** — an earlier README claimed one, it never existed,
+and the claim has been removed. The installed surface is exactly this:
+
+| Surface | What it is |
+| --- | --- |
+| `quantum-reasoning` console script | Reads the installed `SKILL.md` and reports the skill contract. `--validate` exits non-zero on an invalid contract, `--json` emits the report, `--path` prints the asset location |
+| `quantum_reasoning_skill.SKILL.md`, `quantum_reasoning_skill.VERSION` | The shipped skill contract and version, installed as package data |
+| `reference.branch_controller` | The reference scoring, dormancy, revival and collapse functions documented in [Measurement methodology](docs/MEASUREMENT.md) |
+| `quantum_reasoning_skill` | Namespace for the shipped asset; it deliberately exposes no Python class API |
+
+The gate that enforces this list is [`bin/check_release_contract.py`](bin/check_release_contract.py),
+and it runs on every pull request. If a release ever shipped a wheel that installed but
+carried no skill, that gate fails the release.
 
 ## The protocol
 

@@ -15,6 +15,9 @@ Executable behavior changes should include tests.
 | [`SKILL.md`](SKILL.md) | The normative protocol. If a doc and `SKILL.md` disagree, `SKILL.md` wins. |
 | [`docs/`](docs/index.md) | Documentation home, getting started, quickstart, measurement, compatibility |
 | [`reference/branch_controller.py`](reference/branch_controller.py) | Reference scoring, dormancy, revival and collapse logic |
+| [`bin/quantum-reasoning`](bin/quantum-reasoning) | The `quantum-reasoning` console script; installed as `quantum_reasoning_skill.cli` |
+| [`bin/check_release_contract.py`](bin/check_release_contract.py) | Release gate: asserts the installed distribution's real surface, with a fail-closed negative control |
+| [`conftest.py`](conftest.py) | Version-lockstep helpers shared by CI and the standalone scripts |
 | [`examples/`](examples/usage.md) | Prompt shapes and host integration shapes |
 | [`benchmark/`](benchmark/README.md) | Cases, JSON Schemas, evaluator, submission validator |
 | [`tests/`](tests) | Behavioral tests, run with `python -m unittest discover -s tests` |
@@ -25,13 +28,19 @@ Executable behavior changes should include tests.
    contract. Use the [feature request](https://github.com/Furox-Art/quantum-reasoning-skill/issues/new?template=feature-request.yml)
    template so the evidence requirement is visible early.
 2. Branch from `main`.
-3. Run the validation suite:
+3. Run the validation suite. These six checks are the required status checks on `main`:
 
    ```bash
    python -m unittest discover -s tests -v
-   python benchmark/evaluate.py --help
-   python docs/quickstart.py
+   ruff check .
+   mypy
+   python -m coverage run -m unittest discover -s tests && python -m coverage report
+   python -m build --outdir dist && python -m twine check --strict dist/*
+   pip install --force-reinstall dist/*.whl && python bin/check_release_contract.py
    ```
+
+   Plus `python docs/quickstart.py` for the user-facing path. `pip install -e .[dev]` or
+   the `dev` dependency group in `pyproject.toml` pins the exact tool versions CI uses.
 
 4. Open a pull request and complete [`PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md).
 
@@ -44,7 +53,14 @@ back. Changes must preserve that.
   carried with provenance (see below). Do not paste a result you did not produce.
 - Label synthetic, placeholder or illustrative output as such, next to the number.
 - Do not describe a distribution channel as an install path unless the published artifact
-  actually contains the artifact you claim. `SKILL.md` is the integration surface.
+  actually contains the artifact you claim. `SKILL.md` is the integration surface, and
+  `bin/check_release_contract.py` enforces that it ships.
+- Do not add a Python API that does not exist. The installed surface is the
+  `quantum-reasoning` console script, the shipped `SKILL.md` and `VERSION`, and
+  `reference.branch_controller`. An earlier README claimed a `ReasoningSession` class that
+  never existed; asserting it made the release gate unsatisfiable.
+- Bump `VERSION` and let the lockstep check carry `pyproject.toml`, `package.json`,
+  `CITATION.cff` and `CHANGELOG.md` with it. Do not hand-edit one version in isolation.
 - Keep `docs/MEASUREMENT.md` in sync with `WEIGHTS` and `DEFAULT_THRESHOLDS` in
   `reference/branch_controller.py`. They are transcribed from each other.
 - Link only to files that exist, and prefer relative links inside this repository.

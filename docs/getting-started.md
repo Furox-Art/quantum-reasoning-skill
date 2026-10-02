@@ -14,7 +14,7 @@ explicit rather than hidden, so a host can measure it.
 It is a **metaphor, not quantum computing.** It runs on ordinary models and ordinary
 hardware; see [the README](../README.md#why).
 
-## Step 1 — verify the checkout
+## Step 1 — verify what you installed
 
 ```bash
 git clone https://github.com/Furox-Art/quantum-reasoning-skill.git
@@ -25,9 +25,17 @@ python docs/quickstart.py
 Requires Python 3.10+. Exit code `0` means the skill contract parses and the shipped
 tooling runs. Full output and provenance: [Quickstart](quickstart.md).
 
-**Install by cloning.** The published PyPI and npm packages do not currently ship
-`SKILL.md`, so neither is an integration surface. The exact status of each channel is in
-[the README distribution table](../README.md#distribution-status).
+If you installed from a package instead, verify the installed asset rather than the
+checkout:
+
+```bash
+pip install quantum-reasoning-skill
+quantum-reasoning --validate    # or: npx quantum-reasoning --validate
+```
+
+`--validate` exits non-zero if the shipped `SKILL.md` is missing or malformed, and
+`--path` prints where the asset resolved. See
+[the distribution status table](../README.md#distribution-status).
 
 ## Step 2 — install `SKILL.md` in your host
 

@@ -3,10 +3,10 @@
 These examples describe integration shapes without depending on a specific provider.
 Requirements expressed as capabilities are in [`../docs/COMPATIBILITY.md`](../docs/COMPATIBILITY.md).
 
-**Install from a clone.** The published PyPI and npm packages do not currently ship
-`SKILL.md`, so neither is an integration surface for this skill — see the
-[distribution status table](../README.md#distribution-status). `SKILL.md` is the only
-artifact a host needs to load.
+**Install from a clone, the PyPI wheel, or npm** — all three ship `SKILL.md`. See
+[the distribution status table](../README.md#distribution-status). After copying `SKILL.md`,
+verify the copy with `python docs/quickstart.py`, or against an installed package with
+`quantum-reasoning --validate`. `SKILL.md` is the only artifact a host needs to load.
 
 ## 1. Native skill directory
 

@@ -19,6 +19,8 @@ Start here, then pick the depth you need.
 | [Measurement methodology](MEASUREMENT.md) | The exact formulas, weights and thresholds behind the reference controller |
 | [Host compatibility](COMPATIBILITY.md) | Which host capabilities are required, expressed as capabilities rather than vendors |
 | [Branch controller](../reference/branch_controller.py) | The reference implementation of scoring, dormancy, revival and collapse |
+| [Release contract gate](../bin/check_release_contract.py) | What CI asserts about the built distribution, and how the gate proves it is fail-closed |
+| [`quantum-reasoning` CLI](../bin/quantum-reasoning) | The console script that validates the installed skill asset |
 
 ## Examples
 

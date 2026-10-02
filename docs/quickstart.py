@@ -258,15 +258,15 @@ def main() -> int:
     out(RULE)
     out("Provenance for every number printed above")
     out(RULE)
-    out(f"    script      : docs/quickstart.py")
+    out("    script      : docs/quickstart.py")
     out(f"    skill ver   : {version}   (VERSION)")
     out(f"    commit      : {commit}")
     out(f"    platform    : {platform.system()} {platform.release()} "
         f"({platform.machine()})")
     out(f"    python      : {platform.python_version()} "
         f"({platform.python_implementation()})")
-    out(f"    controller  : reference/branch_controller.py DEFAULT_THRESHOLDS")
-    out(f"    benchmark   : benchmark/cases.jsonl + benchmark/evaluate.py")
+    out("    controller  : reference/branch_controller.py DEFAULT_THRESHOLDS")
+    out("    benchmark   : benchmark/cases.jsonl + benchmark/evaluate.py")
     out()
     if failures:
         out(f"RESULT: FAIL ({len(failures)} problem(s))")
