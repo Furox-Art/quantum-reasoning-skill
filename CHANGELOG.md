@@ -4,6 +4,53 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-02
+
+### Fixed
+
+- The published wheel is no longer an empty shell: `SKILL.md`, `VERSION`,
+  `reference/`, `benchmark/`, `docs/` and `examples/` now ship inside the
+  distribution instead of only in the source tree.
+- The npm entry point no longer executes `SKILL.md` as JavaScript. `require()`,
+  `bin/quantum-reasoning` and `npm test` all work; the previous version threw a
+  `SyntaxError` on any import.
+- The npm tarball no longer ships `.github/`, `tests/` and `pyproject.toml`.
+- Version drift is removed. `VERSION`, `pyproject.toml`, `package.json`,
+  `CITATION.cff`, `CHANGELOG.md` and the installed metadata are now asserted to
+  be identical by CI.
+
+### Fixed
+
+- `benchmark/validate_submission.py` used a bare `import evaluate`, which only
+  resolved when the script's own directory happened to be on `sys.path`.
+  `python -m benchmark.validate_submission` failed with `ModuleNotFoundError`;
+  both invocations now work.
+
+### Added
+
+- `bin/quantum-reasoning` console script that validates the packaged skill
+  contract, installable via `pip install quantum-reasoning-skill`.
+- A release contract gate that installs the built wheel and fails the release
+  unless the skill contract ships in the distribution, the documented console
+  entry point runs, and the reference branch controller imports and is callable.
+  A negative control proves the gate fails when an installed asset is removed.
+- CI jobs for lint (`ruff`), type checking (`mypy --strict`) and coverage with a
+  ratcheting threshold.
+- CI build job that runs `python -m build` and `twine check` on every change.
+- CI job that installs the built wheel and verifies the skill contract, so the
+  distribution is validated as a consumer would see it.
+
+### Changed
+
+- Release automation no longer uses `workflow_run`. Privileged publishing is
+  gated on `push` to the default branch with no write permissions on
+  untrusted events.
+- Actions are pinned to full commit SHAs, workflow permissions are least
+  privilege, and `continue-on-error` was removed from publish steps.
+- `main` is protected by a ruleset requiring a passing `validate-skill` check
+  and a pull request.
+- Python CI matrix covers 3.10 through 3.14 on Linux plus a Windows job.
+
 ## [0.3.1] - 2026-09-07
 
 ### Added

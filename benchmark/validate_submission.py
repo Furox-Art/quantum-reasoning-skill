@@ -3,7 +3,10 @@ from __future__ import annotations
 import argparse, json, re
 from datetime import date
 from pathlib import Path
-import evaluate
+try:  # `python -m benchmark.validate_submission`
+    from benchmark import evaluate
+except ImportError:  # `python benchmark/validate_submission.py`
+    import evaluate
 
 REQUIRED_FILES = {"metadata.json", "cases.jsonl", "baseline.jsonl", "skill.jsonl", "comparison.json", "README.md"}
 COND_FIELDS = {"instruction_config", "sampling", "tool_availability", "context_limit", "output_limit"}

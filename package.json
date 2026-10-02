@@ -1,1 +1,41 @@
-{"name":"quantum-reasoning-skill","version":"1.0.0","description":"Quantum-inspired reasoning skill for exploring multiple solution paths","main":"index.js","scripts":{"test":"echo \"Error: no test specified\" && exit 1"},"keywords":["ai-agents","reasoning","quantum-inspired","multi-branch"],"author":"Furox-Art","license":"MIT","repository":{"type":"git","url":"git+https://github.com/Furox-Art/quantum-reasoning-skill.git"},"bugs":{"url":"https://github.com/Furox-Art/quantum-reasoning-skill/issues"},"homepage":"https://github.com/Furox-Art/quantum-reasoning-skill#readme"} 
+{
+  "name": "quantum-reasoning-skill",
+  "version": "1.1.0",
+  "description": "Quantum-inspired reasoning skill for exploring multiple solution paths",
+  "main": "index.js",
+  "bin": {
+    "quantum-reasoning": "index.js"
+  },
+  "files": [
+    "index.js",
+    "SKILL.md",
+    "VERSION",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node index.js --validate && node -e \"const s=require('./index.js'); if(!s.loadSkill().valid){console.error('skill contract invalid');process.exit(1)}\""
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "ai-agents",
+    "reasoning",
+    "quantum-inspired",
+    "multi-branch",
+    "agent-skills",
+    "mcp",
+    "claude-skill"
+  ],
+  "author": "Furox-Art",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Furox-Art/quantum-reasoning-skill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Furox-Art/quantum-reasoning-skill/issues"
+  },
+  "homepage": "https://github.com/Furox-Art/quantum-reasoning-skill#readme"
+}
