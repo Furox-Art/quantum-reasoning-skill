@@ -15,6 +15,15 @@ on:
       - "VERSION"
       - "SKILL.md"
   workflow_dispatch:
+    inputs:
+      use_token_fallback:
+        description: >-
+          Deliberately publish with the long-lived NPM_TOKEN instead of OIDC
+          Trusted Publishing. Only set this when the npmjs.com trusted publisher
+          is not configured. Token publishes cannot be provenance-signed.
+        type: boolean
+        required: false
+        default: false
 
 concurrency:
   group: npm-publish
@@ -37,13 +46,43 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
-      # npm CLI 11.5.1 or newer is required for Trusted Publishing. Node 24
-      # ships npm 11.x, and the step is kept explicit so the requirement is
-      # visible rather than implied by a runtime bump.
+      # npm CLI >= 11.5.1 is required for Trusted Publishing. Node 24 ships npm
+      # 11.x, and the requirement is checked numerically rather than by regex:
+      # a pattern like ^11\.(5[1-9]|[6-9][0-9])\. rejects legitimate versions
+      # such as 11.9.0 and 11.19.0, because 5[1-9] does not match 19.
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
+
+      - name: Require npm 11.5.1 or newer for Trusted Publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+          # FAKE_NPM_VERSION exists so the comparison below can be tested against
+          # versions this runner does not have; it is unset in real runs.
+          raw="${FAKE_NPM_VERSION:-$(npm --version)}"
+          echo "npm CLI $raw"
+          node -e '
+            const raw = process.argv[1];
+            const m = /^(\d+)\.(\d+)\.(\d+)/.exec(raw);
+            if (!m) {
+              console.error(`cannot parse npm version: ${raw}`);
+              process.exit(1);
+            }
+            const [major, minor, patch] = [Number(m[1]), Number(m[2]), Number(m[3])];
+            // Numeric comparison: >= 11.5.1
+            const ok =
+              major > 11 ||
+              (major === 11 && (minor > 5 || (minor === 5 && patch >= 1)));
+            if (!ok) {
+              console.error(
+                `npm ${raw} is too old; Trusted Publishing requires 11.5.1 or newer.`
+              );
+              process.exit(1);
+            }
+            console.log(`npm ${raw} satisfies the Trusted Publishing requirement`);
+          ' "$raw"
 
       - name: Resolve version and require lockstep across all five surfaces
         id: meta
@@ -175,40 +214,68 @@ jobs:
           fi
           echo "$name@$version is not published yet"
 
-      # Decide which credential path to use. Trusted Publishing is primary and
-      # needs no long-lived secret. The token fallback exists only for the case
-      # where the npmjs.com trusted publisher has not been configured yet; it is
-      # reported clearly so the fallback is never silent.
-      - name: Detect authentication path
-        id: auth
+      # Publish mode is an explicit choice, never an automatic downgrade.
+      #
+      # Trusted Publishing (OIDC) is the only mode used unless someone opted in
+      # by hand via the `use_token_fallback` dispatch input. The mere presence of
+      # an NPM_TOKEN secret no longer switches modes, so a stale secret cannot
+      # silently downgrade a publish. The requested mode is also fail-closed: if
+      # the chosen mode has no usable credential, this step fails before npm is
+      # ever invoked.
+      - name: Resolve the requested publish mode
+        id: mode
         shell: bash
         env:
+          REQUESTED_TOKEN: ${{ inputs.use_token_fallback }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
-          if [ -n "$NPM_TOKEN" ]; then
-            echo "path=token" >> "$GITHUB_OUTPUT"
-            echo "::warning::NPM_TOKEN is present; publishing with the token fallback. Configure the npmjs.com trusted publisher to use OIDC instead." >&2
+
+          # A boolean workflow_dispatch input arrives as the string "true"/"false"
+          # on a dispatch and as an empty string on a push, so normalise here.
+          case "${REQUESTED_TOKEN:-false}" in
+            true|True|TRUE) requested="token" ;;
+            false|False|FALSE|"") requested="trusted" ;;
+            *)
+              echo "::error::use_token_fallback must be a boolean, got '${REQUESTED_TOKEN}'" >&2
+              exit 1
+              ;;
+          esac
+
+          echo "requested=$requested" >> "$GITHUB_OUTPUT"
+
+          if [ "$requested" = "token" ]; then
+            if [ -z "${NPM_TOKEN:-}" ]; then
+              echo "::error::use_token_fallback was requested but the NPM_TOKEN secret is not set. Refusing to publish." >&2
+              exit 1
+            fi
+            # Deliberate opt-in, and provenance cannot be attested without OIDC.
+            echo "::warning::Publishing with the long-lived NPM_TOKEN because use_token_fallback was set explicitly. This publish will NOT be provenance-signed: a classic token cannot mint a Sigstore attestation. Prefer OIDC Trusted Publishing and delete NPM_TOKEN." >&2
           else
-            echo "path=trusted" >> "$GITHUB_OUTPUT"
-            echo "publishing with OIDC Trusted Publishing"
+            echo "::notice::Publishing with OIDC Trusted Publishing and --provenance."
           fi
 
       # Trusted Publishing: no NODE_AUTH_TOKEN is exported, so npm exchanges the
-      # OIDC token itself. These two steps are mutually exclusive via `if`, and
-      # neither tolerates failure.
+      # OIDC token itself. This is the default and the only automatic path.
       - name: Publish with OIDC Trusted Publishing
         id: trusted
-        if: steps.auth.outputs.path == 'trusted'
+        if: steps.mode.outputs.requested == 'trusted'
         run: npm publish --access public --provenance
 
-      - name: Publish with NPM_TOKEN fallback
+      # Deliberate token mode. `--provenance` is deliberately absent: npm
+      # generates provenance from the OIDC identity in the runner environment,
+      # and passing `--provenance` with only a classic token configured makes npm
+      # attempt an attestation it cannot produce. Verified against npm 11: the
+      # publish fails outright rather than degrading quietly.
+      - name: Publish with NPM_TOKEN (deliberate opt-in, no provenance)
         id: token
-        if: steps.auth.outputs.path == 'token'
-        run: npm publish --access public --provenance
+        if: steps.mode.outputs.requested == 'token'
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      # Neither publish step tolerates failure, so a skipped step here means the
+      # requested mode did not run at all.
       - name: Require a successful upload
         shell: bash
         env:
@@ -216,19 +283,21 @@ jobs:
           VERSION: ${{ steps.meta.outputs.version }}
           TRUSTED_OUTCOME: ${{ steps.trusted.outcome }}
           TOKEN_OUTCOME: ${{ steps.token.outcome }}
-          TRUSTED_PATH: ${{ steps.auth.outputs.path }}
+          REQUESTED: ${{ steps.mode.outputs.requested }}
         run: |
           set -euo pipefail
-          if [ "$TRUSTED_PATH" = "trusted" ]; then
+          if [ "$REQUESTED" = "trusted" ]; then
             if [ "$TRUSTED_OUTCOME" != "success" ]; then
-              echo "::error::npm Trusted Publishing failed. Configure a trusted publisher on npmjs.com for this repository, workflow and environment." >&2
+              echo "::error::npm Trusted Publishing failed. Configure a trusted publisher on npmjs.com for owner 'Furox-Art', repository 'quantum-reasoning-skill', workflow 'npm-publish.yml', environment 'npm'." >&2
               exit 1
             fi
-          elif [ "$TOKEN_OUTCOME" != "success" ]; then
-            echo "::error::npm publish failed using the NPM_TOKEN fallback." >&2
-            exit 1
+          else
+            if [ "$TOKEN_OUTCOME" != "success" ]; then
+              echo "::error::npm publish failed in deliberate NPM_TOKEN mode." >&2
+              exit 1
+            fi
           fi
-          echo "npm accepted $NAME@$VERSION"
+          echo "npm accepted $NAME@$VERSION (mode: $REQUESTED)"
 
       - name: Verify the published version
         shell: bash
