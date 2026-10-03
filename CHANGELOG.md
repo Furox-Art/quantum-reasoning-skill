@@ -4,6 +4,29 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-10-04
+
+Documentation corrections plus one workflow fix. This release exists primarily so
+that the PyPI project page picks up the corrected `README.md`: the README is the
+distribution long description, so only a new release can change it.
+
+The PyPI 1.1.0 long description still advertised `from quantum_reasoning_skill
+import ReasoningSession` and a `session.collapse()` API that has never existed in
+this codebase, plus an "npm is no longer published" claim contradicted by the
+README's own npm badge and install command. All of that is now removed.
+
+Packaging and security hardening that landed after 1.1.0 also ships in this
+release, since 1.1.0 was built before those commits existed:
+
+- Benchmark import boundaries and path guards, plus the no-dynamic-eval and
+  import-hardening tests, are included for the first time. The 1.1.0 sdist
+  contains none of these files.
+- `publish-release` now polls for required checks instead of refusing a green
+  commit on first glance, and release automation no longer uses `workflow_run`.
+- npm publishing was re-enabled on OIDC Trusted Publishing with provenance;
+  publishing with `NPM_TOKEN` is a deliberate opt-in and is never
+  provenance-signed.
+
 ### Fixed
 
 - README claimed "npm is no longer published". npm `quantum-reasoning-skill@1.1.0` is
