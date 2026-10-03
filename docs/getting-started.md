@@ -30,12 +30,16 @@ checkout:
 
 ```bash
 pip install quantum-reasoning-skill
-quantum-reasoning --validate    # or: npx quantum-reasoning --validate
+quantum-reasoning --validate      # Python console script
+
+npm i quantum-reasoning-skill
+npx quantum-reasoning --validate  # npm CLI
 ```
 
-`--validate` exits non-zero if the shipped `SKILL.md` is missing or malformed, and
-`--path` prints where the asset resolved. See
-[the distribution status table](../README.md#distribution-status).
+`--validate` exits non-zero if the shipped `SKILL.md` is missing or malformed. The two CLIs
+do **not** share a flag set: `--path` prints the resolved asset path in the npm CLI only, and
+`--skill-file PATH` / `--quiet` exist in the Python one only. See
+[the distribution section](../README.md#distribution-and-the-surface-it-exposes).
 
 ## Step 2 — install `SKILL.md` in your host
 

@@ -4,7 +4,7 @@ These examples describe integration shapes without depending on a specific provi
 Requirements expressed as capabilities are in [`../docs/COMPATIBILITY.md`](../docs/COMPATIBILITY.md).
 
 **Install from a clone, the PyPI wheel, or npm** — all three ship `SKILL.md`. See
-[the distribution status table](../README.md#distribution-status). After copying `SKILL.md`,
+[the distribution section](../README.md#distribution-and-the-surface-it-exposes). After copying `SKILL.md`,
 verify the copy with `python docs/quickstart.py`, or against an installed package with
 `quantum-reasoning --validate`. `SKILL.md` is the only artifact a host needs to load.
 
