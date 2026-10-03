@@ -33,8 +33,8 @@ PYPROJECT_PINS = {
     "coverage": "7.6.12",
     "mypy": "1.11.2",
     "ruff": "0.7.4",
-    "twine": "6.1.0",
-    "hatchling": "1.27.0",
+    "twine": "7.0.0",
+    "hatchling": "1.32.4",
 }
 
 #: Markers that would mean the lock accepts floating versions.

@@ -49,6 +49,7 @@ jobs:
             tests/test_readme_badges.py tests/test_release_check_polling.py \
             package.json index.js pyproject.toml conftest.py \
             bin/quantum-reasoning bin/check_release_contract.py bin/wait_for_required_checks.py \
+            bin/check_toolchain_pins.py \
             .github/ISSUE_TEMPLATE/benchmark-result.yml .github/ISSUE_TEMPLATE/bug-report.yml \
             .github/ISSUE_TEMPLATE/feature-request.yml .github/PULL_REQUEST_TEMPLATE.md; do
             test -s "$required"
@@ -319,13 +320,39 @@ jobs:
           python-version: "3.12"
 
       - name: Install build tooling
-        run: python -m pip install --disable-pip-version-check "build==1.2.2.post1" "twine==6.1.0"
+        # twine >= 7.0.0 is required: 6.x hardcodes a metadata-version list
+        # ending at 2.4, so `twine check --strict` rejects artifacts whose
+        # backend legitimately emits Metadata-Version 2.5. Guarded in CI by
+        # `python bin/check_toolchain_pins.py`.
+        run: python -m pip install --disable-pip-version-check "build==1.2.2.post1" "twine==7.0.0"
 
       - name: Build sdist and wheel
         run: python -m build --outdir dist
 
       - name: Twine check
         run: python -m twine check --strict dist/*
+
+      # Guards the relationship between the twine pin and the build backend pin.
+      # twine 6.x hardcodes a metadata-version list ending at 2.4, so bumping
+      # hatchling to a version that emits 2.5 breaks `twine check` even though the
+      # artifacts are valid. UNPINNED counts as a failure here.
+      - name: Verify twine can parse the emitted metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          emitted="$(python - <<'PY'
+          import zipfile, glob
+          wheel = glob.glob("dist/*.whl")[0]
+          with zipfile.ZipFile(wheel) as archive:
+              name = next(n for n in archive.namelist() if n.endswith(".dist-info/METADATA"))
+              for line in archive.read(name).decode("utf-8").splitlines():
+                  if line.startswith("Metadata-Version:"):
+                      print(line.split(":", 1)[1].strip())
+                      break
+          PY
+          )"
+          echo "wheel emits Metadata-Version: $emitted"
+          python bin/check_toolchain_pins.py --metadata-version "$emitted"
 
       - name: Upload distributions
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

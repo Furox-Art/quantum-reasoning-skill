@@ -4,6 +4,35 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- `twine` is pinned to `7.0.0` instead of `6.1.0` in every workflow that runs
+  `twine check`. The 6.x line hardcodes a metadata-version list ending at `2.4`
+  in `twine/package.py`, replacing the list `packaging` would supply, so
+  `twine check --strict` rejects a valid artifact whose build backend emits
+  `Metadata-Version: 2.5` with
+  `InvalidDistribution: '2.5' is not a valid metadata version`. The repository was
+  not broken *today* because `hatchling 1.27.0` emits `2.4`, but the pins were one
+  dependency bump away from breaking the next release.
+- `hatchling` moves `1.27.0` → `1.32.4`, which emits `Metadata-Version: 2.5`. This
+  is the version the previous pair could not validate, so the backend and the
+  validator moved together. The wheel and sdist file sets are byte-identical to
+  the 1.32.4-independent 1.1.1 build apart from the metadata version, the
+  `Generator` line and `RECORD`.
+
+### Added
+
+- `bin/check_toolchain_pins.py` asserts the *relationship* between the `twine` pin
+  and the build-backend pin rather than either value alone: every workflow
+  running `twine check` must pin twine, must pin it at or above `7.0.0`, and
+  `UNPINNED` is treated as a failure. `pyproject.toml` and `constraints.txt` are
+  checked against the workflows. Wired into the `build distributions` job using
+  the metadata version read from the artifact that job just built, so the guard
+  is anchored to what is actually emitted rather than to a hardcoded expectation.
+
+No version bump: 1.1.1 is already published and the artifact contents are
+unchanged by this fix. The point is to keep the *next* release from failing.
+
 ## [1.1.1] - 2026-10-04
 
 Documentation corrections plus one workflow fix. This release exists primarily so
