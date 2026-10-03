@@ -4,7 +4,7 @@
 # pyproject.toml:
 #
 #   build==1.2.2.post1  coverage==7.6.12  mypy==1.11.2
-#   ruff==0.7.4  twine==6.1.0  hatchling==1.27.0
+#   ruff==0.7.4  twine==7.0.0  hatchling==1.27.0
 #
 # pip-audit is added because it is the scanner used to verify this lock has no
 # known vulnerabilities (advisory data: OSV.dev). The remaining entries are the
@@ -613,7 +613,7 @@ tomli_w==1.2.0 \
 trove-classifiers==2026.9.21.13 \
     --hash=sha256:0a9ebc8d4e2f3e8a22848c5258033035bec17a3012ac3fea16dbaa764489eb71 \
     --hash=sha256:8b1ff4f9c191b1040b71c37f1e445ab99732911e3cd91de52838453a854d7a17
-twine==6.1.0 \
+twine==7.0.0 \
     --hash=sha256:a47f973caf122930bf0fbbf17f80b83bc1602c9ce393c7845f289a3001dc5384 \
     --hash=sha256:be324f6272eff91d07ee93f251edf232fc647935dd585ac003539b42404a8dbd
 typing_extensions==4.16.0 \
