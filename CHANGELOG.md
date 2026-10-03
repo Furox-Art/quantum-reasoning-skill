@@ -6,6 +6,25 @@ All notable changes to this project are documented here.
 
 ### Fixed
 
+- README claimed "npm is no longer published". npm `quantum-reasoning-skill@1.1.0` is
+  published and the channel is live; the claim also contradicted the README's own npm
+  badge, install command, `npx` example and distribution table. Removed.
+- README documented a `--path` flag for the `quantum-reasoning` console script. It does
+  not exist there — the command exits `2` with `unrecognized arguments: --path`. `--path`
+  belongs to the npm `index.js` CLI only. The distribution surface table is split by owner,
+  and `docs/getting-started.md` no longer implies otherwise.
+- README said "three verified paths reach `SKILL.md`" and then showed two.
+- README said all three channels were verified by CI while its own table left the
+  `git clone` row unverified. Restated to what is actually checked: both packaged artifacts.
+- README described the release gate's negative-control mode as removing "each installed
+  asset". It covers four scenarios and never exercises `VERSION` or the console entry point.
+- The quickstart output pasted into `README.md` and `docs/quickstart.md` cited commit
+  `6bd9c9b`, which is not an ancestor of `main` and is not a valid object in this
+  repository, so no reader could obtain it. It also reported the `SKILL.md` digest as
+  7145 → `a63dd273` only by coincidence of a CRLF checkout; the git blob is
+  7145 bytes / `sha256:bd70f42ce11d1713`, which is what CI and every Linux and macOS user
+  sees. Both the digest and the commit citation are corrected, and the duplicated block
+  was removed from the README in favour of a link so it cannot drift again.
 - npm publishing with `NPM_TOKEN` no longer passes `--provenance`. A classic
   long-lived token cannot mint a Sigstore attestation, so the flag made npm
   attempt an attestation it could not produce. Provenance remains on the OIDC
@@ -13,6 +32,11 @@ All notable changes to this project are documented here.
 - The npm Trusted Publishing version gate is now a numeric semver comparison
   instead of the pattern `^11\.(5[1-9]|[6-9][0-9])\.|^1[2-9]\.`, which wrongly
   rejected legitimate versions including npm 11.9.0 and 11.19.0.
+- The `publish-release` workflow no longer fails on green commits. Its `verify`
+  job queried the required check runs exactly once, saw `pending` while the
+  validation workflow was still starting, and refused to tag. It now polls with a
+  bounded 5-minute deadline and refuses only on a genuine `failure`,
+  `cancelled`, `timed_out`, or a check that never reaches a terminal state.
 
 ### Changed
 
@@ -28,13 +52,30 @@ All notable changes to this project are documented here.
   No version bump is included: the published 1.1.0 tarball was verified healthy
   (`require()` and `npx quantum-reasoning --validate` both succeed).
 
-### Fixed
+- README is 246 → 180 lines after deleting a 50-line output block that was
+  byte-identical to the one in `docs/quickstart.md`, and sections that restated
+  `SKILL.md` verbatim. No coverage was lost: the frozen release contract, the
+  reference-controller API, the benchmark harness's scripts and schemas, and the
+  test and CI story were added in the space reclaimed.
 
-- The `publish-release` workflow no longer fails on green commits. Its `verify`
-  job queried the required check runs exactly once, saw `pending` while the
-  validation workflow was still starting, and refused to tag. It now polls with a
-  bounded 5-minute deadline and refuses only on a genuine `failure`,
-  `cancelled`, `timed_out`, or a check that never reaches a terminal state.
+### Added
+
+- README now documents the frozen release contract: twelve public names in
+  `reference/branch_controller.py` are asserted by
+  `bin/check_release_contract.py`, and renaming any one of them halts the release.
+  `WEIGHTS` is deliberately excluded so the scoring model can change freely.
+- README now lists every public reference-controller function and type, rather than
+  naming one of seventeen.
+- README now names `benchmark/validate_submission.py`, `benchmark/paths.py`, the four
+  JSON Schemas, and shows a real `benchmark/evaluate.py` invocation with its
+  `--cases-dir` and `--max-bytes` confinement.
+- README now states the test and CI surface: 1,575 of 3,635 Python lines across
+  9 test modules, on `unittest`, Python 3.10–3.14, Linux/Windows/macOS, with the
+  toolchain double-pinned in `pyproject.toml` and `constraints.txt`.
+- README and `CONTRIBUTING.md` now mention `codemeta.json`, the five issue templates
+  and the pull-request template.
+- `CONTRIBUTING.md` gained `Toolchain pinning` and `Release version` sections, which
+  the README links to by anchor.
 
 ## [1.1.0] - 2026-10-02
 

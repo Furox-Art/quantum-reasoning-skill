@@ -8,7 +8,7 @@ Quantum Reasoning is model-agnostic, but not every host exposes the same control
 PyPI wheel (as `quantum_reasoning_skill/SKILL.md`), and the npm tarball. Copy `SKILL.md`,
 keep its YAML front matter intact, then confirm the copy with `python docs/quickstart.py`
 or, for an installed package, `quantum-reasoning --validate`. Full channel comparison:
-[the distribution status table](../README.md#distribution-status).
+[the distribution section](../README.md#distribution-and-the-surface-it-exposes).
 
 ## Compatibility levels
 

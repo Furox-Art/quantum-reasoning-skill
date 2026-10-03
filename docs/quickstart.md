@@ -29,36 +29,41 @@ check, not a measurement.
 
 ## Verified output
 
-Captured on Windows 11 / AMD64, CPython 3.12.10, at commit
-`6bd9c9b35835fadc46763915b012b025ceec53eb` — the branch head immediately after
-`origin/main` was merged in and this document was reconciled with the security hardening in
-`benchmark/` and `tests/`.
-
-Committing this paste does not invalidate the block. Later commits touch only this file and
-`README.md`, and `docs/quickstart.py` is byte-identical at `6bd9c9b`, so re-running at a
-later commit changes exactly one line of the output below: the `commit` line.
+Captured on Windows 11 / AMD64, CPython 3.12.10, on an **LF checkout** (no
+`core.autocrlf` translation) at commit
+`9a78b15485c47f78a6274ec4e60470bc150532fd`, whose parent is `main`
+(`dc0a5930aa0098238adb3a0ab0e2fca01e30b1d4`), so the commit is obtainable by anyone
+reading this repository.
 
 **Provenance for the block below:**
 
 - Script: `docs/quickstart.py`
 - Skill version: `1.1.0` (from `VERSION`)
-- Skill commit: `6bd9c9b35835fadc46763915b012b025ceec53eb`
+- Skill commit: `9a78b15485c47f78a6274ec4e60470bc150532fd`
 - Controller: `reference/branch_controller.py`, `DEFAULT_THRESHOLDS`
 - Benchmark inputs: `benchmark/cases.jsonl`, evaluated by `benchmark/evaluate.py`
 - Platform: Windows 11 (AMD64), CPython 3.12.10
+- `SKILL.md` digest: **7145 bytes, `sha256:bd70f42ce11d1713`** — the git blob
 
-The `commit`, `branch` and `SKILL.md` digest lines reflect your checkout. Every other line
-is deterministic for a given commit.
+On a checkout with CRLF translation (Windows `core.autocrlf=true`) the `SKILL.md` line
+instead reads `7291 bytes sha256:a63dd27330017a3c`. That is the same content with line
+endings converted, not a different `SKILL.md`; 7145 is the value CI and every Linux and
+macOS user sees.
+
+The `commit` and `branch` lines name whichever checkout you ran, so they change between
+runs and cannot match a pasted copy forever. Every other line is deterministic for a given
+commit. This file is the single source for this output — the README links here instead of
+repeating it, precisely because a duplicated copy drifts.
 
 ```text
 Quantum Reasoning Skill - quickstart verification
 --------------------------------------------------------------
 
 [1/4] Checkout identity
-    commit      : 6bd9c9b35835fadc46763915b012b025ceec53eb
+    commit      : 9a78b15485c47f78a6274ec4e60470bc150532fd
     VERSION     : 1.1.0
-    SKILL.md    : 7291 bytes  sha256:a63dd27330017a3c
-    branch      : docs/honest-discoverability
+    SKILL.md    : 7145 bytes  sha256:bd70f42ce11d1713
+    branch      : docs/readme-truthfulness
 
 [2/4] Agent Skill contract (SKILL.md)
     name        : quantum-reasoning
@@ -94,7 +99,7 @@ Provenance for every number printed above
 --------------------------------------------------------------
     script      : docs/quickstart.py
     skill ver   : 1.1.0   (VERSION)
-    commit      : 6bd9c9b35835fadc46763915b012b025ceec53eb
+    commit      : 9a78b15485c47f78a6274ec4e60470bc150532fd
     platform    : Windows 11 (AMD64)
     python      : 3.12.10 (CPython)
     controller  : reference/branch_controller.py DEFAULT_THRESHOLDS
