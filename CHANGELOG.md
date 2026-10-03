@@ -4,11 +4,27 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- npm publishing with `NPM_TOKEN` no longer passes `--provenance`. A classic
+  long-lived token cannot mint a Sigstore attestation, so the flag made npm
+  attempt an attestation it could not produce. Provenance remains on the OIDC
+  Trusted Publishing path only.
+- The npm Trusted Publishing version gate is now a numeric semver comparison
+  instead of the pattern `^11\.(5[1-9]|[6-9][0-9])\.|^1[2-9]\.`, which wrongly
+  rejected legitimate versions including npm 11.9.0 and 11.19.0.
+
 ### Changed
 
+- Publishing with `NPM_TOKEN` is now a deliberate opt-in via the
+  `use_token_fallback` `workflow_dispatch` input (boolean, default `false`)
+  instead of an automatic fallback triggered by the mere presence of the secret.
+  A stale secret can no longer silently downgrade a publish. The requested mode
+  fails closed when its credential is absent.
+
 - npm is a supported distribution channel again and `npm publish` is
-  re-enabled. Trusted Publishing via OIDC is the primary credential path; a
-  long-lived `NPM_TOKEN` fallback remains but emits an explicit warning when used.
+  re-enabled. Trusted Publishing via OIDC is the primary credential path, and is
+  the only automatic one.
   No version bump is included: the published 1.1.0 tarball was verified healthy
   (`require()` and `npx quantum-reasoning --validate` both succeed).
 
