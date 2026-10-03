@@ -36,9 +36,10 @@ npx quantum-reasoning --validate
 ```
 
 Copy `SKILL.md` into your host's skill directory, keeping the YAML front matter.
-[`docs/getting-started.md`](docs/getting-started.md) covers the integration shapes;
-[`examples/host-integration.md`](examples/host-integration.md) shows the
-persistent-instruction wrapper.
+[`docs/getting-started.md`](docs/getting-started.md) walks the install; prompt shapes are in
+[`examples/usage.md`](examples/usage.md), host integration shapes in
+[`examples/host-integration.md`](examples/host-integration.md), and required host
+capabilities in [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md).
 
 `docs/quickstart.py` verifies the checkout, parses the front matter, exercises the controller
 and smoke-tests the benchmark harness; it calls no model and invents no metrics. **Its
