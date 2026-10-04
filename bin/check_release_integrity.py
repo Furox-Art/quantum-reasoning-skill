@@ -40,6 +40,11 @@ KNOWN_ATTESTED_NPM = frozenset({"1.1.0"})
 #: npm versions the registry reports as having no attestation.
 KNOWN_UNATTESTED_NPM = frozenset({"1.0.0", "1.1.1"})
 
+#: Every release this package has published to npm. Used by the registry-supplied
+#: check, which must reason about any of these rather than only the ones whose
+#: status happens to be recorded below.
+RELEASED_NPM_VERSIONS = frozenset({"1.0.0", "1.1.0", "1.1.1"})
+
 #: A release-version token.
 VERSION_TOKEN = re.compile(r"\b1\.\d+\.\d+\b")
 
@@ -261,17 +266,55 @@ def check_unattested_is_explicitly_disclosed() -> list[str]:
     ]
 
 
-def table_denies_attestation(chunk: str, version: str) -> bool:
-    """True when a status table marks ``version`` as having no attestation."""
+def table_denies_attestation(chunk: str, version: str = "") -> bool:
+    """True when a status table marks a release as having no attestation.
+
+    ``version`` narrows the check to a specific release when given; an empty
+    string accepts any table row that carries a negative status cell.
+    """
     if "|" not in chunk:
         return False
     cells = [cell.strip() for cell in chunk.strip().strip("|").split("|")]
-    if version not in " ".join(cells):
+    if version and version not in " ".join(cells):
         return False
     negative = re.compile(
         r"^\**\s*(?:no|not|none|n/?a|absent|missing|✗|❌|-)\s*\**$", re.IGNORECASE
     )
     return any(negative.match(cell) for cell in cells)
+
+
+def check_claims_without_registry_support(attested: frozenset[str]) -> list[str]:
+    """No document may claim an attestation the supplied registry set lacks.
+
+    This is the live-data direction: CI passes whatever the npm attestations
+    endpoint actually reports, so a document claiming provenance for a version the
+    registry does not carry fails here. Using the injected set rather than the
+    module constant is what makes this check meaningful when npm starts or stops
+    attesting a release.
+    """
+    problems: list[str] = []
+    for path in doc_files():
+        text = path.read_text(encoding="utf-8")
+        relative = path.relative_to(ROOT)
+        for chunk in sentences(text):
+            if not ATTESTATION_MENTION.search(chunk):
+                continue
+            if not is_prose(chunk):
+                continue
+            if TIGHT_DENIAL.search(chunk) or table_denies_attestation(chunk, ""):
+                continue
+            claimed = version_mentions(chunk) & RELEASED_NPM_VERSIONS
+            if not claimed:
+                continue
+            if not TIGHT_CLAIM.search(chunk) and not table_row_claims_attestation(chunk, claimed):
+                continue
+            unsupported = claimed - attested
+            if unsupported:
+                problems.append(
+                    f"{relative}: claims an attestation the registry does not report for "
+                    f"{', '.join(sorted(unsupported))}: {' '.join(chunk.split())[:150]!r}"
+                )
+    return problems
 
 
 def check_token_path_cannot_claim_provenance() -> list[str]:
@@ -301,6 +344,29 @@ def check_token_path_cannot_claim_provenance() -> list[str]:
             "the OIDC publish step is not the default; expected "
             "steps.mode.outputs.requested == 'trusted'"
         )
+
+    # The mode must be selected from the dispatch input, never from whether a
+    # secret happens to exist. This is the pre-#24 behaviour that let a stale
+    # NPM_TOKEN silently downgrade a publish, and it is the exact reason 1.1.1
+    # went out unattested. Assert it on the shell logic, not just on the step
+    # conditions, because the conditions alone do not reveal how `requested` was
+    # computed.
+    resolution = text.split("Resolve the requested publish mode")
+    if len(resolution) < 2:
+        problems.append("npm-publish.yml has no publish-mode resolution step")
+    else:
+        body = resolution[1][:2000]
+        if re.search(r'if\s+\[\s*-n\s+"\$\{NPM_TOKEN', body):
+            problems.append(
+                "the publish mode is selected by the presence of NPM_TOKEN; a stale "
+                "secret must not be able to downgrade a publish. Select it from the "
+                "use_token_fallback input only."
+            )
+        if "REQUESTED_TOKEN" not in body:
+            problems.append(
+                "the publish-mode resolution step does not read the use_token_fallback "
+                "input; the mode must come from the dispatch input"
+            )
     return problems
 
 
@@ -328,6 +394,7 @@ def main(argv: list[str] | None = None) -> int:
     problems: list[str] = []
     problems.extend(check_no_unattested_version_claimed())
     problems.extend(check_disclosures_match_the_registry(attested))
+    problems.extend(check_claims_without_registry_support(attested))
     problems.extend(check_every_version_status_is_documented())
     problems.extend(check_unattested_is_explicitly_disclosed())
     problems.extend(check_token_path_cannot_claim_provenance())
