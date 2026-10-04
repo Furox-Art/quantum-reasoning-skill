@@ -30,7 +30,7 @@ python docs/quickstart.py
 pip install quantum-reasoning-skill
 quantum-reasoning --validate
 
-# 3. from npm — also published, 1.1.0
+# 3. from npm — also published
 npm i quantum-reasoning-skill
 npx quantum-reasoning --validate
 ```
@@ -54,7 +54,33 @@ Three channels ship `SKILL.md`, all on one version: a `git clone` (everything); 
 wheel (`SKILL.md` + `VERSION` as package data, plus `reference/`, `benchmark/`, `docs/`,
 `examples/`, and a `quantum-reasoning` console script); and the npm tarball (`SKILL.md`,
 `VERSION`, `index.js`, `LICENSE`, `README.md`, and a `quantum-reasoning` bin). Both packaged
-artifacts are verified against the **built** artifact, not a checkout. Versions are locked
+artifacts are verified against the **built** artifact, not a checkout.
+
+### Supply-chain attestations
+
+Only some published versions carry a build attestation, so check before relying on one:
+
+| release | npm attestation | PyPI PEP 740 attestation |
+| --- | --- | --- |
+| `1.1.0` (npm) | yes — SLSA provenance and npm publish attestation, Sigstore | n/a |
+| `1.1.1` (npm and PyPI) | **no** | **no** |
+
+`1.1.1` was published through the long-lived-token path, which cannot produce a Sigstore
+attestation. Attestations are bound to a publish event and cannot be added afterwards, so
+this is permanent for that version. The package itself is unchanged and passes the same
+release contract as every other version; only the provenance *record* is missing.
+
+If you need to verify how a build was produced, use `1.1.0` on npm. To check an attestation
+yourself:
+
+```bash
+curl -sS -o /dev/null -w '%{http_code}\n' \
+  https://registry.npmjs.org/-/npm/v1/attestations/quantum-reasoning-skill@1.1.0   # 200
+curl -sS -o /dev/null -w '%{http_code}\n' \
+  https://registry.npmjs.org/-/npm/v1/attestations/quantum-reasoning-skill@1.1.1   # 404
+```
+
+A missing attestation is not evidence of tampering. Versions are locked
 across `VERSION`, `pyproject.toml`, `package.json`, `CITATION.cff` and `CHANGELOG.md` — read
 the value from `VERSION`, not a badge ([details](CONTRIBUTING.md#toolchain-pinning)).
 

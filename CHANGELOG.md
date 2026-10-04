@@ -4,6 +4,29 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### npm attestation status
+
+Measured against the live registry, not inferred:
+
+| release | channel | Sigstore/PEP 740 attestation |
+| --- | --- | --- |
+| `1.0.0` | npm | no |
+| `1.1.0` | npm | **yes** — `slsa.dev/provenance/v1` + `npm/attestation/publish/v0.1` |
+| `1.1.1` | npm | **no** |
+| `1.1.1` | PyPI | **no** |
+
+`1.1.1` was published through the `NPM_TOKEN` opt-in path, so npm never
+attempted an attestation. Attestations are bound to a publish event and cannot be
+backfilled, so the gap is permanent for that version. The PyPI upload used
+Trusted Publishing and is not covered by PEP 740 in this repository, so it carries
+no attestation either.
+
+Consequence for verification: `npm install quantum-reasoning-skill@1.1.1` gives
+you a byte-identical, contract-passing package with no provenance record. Anyone
+who needs to verify *how* a build was produced should use `1.1.0` on npm, which
+carries a real attestation. Do not treat the absence of an attestation on `1.1.1`
+as evidence of tampering, and do not treat it as evidence of integrity either.
+
 ### Fixed
 
 - `twine` is pinned to `7.0.0` instead of `6.1.0` in every workflow that runs
@@ -54,9 +77,30 @@ release, since 1.1.0 was built before those commits existed:
   contains none of these files.
 - `publish-release` now polls for required checks instead of refusing a green
   commit on first glance, and release automation no longer uses `workflow_run`.
-- npm publishing was re-enabled on OIDC Trusted Publishing with provenance;
-  publishing with `NPM_TOKEN` is a deliberate opt-in and is never
-  provenance-signed.
+- npm publishing was re-enabled. The default path is OIDC Trusted Publishing,
+  which is attested; publishing with `NPM_TOKEN` is a deliberate opt-in and is
+  never provenance-signed.
+
+  **This release was published with the token path and carries no attestation.**
+  `quantum-reasoning-skill@1.1.1` on npm has no Sigstore provenance attestation,
+  and PyPI 1.1.1 carries no PEP 740 attestation either. The release itself is
+  correct otherwise. See "npm attestation status" below for the full picture.
+
+### Added
+
+- `bin/check_release_integrity.py` asserts that the repository does not claim
+  supply-chain attestations it does not have. It takes the attested version set as
+  an argument, queries the npm attestations endpoint in CI to supply it, and
+  fails if any document asserts an attestation for an unattested release, omits a
+  release whose status is known, denies an attestation the registry does report,
+  or reintroduces `--provenance` on the token publish path. Offline and
+  deterministic by design.
+
+- The default npm publish path now verifies its own outcome: after an OIDC
+  Trusted Publishing upload, the workflow queries the registry attestations
+  endpoint and fails if no attestation was stored. `npm publish --provenance`
+  exiting zero is not sufficient evidence, which is how `1.1.1` shipped
+  unattested.
 
 ### Fixed
 

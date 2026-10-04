@@ -299,6 +299,58 @@ jobs:
           fi
           echo "npm accepted $NAME@$VERSION (mode: $REQUESTED)"
 
+      # An attested publish is the outcome that should be relied on. When the
+      # default OIDC path succeeds, confirm the registry actually stored a
+      # Sigstore attestation and fail the workflow if it did not.
+      #
+      # `npm publish --provenance` succeeding is not sufficient evidence: a
+      # misconfigured trusted publisher or a registry-side failure can leave a
+      # publish without one. 1.1.1 shipped exactly that way, so this is checked
+      # rather than assumed. Attestations can take a moment to appear, hence the
+      # bounded retry loop.
+      - name: Verify the default publish is attested
+        if: steps.trusted.outcome == 'success'
+        shell: bash
+        env:
+          NAME: ${{ steps.meta.outputs.name }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 10); do
+            code="$(curl -sS -o /dev/null -w '%{http_code}' \
+              "https://registry.npmjs.org/-/npm/v1/attestations/${NAME}@${VERSION}")"
+            if [ "$code" = "200" ]; then
+              echo "npm stored a provenance attestation for $NAME@$VERSION"
+              exit 0
+            fi
+            echo "attempt $attempt: attestations endpoint returned HTTP $code"
+            sleep 15
+          done
+          echo "::error::$NAME@$VERSION was published via OIDC Trusted Publishing but the registry reports no attestation (HTTP $code)." >&2
+          echo "::error::A release without provenance cannot be verified by consumers. Check the trusted publisher on npmjs.com matches owner 'Furox-Art', repository 'quantum-reasoning-skill', workflow 'npm-publish.yml', environment 'npm'." >&2
+          exit 1
+        shell: bash
+        env:
+          NAME: ${{ steps.meta.outputs.name }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          TRUSTED_OUTCOME: ${{ steps.trusted.outcome }}
+          TOKEN_OUTCOME: ${{ steps.token.outcome }}
+          REQUESTED: ${{ steps.mode.outputs.requested }}
+        run: |
+          set -euo pipefail
+          if [ "$REQUESTED" = "trusted" ]; then
+            if [ "$TRUSTED_OUTCOME" != "success" ]; then
+              echo "::error::npm Trusted Publishing failed. Configure a trusted publisher on npmjs.com for owner 'Furox-Art', repository 'quantum-reasoning-skill', workflow 'npm-publish.yml', environment 'npm'." >&2
+              exit 1
+            fi
+          else
+            if [ "$TOKEN_OUTCOME" != "success" ]; then
+              echo "::error::npm publish failed in deliberate NPM_TOKEN mode." >&2
+              exit 1
+            fi
+          fi
+          echo "npm accepted $NAME@$VERSION (mode: $REQUESTED)"
+
       - name: Verify the published version
         shell: bash
         env:
