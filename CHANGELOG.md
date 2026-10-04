@@ -26,9 +26,11 @@ All notable changes to this project are documented here.
   and the build-backend pin rather than either value alone: every workflow
   running `twine check` must pin twine, must pin it at or above `7.0.0`, and
   `UNPINNED` is treated as a failure. `pyproject.toml` and `constraints.txt` are
-  checked against the workflows. Wired into the `build distributions` job using
-  the metadata version read from the artifact that job just built, so the guard
-  is anchored to what is actually emitted rather than to a hardcoded expectation.
+  checked against the workflows. It runs as its own CI job, **`toolchain pins`**,
+  which is a required status check on `main`, so a downgrade fails the build by
+  name instead of hiding inside the build job. The job builds its own wheel and
+  passes the measured `Metadata-Version` to the guard, so the assertion is
+  anchored to what the pinned backend actually emits.
 
 No version bump: 1.1.1 is already published and the artifact contents are
 unchanged by this fix. The point is to keep the *next* release from failing.
