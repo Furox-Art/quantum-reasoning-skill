@@ -49,7 +49,7 @@ jobs:
             tests/test_readme_badges.py tests/test_release_check_polling.py \
             package.json index.js pyproject.toml conftest.py \
             bin/quantum-reasoning bin/check_release_contract.py bin/wait_for_required_checks.py \
-            bin/check_toolchain_pins.py \
+            bin/check_toolchain_pins.py bin/check_release_integrity.py \
             .github/ISSUE_TEMPLATE/benchmark-result.yml .github/ISSUE_TEMPLATE/bug-report.yml \
             .github/ISSUE_TEMPLATE/feature-request.yml .github/PULL_REQUEST_TEMPLATE.md; do
             test -s "$required"
@@ -180,6 +180,37 @@ jobs:
 
           print("Skill repository contract validated successfully.")
           PY
+
+      # The registry is the only authority on whether a published version carries
+      # an attestation, so the attested set is passed in explicitly rather than
+      # hardcoded. A failure here means a document claims provenance that does not
+      # exist, which is worse than saying nothing at all.
+      - name: Verify supply-chain claims match the registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          attested="$(python - <<'PY'
+          import json
+          import urllib.request
+
+          url = (
+              "https://registry.npmjs.org/-/npm/v1/attestations/"
+              "quantum-reasoning-skill"
+          )
+          found = []
+          for version in ("1.0.0", "1.1.0", "1.1.1"):
+              try:
+                  with urllib.request.urlopen(f"{url}@{version}", timeout=20) as response:
+                      if response.status == 200:
+                          json.loads(response.read().decode("utf-8"))
+                          found.append(version)
+              except Exception:
+                  continue
+          print(",".join(found))
+          PY
+          )"
+          echo "npm versions with an attestation: ${attested:-none}"
+          python bin/check_release_integrity.py --attested-npm "$attested"
 
           python -c "import conftest, sys; sys.exit(1) if conftest.version_lockstep_failures() else None" \
             || python -c "
