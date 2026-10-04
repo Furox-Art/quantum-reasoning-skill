@@ -1,5 +1,9 @@
 [build-system]
-requires = ["hatchling==1.27.0"]
+# hatchling >= 1.32 emits Metadata-Version 2.5. Older releases emit 2.4, which
+# is what twine 7.0.0 still accepts; both are valid, but the pin must not go
+# backwards past the metadata version `twine check` can parse. See
+# .github/workflows/validate-skill.yml for the guard that enforces this.
+requires = ["hatchling==1.32.4"]
 build-backend = "hatchling.build"
 
 [project]
@@ -45,7 +49,7 @@ dev = [
   "coverage==7.6.12",
   "mypy==1.11.2",
   "ruff==0.7.4",
-  "twine==6.1.0",
+  "twine==7.0.0",
 ]
 
 # ---------------------------------------------------------------------------
