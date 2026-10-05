@@ -33,6 +33,18 @@ jobs:
         with:
           python-version: "3.12"
 
+      # `yaml.safe_load` accepts duplicate mapping keys and silently keeps the
+      # last one, so every "does this parse?" check passed a workflow that GitHub
+      # rejects outright. npm-publish.yml shipped with `shell`, `env` and `run`
+      # each defined twice in one step, which made it undispatchable (HTTP 422).
+      # This loader raises on duplicates, and also checks step structure and step
+      # shell syntax so the same class of defect cannot reach main again.
+      - name: Install PyYAML
+        run: python -m pip install --disable-pip-version-check "pyyaml==6.0.3"
+
+      - name: Validate workflow files with a duplicate-rejecting loader
+        run: python bin/check_workflows.py --verbose
+
       - name: Validate skill repository contract
         shell: bash
         run: |
@@ -47,10 +59,11 @@ jobs:
             benchmark/schemas/metadata.schema.json benchmark/schemas/comparison.schema.json \
             tests/test_reference.py tests/test_benchmark.py tests/test_submission_validation.py \
             tests/test_readme_badges.py tests/test_release_check_polling.py \
-            tests/test_release_integrity.py \
+            tests/test_release_integrity.py tests/test_workflow_validation.py \
             package.json index.js pyproject.toml conftest.py \
             bin/quantum-reasoning bin/check_release_contract.py bin/wait_for_required_checks.py \
             bin/check_toolchain_pins.py bin/check_release_integrity.py \
+            bin/check_workflows.py \
             .github/ISSUE_TEMPLATE/benchmark-result.yml .github/ISSUE_TEMPLATE/bug-report.yml \
             .github/ISSUE_TEMPLATE/feature-request.yml .github/PULL_REQUEST_TEMPLATE.md; do
             test -s "$required"
@@ -260,6 +273,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # The workflow-validation tests parse every workflow with PyYAML's
+      # duplicate-rejecting loader, which is what proves the parser in
+      # bin/check_workflows.py rejects what yaml.safe_load accepts.
+      - name: Install PyYAML
+        run: python -m pip install --disable-pip-version-check "pyyaml==6.0.3"
+
       - name: Run behavioral tests
         run: python -m unittest discover -s tests -v
 
@@ -321,7 +340,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install coverage
-        run: python -m pip install --disable-pip-version-check "coverage==7.6.12"
+        run: python -m pip install --disable-pip-version-check "coverage==7.6.12" "pyyaml==6.0.3"
 
       - name: Measure coverage
         run: |
