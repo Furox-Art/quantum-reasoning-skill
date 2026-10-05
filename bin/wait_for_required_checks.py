@@ -231,7 +231,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  {reason}")
 
     if state == "ready":
-        print(f"All required checks passed for {args.ref[:7]}: " f"{', '.join(args.contexts)}")
+        print(f"All required checks passed for {args.ref[:7]}: {', '.join(args.contexts)}")
         return 0
 
     if any("still running" in reason or "yet" in reason for reason in reasons):
