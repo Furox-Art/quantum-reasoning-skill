@@ -76,7 +76,7 @@ jobs:
           # ending at 2.4, so `twine check --strict` rejects artifacts whose
           # backend legitimately emits Metadata-Version 2.5. Guarded in CI by
           # `python bin/check_toolchain_pins.py`.
-          python -m pip install --disable-pip-version-check "build==1.2.2.post1" "twine==7.0.0"
+          python -m pip install --disable-pip-version-check "build==1.6.1" "twine==7.0.0"
           python -m build --outdir dist
           python -m twine check --strict dist/*
 

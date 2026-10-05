@@ -29,7 +29,7 @@ REQUIRED_TOOLS = ("build", "coverage", "mypy", "ruff", "twine", "hatchling", "pi
 #: Versions pyproject.toml pins directly. These must match exactly, otherwise the
 #: lock and the build configuration disagree about what CI will run.
 PYPROJECT_PINS = {
-    "build": "1.2.2.post1",
+    "build": "1.6.1",
     "coverage": "7.6.12",
     "mypy": "1.11.2",
     "ruff": "0.7.4",
