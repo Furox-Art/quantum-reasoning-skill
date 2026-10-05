@@ -30,7 +30,7 @@ REQUIRED_TOOLS = ("build", "coverage", "mypy", "ruff", "twine", "hatchling", "pi
 #: lock and the build configuration disagree about what CI will run.
 PYPROJECT_PINS = {
     "build": "1.6.1",
-    "coverage": "7.6.12",
+    "coverage": "7.16.2",
     "mypy": "1.11.2",
     "ruff": "0.7.4",
     "twine": "7.0.0",
