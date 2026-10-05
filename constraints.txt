@@ -3,7 +3,7 @@
 # Direct versions come from the pinned dev group and build backend in
 # pyproject.toml:
 #
-#   build==1.6.1  coverage==7.6.12  mypy==1.11.2
+#   build==1.6.1  coverage==7.16.2  mypy==1.11.2
 #   pyyaml==6.0.3  ruff==0.7.4  twine==7.0.0  hatchling==1.32.4
 #
 # pyyaml is a CI-only dependency: bin/check_workflows.py validates the workflows
@@ -228,7 +228,7 @@ charset-normalizer==3.5.2 \
 colorama==0.4.6 \
     --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
     --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
-coverage==7.6.12 \
+coverage==7.16.2 \
     --hash=sha256:00b2086892cf06c7c2d74983c9595dc511acca00665480b3ddff749ec4fb2a95 \
     --hash=sha256:0533adc29adf6a69c1baa88c3d7dbcaadcffa21afbed3ca7a225a440e4744bf9 \
     --hash=sha256:06097c7abfa611c91edb9e6920264e5be1d6ceb374efb4986f38b09eed4cb2fe \
