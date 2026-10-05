@@ -49,6 +49,11 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
 
+#: Sentinel meaning :func:`usable_bash` has not run yet, so the answer is unknown.
+_UNPROBED = object()
+#: Cached result of :func:`usable_bash`: a path, or ``None`` when unusable.
+_BASH: str | None | object = _UNPROBED
+
 
 class DuplicateKeyError(Exception):
     """A mapping defined the same key twice."""
@@ -214,16 +219,70 @@ def check_workflow_structure(path: Path) -> list[str]:
     return problems
 
 
+#: Bash interpreters to try on Windows, in preference order, after ``PATH``.
+#: ``bash`` on ``PATH`` is ``System32\\bash.exe``, the WSL launcher stub, which
+#: fails for any input when no distribution is installed. Git for Windows ships a
+#: real bash next to git itself.
+WINDOWS_BASH_CANDIDATES = (
+    r"C:\Program Files\Git\bin\bash.exe",
+    r"C:\Program Files\Git\usr\bin\bash.exe",
+    r"C:\Program Files (x86)\Git\bin\bash.exe",
+)
+
+
+def _is_usable_bash(candidate: str) -> bool:
+    """True when ``candidate`` runs and reports a bash version.
+
+    ``exit 0`` alone is not enough: the WSL launcher stub can fail slowly on a
+    cold start and then succeed once WSL is warm, so the result would depend on
+    when the check ran. Requiring ``$BASH_VERSION`` to be non-empty proves the
+    candidate is a real bash rather than a wrapper that may or may not work.
+    """
+    try:
+        probe = subprocess.run(
+            [candidate, "-c", 'test -n "$BASH_VERSION"'],
+            capture_output=True,
+            check=False,
+            timeout=60,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return probe.returncode == 0
+
+
+def usable_bash() -> str | None:
+    """Return the path of a ``bash`` that actually runs, or ``None``.
+
+    ``bash`` is not reliably a POSIX shell just because it is on ``PATH``. On a
+    Windows runner it resolves to the WSL launcher stub, which prints "Windows
+    Subsystem for Linux has no installed distributions" and exits non-zero for
+    *any* input, valid or not. Treating that as a syntax error would fail every
+    step in every workflow.
+
+    Candidates are probed in order (``PATH`` first, then the Git for Windows
+    locations) and the first real bash wins. When none exists the shell check is
+    skipped rather than guessed at: workflow steps run inside the Actions
+    runner's own bash, not whatever this process happens to resolve.
+    """
+    global _BASH
+    if _BASH is not _UNPROBED:
+        return _BASH  # type: ignore[return-value]
+    candidates = [shutil.which("bash"), *WINDOWS_BASH_CANDIDATES]
+    _BASH = next((c for c in candidates if c and Path(c).is_file() and _is_usable_bash(c)), None)
+    return _BASH  # type: ignore[return-value]
+
+
 def _check_bash_syntax(relative: str, job_name: str, label: Any, run: Any) -> list[str]:
     """Run ``bash -n`` over a step body when it looks like POSIX shell."""
     if not isinstance(run, str) or not run.strip():
         return []
     if "\r" in run:
         return []
-    if shutil.which("bash") is None:  # pragma: no cover - bash ships on every CI runner
+    shell = usable_bash()
+    if shell is None:
         return []
     proc = subprocess.run(
-        ["bash", "-n"],
+        [shell, "-n"],
         input=run.encode("utf-8"),
         capture_output=True,
         check=False,

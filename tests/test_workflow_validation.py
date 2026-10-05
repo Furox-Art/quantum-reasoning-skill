@@ -23,7 +23,9 @@ caught, so the check cannot silently regress to a permissive parse.
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -188,10 +190,101 @@ class StructureTests(unittest.TestCase):
             any("neither 'run' nor 'uses'" in problem for problem in problems), problems
         )
 
+    @unittest.skipIf(checker.usable_bash() is None, "no working bash on this platform")
     def test_invalid_bash_in_a_step_is_rejected(self):
         text = VALID_WORKFLOW.replace("          echo hello\n", "          if [ ; then\n")
         problems = self._validate(text)
         self.assertTrue(any("not valid bash" in problem for problem in problems), problems)
+
+    def test_the_wsl_launcher_stub_is_rejected(self):
+        """Regression: `bash` on a Windows runner is the WSL launcher stub.
+
+        It exits non-zero for any input, including valid script, so treating its
+        exit status as a syntax verdict reported all 50 step bodies across all
+        four workflows as invalid bash on windows-latest. Requiring
+        ``$BASH_VERSION`` is what distinguishes it from a real bash.
+        """
+        with self._probe_returning(1):
+            self.assertFalse(checker._is_usable_bash("bash"))
+
+    def test_a_working_bash_is_accepted(self):
+        """The other half: a real bash must not be skipped."""
+        with self._probe_returning(0):
+            self.assertTrue(checker._is_usable_bash("bash"))
+
+    def test_an_os_error_while_probing_is_rejected(self):
+        def explode(*_args, **_kwargs):
+            raise OSError("no such file")
+
+        with self._patched_run(explode):
+            self.assertFalse(checker._is_usable_bash("bash"))
+
+    def test_a_hanging_bash_is_rejected(self):
+        def timeout(*_args, **_kwargs):
+            raise subprocess.TimeoutExpired(cmd="bash", timeout=60)
+
+        with self._patched_run(timeout):
+            self.assertFalse(checker._is_usable_bash("bash"))
+
+    def test_a_non_file_candidate_is_never_selected(self):
+        """A path that does not exist must be discarded before probing."""
+        with tempfile.TemporaryDirectory() as tmp:
+            absent = str(Path(tmp) / "sub" / "bash.exe")
+            original_which = checker.shutil.which
+            original_candidates = checker.WINDOWS_BASH_CANDIDATES
+            try:
+                checker.shutil.which = lambda _n: absent  # type: ignore[assignment]
+                checker.WINDOWS_BASH_CANDIDATES = (absent,)
+                checker._BASH = checker._UNPROBED
+                self.assertIsNone(checker.usable_bash())
+            finally:
+                checker.shutil.which = original_which  # type: ignore[assignment]
+                checker.WINDOWS_BASH_CANDIDATES = original_candidates
+                checker._BASH = checker._UNPROBED
+
+    @contextlib.contextmanager
+    def _patched_run(self, fake):
+        original = checker.subprocess.run
+        checker.subprocess.run = fake  # type: ignore[assignment]
+        try:
+            yield
+        finally:
+            checker.subprocess.run = original  # type: ignore[assignment]
+
+    @contextlib.contextmanager
+    def _probe_returning(self, returncode: int):
+        class Result:
+            pass
+
+        result = Result()
+        result.returncode = returncode
+
+        def fake(_args, **_kwargs):
+            return result
+
+        with self._patched_run(fake):
+            yield
+
+    def test_no_usable_bash_skips_the_syntax_check_entirely(self):
+        """With no bash at all, steps are not reported as invalid."""
+        original_which = checker.shutil.which
+        original_candidates = checker.WINDOWS_BASH_CANDIDATES
+        try:
+            checker.shutil.which = lambda _n: None  # type: ignore[assignment]
+            checker.WINDOWS_BASH_CANDIDATES = ()
+            checker._BASH = checker._UNPROBED
+            self.assertIsNone(checker.usable_bash())
+            checker._BASH = checker._UNPROBED
+            problems = self._validate(VALID_WORKFLOW)
+        finally:
+            checker.shutil.which = original_which  # type: ignore[assignment]
+            checker.WINDOWS_BASH_CANDIDATES = original_candidates
+            checker._BASH = checker._UNPROBED
+        self.assertEqual(
+            problems,
+            [],
+            "an unusable bash must be skipped, not reported as invalid syntax",
+        )
 
     def test_duplicate_name_at_workflow_level_is_rejected(self):
         text = VALID_WORKFLOW.replace("name: ci\n", "name: ci\nname: ci-again\n", 1)
@@ -307,7 +400,12 @@ class PublishBehaviourTests(unittest.TestCase):
         combined because GitHub Actions emits ``::warning::`` and ``::error::``
         annotations on stderr; the step's decision line goes to ``$GITHUB_OUTPUT``.
         """
-        import subprocess
+        # Never call bare `bash` here. On a Windows runner that resolves to the
+        # WSL launcher stub, which fails for every input, so these tests would
+        # report the mode logic as broken when only the shell is.
+        shell = checker.usable_bash()
+        if shell is None:
+            self.skipTest("no working bash on this platform")
 
         body = self._step("Resolve the requested publish mode")["run"]
 
@@ -330,7 +428,7 @@ class PublishBehaviourTests(unittest.TestCase):
             'rm -f "$GITHUB_OUTPUT"\n'
         )
         proc = subprocess.run(
-            ["bash", "-s"],
+            [shell, "-s"],
             input=(prelude + body + footer).encode("utf-8"),
             capture_output=True,
             check=False,
