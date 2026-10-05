@@ -340,7 +340,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install coverage
-        run: python -m pip install --disable-pip-version-check "coverage==7.6.12" "pyyaml==6.0.3"
+        run: python -m pip install --disable-pip-version-check "coverage==7.16.2" "pyyaml==6.0.3"
 
       - name: Measure coverage
         run: |
