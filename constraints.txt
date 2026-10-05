@@ -4,7 +4,7 @@
 # pyproject.toml:
 #
 #   build==1.6.1  coverage==7.16.2  mypy==1.11.2
-#   pyyaml==6.0.3  ruff==0.7.4  twine==7.0.0  hatchling==1.32.4
+#   pyyaml==6.0.3  ruff==0.16.10  twine==7.0.0  hatchling==1.32.4
 #
 # pyyaml is a CI-only dependency: bin/check_workflows.py validates the workflows
 # with a duplicate-rejecting loader, which is what catches a step that defines
@@ -673,7 +673,7 @@ rfc3986==2.0.0 \
 rich==15.0.0 \
     --hash=sha256:33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb \
     --hash=sha256:edd07a4824c6b40189fb7ac9bc4c52536e9780fbbfbddf6f1e2502c31b068c36
-ruff==0.7.4 \
+ruff==0.16.10 \
     --hash=sha256:00b4cf3a6b5fad6d1a66e7574d78956bbd09abfd6c8a997798f01f5da3d46a05 \
     --hash=sha256:0d06218747d361d06fd2fdac734e7fa92df36df93035db3dc2ad7aa9852cb109 \
     --hash=sha256:0e92dfb5f00eaedb1501b2f906ccabfd67b2355bdf117fea9719fc99ac2145bc \
