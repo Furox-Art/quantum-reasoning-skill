@@ -31,7 +31,7 @@ REQUIRED_TOOLS = ("build", "coverage", "mypy", "ruff", "twine", "hatchling", "pi
 PYPROJECT_PINS = {
     "build": "1.6.1",
     "coverage": "7.16.2",
-    "mypy": "1.11.2",
+    "mypy": "2.4.0",
     "ruff": "0.16.10",
     "twine": "7.0.0",
     "hatchling": "1.32.4",
