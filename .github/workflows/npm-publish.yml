@@ -202,45 +202,46 @@ jobs:
           fi
           echo "$out"
 
-      - name: Check the version is not already published
+      - name: Check npm registry state
+        id: gate
         shell: bash
         run: |
           set -euo pipefail
           name="${{ steps.meta.outputs.name }}"
           version="${{ steps.meta.outputs.version }}"
           if npm view "$name@$version" version >/dev/null 2>&1; then
-            echo "::error::$name $version is already published to npm. Bump VERSION and package.json." >&2
-            exit 1
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$name $version is already published to npm; treating this trigger as an idempotent no-op."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "$name@$version is not published yet"
           fi
-          echo "$name@$version is not published yet"
 
-      # Publish mode is an explicit choice, never an automatic downgrade.
-      #
-      # Trusted Publishing (OIDC) is the only mode used unless someone opted in
-      # by hand via the `use_token_fallback` dispatch input. The mere presence of
-      # an NPM_TOKEN secret no longer switches modes, so a stale secret cannot
-      # silently downgrade a publish. The requested mode is also fail-closed: if
-      # the chosen mode has no usable credential, this step fails before npm is
-      # ever invoked.
+      # Automatic version-trigger pushes use the repository's verified token path.
+      # Manual dispatches preserve the explicit OIDC/token choice.
       - name: Resolve the requested publish mode
         id: mode
+        if: steps.gate.outputs.skip != 'true'
         shell: bash
         env:
+          EVENT_NAME: ${{ github.event_name }}
           REQUESTED_TOKEN: ${{ inputs.use_token_fallback }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
 
-          # A boolean workflow_dispatch input arrives as the string "true"/"false"
-          # on a dispatch and as an empty string on a push, so normalise here.
-          case "${REQUESTED_TOKEN:-false}" in
-            true|True|TRUE) requested="token" ;;
-            false|False|FALSE|"") requested="trusted" ;;
-            *)
-              echo "::error::use_token_fallback must be a boolean, got '${REQUESTED_TOKEN}'" >&2
-              exit 1
-              ;;
-          esac
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            case "${REQUESTED_TOKEN:-false}" in
+              true|True|TRUE) requested="token" ;;
+              false|False|FALSE|"") requested="trusted" ;;
+              *)
+                echo "::error::use_token_fallback must be a boolean, got '${REQUESTED_TOKEN}'" >&2
+                exit 1
+                ;;
+            esac
+          else
+            requested="token"
+          fi
 
           echo "requested=$requested" >> "$GITHUB_OUTPUT"
 
@@ -249,17 +250,16 @@ jobs:
               echo "::error::use_token_fallback was requested but the NPM_TOKEN secret is not set. Refusing to publish." >&2
               exit 1
             fi
-            # Deliberate opt-in, and provenance cannot be attested without OIDC.
-            echo "::warning::Publishing with the long-lived NPM_TOKEN because use_token_fallback was set explicitly. This publish will NOT be provenance-signed: a classic token cannot mint a Sigstore attestation. Prefer OIDC Trusted Publishing and delete NPM_TOKEN." >&2
+            echo "::warning::Publishing with NPM_TOKEN. Automatic version-trigger releases use this verified path; token publishes are not provenance-signed." >&2
           else
             echo "::notice::Publishing with OIDC Trusted Publishing and --provenance."
           fi
 
-      # Trusted Publishing: no NODE_AUTH_TOKEN is exported, so npm exchanges the
-      # OIDC token itself. This is the default and the only automatic path.
+      # Trusted Publishing remains available for manual dispatches. Automatic
+      # version-trigger pushes use token mode until npm Trusted Publishing is registered.
       - name: Publish with OIDC Trusted Publishing
         id: trusted
-        if: steps.mode.outputs.requested == 'trusted'
+        if: steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'trusted'
         run: npm publish --access public --provenance
 
       # Deliberate token mode. `--provenance` is deliberately absent: npm
@@ -269,7 +269,7 @@ jobs:
       # publish fails outright rather than degrading quietly.
       - name: Publish with NPM_TOKEN (deliberate opt-in, no provenance)
         id: token
-        if: steps.mode.outputs.requested == 'token'
+        if: steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'token'
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -277,6 +277,7 @@ jobs:
       # Neither publish step tolerates failure, so a skipped step here means the
       # requested mode did not run at all.
       - name: Require a successful upload
+        if: steps.gate.outputs.skip != 'true'
         shell: bash
         env:
           NAME: ${{ steps.meta.outputs.name }}
@@ -309,7 +310,7 @@ jobs:
       # rather than assumed. Attestations can take a moment to appear, hence the
       # bounded retry loop.
       - name: Verify the default publish is attested
-        if: steps.trusted.outcome == 'success'
+        if: steps.gate.outputs.skip != 'true' && steps.trusted.outcome == 'success'
         shell: bash
         env:
           NAME: ${{ steps.meta.outputs.name }}
