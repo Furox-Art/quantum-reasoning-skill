@@ -228,10 +228,11 @@ jobs:
         env:
           REQUESTED_TOKEN: ${{ inputs.use_token_fallback }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
 
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             case "${REQUESTED_TOKEN:-false}" in
               true|True|TRUE) requested="token" ;;
               false|False|FALSE|"") requested="trusted" ;;
