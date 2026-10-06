@@ -342,6 +342,8 @@ class PublishBehaviourTests(unittest.TestCase):
         step = self._step("Resolve the requested publish mode")
         self.assertIn("REQUESTED_TOKEN", step["run"])
         self.assertIn("use_token_fallback", step["env"]["REQUESTED_TOKEN"])
+        self.assertIn("EVENT_NAME", step["run"])
+        self.assertIn("github.event_name", step["env"]["EVENT_NAME"])
 
     def test_oidc_publish_keeps_provenance(self):
         step = self._step("Publish with OIDC Trusted Publishing")
@@ -349,15 +351,21 @@ class PublishBehaviourTests(unittest.TestCase):
         self.assertNotIn("NODE_AUTH_TOKEN", step.get("env", {}))
 
     def test_token_publish_omits_provenance(self):
-        step = self._step("Publish with NPM_TOKEN (deliberate opt-in, no provenance)")
+        step = self._step("Publish with NPM_TOKEN (no provenance)")
         self.assertNotIn("--provenance", step["run"], "a classic token cannot attest")
         self.assertIn("NODE_AUTH_TOKEN", step["env"])
 
     def test_publish_steps_are_mutually_exclusive(self):
         oidc = self._step("Publish with OIDC Trusted Publishing")
-        token = self._step("Publish with NPM_TOKEN (deliberate opt-in, no provenance)")
-        self.assertEqual(oidc["if"], "steps.mode.outputs.requested == 'trusted'")
-        self.assertEqual(token["if"], "steps.mode.outputs.requested == 'token'")
+        token = self._step("Publish with NPM_TOKEN (no provenance)")
+        self.assertEqual(
+            oidc["if"],
+            "steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'trusted'",
+        )
+        self.assertEqual(
+            token["if"],
+            "steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'token'",
+        )
 
     def test_fail_closed_upload_check_survives(self):
         step = self._step("Require a successful upload")
@@ -365,15 +373,19 @@ class PublishBehaviourTests(unittest.TestCase):
         self.assertIn("TRUSTED_OUTCOME", step["env"])
         self.assertIn("TOKEN_OUTCOME", step["env"])
         self.assertIn("npm Trusted Publishing failed", body)
-        self.assertIn("deliberate NPM_TOKEN mode", body)
+        self.assertIn("NPM_TOKEN mode", body)
 
     def test_version_existence_gate_survives(self):
-        step = self._step("Check the version is not already published")
-        self.assertIn("already published to npm", step["run"])
+        step = self._step("Check whether this version needs publishing")
+        self.assertIn("skip=true", step["run"])
+        self.assertIn("already published", step["run"])
 
     def test_attestation_verification_survives(self):
-        step = self._step("Verify the default publish is attested")
-        self.assertEqual(step["if"], "steps.trusted.outcome == 'success'")
+        step = self._step("Verify an OIDC publish is attested")
+        self.assertEqual(
+            step["if"],
+            "steps.gate.outputs.skip != 'true' && steps.trusted.outcome == 'success'",
+        )
         self.assertIn("npm/v1/attestations/", step["run"])
 
     def test_registry_visibility_check_survives(self):
@@ -393,7 +405,9 @@ class PublishBehaviourTests(unittest.TestCase):
         self.assertEqual(sorted(triggers), ["push", "workflow_dispatch"])
 
     # -- behaviour trace -----------------------------------------------------
-    def _run_mode_step(self, requested: str, token: str) -> tuple[int, str, str]:
+    def _run_mode_step(
+        self, requested: str, token: str, event_name: str
+    ) -> tuple[int, str, str]:
         """Execute the mode-resolution step as bash and capture its decision.
 
         Returns ``(returncode, combined_output, mode)``. stdout and stderr are
@@ -419,6 +433,7 @@ class PublishBehaviourTests(unittest.TestCase):
             'export GITHUB_OUTPUT\n'
             f"export REQUESTED_TOKEN='{requested}'\n"
             f"export NPM_TOKEN='{token}'\n"
+            f"export EVENT_NAME='{event_name}'\n"
         )
         # Print the decision line, then remove the scratch file whatever happened.
         footer = (
@@ -451,40 +466,52 @@ class PublishBehaviourTests(unittest.TestCase):
         )
         return proc.returncode, annotations or text, mode
 
-    def test_push_trigger_resolves_to_oidc(self):
-        """A push has no dispatch input, so the empty value must mean OIDC."""
-        rc, output, mode = self._run_mode_step("", "")
+    def test_push_without_token_resolves_to_oidc(self):
+        rc, output, mode = self._run_mode_step("", "", "push")
         self.assertEqual(rc, 0, output)
         self.assertEqual(mode, "requested=trusted")
-        self.assertNotIn("::warning::", output, "a push must not warn about tokens")
+        self.assertNotIn("::warning::", output)
+
+    def test_push_with_token_resolves_to_token_before_publish(self):
+        rc, output, mode = self._run_mode_step("", "an-existing-secret", "push")
+        self.assertEqual(rc, 0, output)
+        self.assertEqual(mode, "requested=token")
+        self.assertIn("::warning::", output)
+        self.assertIn("NOT be provenance-signed", output)
 
     def test_dispatch_without_opt_in_resolves_to_oidc(self):
-        rc, output, mode = self._run_mode_step("false", "")
+        rc, output, mode = self._run_mode_step("false", "", "workflow_dispatch")
         self.assertEqual(rc, 0, output)
         self.assertEqual(mode, "requested=trusted")
 
     def test_dispatch_with_token_present_still_resolves_to_oidc(self):
-        """A stale secret must not downgrade the publish."""
-        rc, output, mode = self._run_mode_step("false", "an-existing-secret")
+        """Manual dispatch keeps the checkbox authoritative."""
+        rc, output, mode = self._run_mode_step(
+            "false", "an-existing-secret", "workflow_dispatch"
+        )
         self.assertEqual(rc, 0, output)
         self.assertEqual(mode, "requested=trusted")
         self.assertNotIn("::warning::", output)
 
     def test_dispatch_with_opt_in_resolves_to_token_and_warns(self):
-        rc, output, mode = self._run_mode_step("true", "an-existing-secret")
+        rc, output, mode = self._run_mode_step(
+            "true", "an-existing-secret", "workflow_dispatch"
+        )
         self.assertEqual(rc, 0, output)
         self.assertEqual(mode, "requested=token")
         self.assertIn("::warning::", output)
         self.assertIn("NOT be provenance-signed", output)
 
     def test_opt_in_without_a_credential_fails_closed(self):
-        rc, output, mode = self._run_mode_step("true", "")
+        rc, output, mode = self._run_mode_step("true", "", "workflow_dispatch")
         self.assertNotEqual(rc, 0, "an opt-in with no secret must not proceed")
         self.assertIn("::error::", output)
         self.assertEqual(mode, "", "no mode may be emitted when it fails")
 
     def test_non_boolean_input_fails_closed(self):
-        rc, output, _ = self._run_mode_step("maybe", "an-existing-secret")
+        rc, output, _ = self._run_mode_step(
+            "maybe", "an-existing-secret", "workflow_dispatch"
+        )
         self.assertNotEqual(rc, 0)
         self.assertIn("must be a boolean", output)
 
