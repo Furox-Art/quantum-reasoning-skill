@@ -224,12 +224,13 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         shell: bash
         env:
+          EVENT_NAME: ${{ github.event_name }}
           REQUESTED_TOKEN: ${{ inputs.use_token_fallback }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
 
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             case "${REQUESTED_TOKEN:-false}" in
               true|True|TRUE) requested="token" ;;
               false|False|FALSE|"") requested="trusted" ;;
