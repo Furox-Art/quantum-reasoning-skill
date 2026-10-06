@@ -251,28 +251,28 @@ jobs:
 
           if [ "$requested" = "token" ]; then
             if [ -z "${NPM_TOKEN:-}" ]; then
-              echo "::error::use_token_fallback was requested but the NPM_TOKEN secret is not set. Refusing to publish." >&2
+              echo "::error::NPM_TOKEN mode was selected but the NPM_TOKEN secret is not set. Refusing to publish." >&2
               exit 1
             fi
-            # Deliberate opt-in, and provenance cannot be attested without OIDC.
-            echo "::warning::Publishing with the long-lived NPM_TOKEN because use_token_fallback was set explicitly. This publish will NOT be provenance-signed: a classic token cannot mint a Sigstore attestation. Prefer OIDC Trusted Publishing and delete NPM_TOKEN." >&2
+            # Token publishing is selected before upload; provenance cannot be attested without OIDC.
+            echo "::warning::Publishing with the long-lived NPM_TOKEN selected before upload. This publish will NOT be provenance-signed: a classic token cannot mint a Sigstore attestation. Prefer OIDC Trusted Publishing when its publisher is configured." >&2
           else
             echo "::notice::Publishing with OIDC Trusted Publishing and --provenance."
           fi
 
       # Trusted Publishing: no NODE_AUTH_TOKEN is exported, so npm exchanges the
-      # OIDC token itself. This is the default and the only automatic path.
+      # OIDC token itself whenever the pre-publish selector chooses that path.
       - name: Publish with OIDC Trusted Publishing
         id: trusted
         if: steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'trusted'
         run: npm publish --access public --provenance
 
-      # Deliberate token mode. `--provenance` is deliberately absent: npm
+      # Token mode. `--provenance` is deliberately absent: npm
       # generates provenance from the OIDC identity in the runner environment,
       # and passing `--provenance` with only a classic token configured makes npm
       # attempt an attestation it cannot produce. Verified against npm 11: the
       # publish fails outright rather than degrading quietly.
-      - name: Publish with NPM_TOKEN (deliberate opt-in, no provenance)
+      - name: Publish with NPM_TOKEN (no provenance)
         id: token
         if: steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'token'
         run: npm publish --access public
@@ -299,7 +299,7 @@ jobs:
             fi
           else
             if [ "$TOKEN_OUTCOME" != "success" ]; then
-              echo "::error::npm publish failed in deliberate NPM_TOKEN mode." >&2
+              echo "::error::npm publish failed in NPM_TOKEN mode." >&2
               exit 1
             fi
           fi
@@ -314,7 +314,7 @@ jobs:
       # publish without one. 1.1.1 shipped exactly that way, so this is checked
       # rather than assumed. Attestations can take a moment to appear, hence the
       # bounded retry loop.
-      - name: Verify the default publish is attested
+      - name: Verify an OIDC publish is attested
         if: steps.gate.outputs.skip != 'true' && steps.trusted.outcome == 'success'
         shell: bash
         env:
