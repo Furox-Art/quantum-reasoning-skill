@@ -356,8 +356,14 @@ class PublishBehaviourTests(unittest.TestCase):
     def test_publish_steps_are_mutually_exclusive(self):
         oidc = self._step("Publish with OIDC Trusted Publishing")
         token = self._step("Publish with NPM_TOKEN (deliberate opt-in, no provenance)")
-        self.assertEqual(oidc["if"], "steps.mode.outputs.requested == 'trusted'")
-        self.assertEqual(token["if"], "steps.mode.outputs.requested == 'token'")
+        self.assertEqual(
+            oidc["if"],
+            "steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'trusted'",
+        )
+        self.assertEqual(
+            token["if"],
+            "steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'token'",
+        )
 
     def test_fail_closed_upload_check_survives(self):
         step = self._step("Require a successful upload")
@@ -365,15 +371,21 @@ class PublishBehaviourTests(unittest.TestCase):
         self.assertIn("TRUSTED_OUTCOME", step["env"])
         self.assertIn("TOKEN_OUTCOME", step["env"])
         self.assertIn("npm Trusted Publishing failed", body)
-        self.assertIn("deliberate NPM_TOKEN mode", body)
+        self.assertIn("NPM_TOKEN mode", body)
+        self.assertEqual(step["if"], "steps.gate.outputs.skip != 'true'")
 
     def test_version_existence_gate_survives(self):
-        step = self._step("Check the version is not already published")
-        self.assertIn("already published to npm", step["run"])
+        step = self._step("Check npm registry state")
+        self.assertEqual(step["id"], "gate")
+        self.assertIn("skip=true", step["run"])
+        self.assertIn("idempotent no-op", step["run"])
 
     def test_attestation_verification_survives(self):
         step = self._step("Verify the default publish is attested")
-        self.assertEqual(step["if"], "steps.trusted.outcome == 'success'")
+        self.assertEqual(
+            step["if"],
+            "steps.gate.outputs.skip != 'true' && steps.trusted.outcome == 'success'",
+        )
         self.assertIn("npm/v1/attestations/", step["run"])
 
     def test_registry_visibility_check_survives(self):
@@ -393,7 +405,9 @@ class PublishBehaviourTests(unittest.TestCase):
         self.assertEqual(sorted(triggers), ["push", "workflow_dispatch"])
 
     # -- behaviour trace -----------------------------------------------------
-    def _run_mode_step(self, requested: str, token: str) -> tuple[int, str, str]:
+    def _run_mode_step(
+        self, requested: str, token: str, event: str = "workflow_dispatch"
+    ) -> tuple[int, str, str]:
         """Execute the mode-resolution step as bash and capture its decision.
 
         Returns ``(returncode, combined_output, mode)``. stdout and stderr are
@@ -417,6 +431,7 @@ class PublishBehaviourTests(unittest.TestCase):
             "#!/usr/bin/env bash\n"
             'GITHUB_OUTPUT="$(mktemp)"\n'
             'export GITHUB_OUTPUT\n'
+            f"export EVENT_NAME='{event}'\n"
             f"export REQUESTED_TOKEN='{requested}'\n"
             f"export NPM_TOKEN='{token}'\n"
         )
@@ -451,12 +466,18 @@ class PublishBehaviourTests(unittest.TestCase):
         )
         return proc.returncode, annotations or text, mode
 
-    def test_push_trigger_resolves_to_oidc(self):
-        """A push has no dispatch input, so the empty value must mean OIDC."""
-        rc, output, mode = self._run_mode_step("", "")
+    def test_push_trigger_resolves_to_verified_token(self):
+        """Automatic version-trigger pushes use the known-good token path."""
+        rc, output, mode = self._run_mode_step("", "an-existing-secret", event="push")
         self.assertEqual(rc, 0, output)
-        self.assertEqual(mode, "requested=trusted")
-        self.assertNotIn("::warning::", output, "a push must not warn about tokens")
+        self.assertEqual(mode, "requested=token")
+        self.assertIn("::warning::", output)
+
+    def test_push_without_token_fails_closed(self):
+        rc, output, mode = self._run_mode_step("", "", event="push")
+        self.assertNotEqual(rc, 0)
+        self.assertIn("::error::", output)
+        self.assertEqual(mode, "")
 
     def test_dispatch_without_opt_in_resolves_to_oidc(self):
         rc, output, mode = self._run_mode_step("false", "")
@@ -475,7 +496,7 @@ class PublishBehaviourTests(unittest.TestCase):
         self.assertEqual(rc, 0, output)
         self.assertEqual(mode, "requested=token")
         self.assertIn("::warning::", output)
-        self.assertIn("NOT be provenance-signed", output)
+        self.assertIn("not provenance-signed", output)
 
     def test_opt_in_without_a_credential_fails_closed(self):
         rc, output, mode = self._run_mode_step("true", "")
