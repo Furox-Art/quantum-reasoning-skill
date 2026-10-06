@@ -318,7 +318,7 @@ def check_claims_without_registry_support(attested: frozenset[str]) -> list[str]
 
 
 def check_token_path_cannot_claim_provenance() -> list[str]:
-    """The token step must not pass --provenance, and OIDC must be the default."""
+    """Token publishing cannot claim provenance; auth is selected before upload."""
     problems: list[str] = []
     workflow = ROOT / ".github" / "workflows" / "npm-publish.yml"
     if not workflow.is_file():
@@ -345,27 +345,37 @@ def check_token_path_cannot_claim_provenance() -> list[str]:
             "steps.mode.outputs.requested == 'trusted'"
         )
 
-    # The mode must be selected from the dispatch input, never from whether a
-    # secret happens to exist. This is the pre-#24 behaviour that let a stale
-    # NPM_TOKEN silently downgrade a publish, and it is the exact reason 1.1.1
-    # went out unattested. Assert it on the shell logic, not just on the step
-    # conditions, because the conditions alone do not reveal how `requested` was
-    # computed.
+    # Manual dispatches still honour the explicit checkbox. Automatic pushes may
+    # select the already-proven NPM_TOKEN path when the secret exists, but that
+    # decision must happen before either publish command starts. In particular,
+    # a failed OIDC upload must never trigger a token retry.
     resolution = text.split("Resolve the requested publish mode")
     if len(resolution) < 2:
         problems.append("npm-publish.yml has no publish-mode resolution step")
     else:
-        body = resolution[1][:2000]
-        if re.search(r'if\s+\[\s*-n\s+"\$\{NPM_TOKEN', body):
-            problems.append(
-                "the publish mode is selected by the presence of NPM_TOKEN; a stale "
-                "secret must not be able to downgrade a publish. Select it from the "
-                "use_token_fallback input only."
-            )
+        body = resolution[1][:2600]
         if "REQUESTED_TOKEN" not in body:
             problems.append(
                 "the publish-mode resolution step does not read the use_token_fallback "
-                "input; the mode must come from the dispatch input"
+                "input for manual dispatches"
+            )
+        if "EVENT_NAME" not in body:
+            problems.append(
+                "the publish-mode resolution step does not distinguish automatic pushes "
+                "from manual dispatches"
+            )
+        if not re.search(r'elif\s+\[\s+-n\s+"\$\{NPM_TOKEN:-\}"\s+\];\s+then', body):
+            problems.append(
+                "automatic pushes do not select the verified NPM_TOKEN path before publish"
+            )
+
+    token_publish = text.split("Publish with NPM_TOKEN", 1)
+    if len(token_publish) == 2:
+        token_head = token_publish[1][:500]
+        if "trusted.outcome" in token_head or "trusted_publish.outcome" in token_head:
+            problems.append(
+                "the token publish step is keyed on an OIDC failure; credential selection "
+                "must happen before publishing, not as a post-failure fallback"
             )
     return problems
 
