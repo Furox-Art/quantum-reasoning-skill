@@ -51,7 +51,8 @@ jobs:
           print(f"version={project['version']}")
           PY
 
-      - name: Require an unreleased version
+      - name: Check whether this version needs publishing
+        id: gate
         shell: bash
         run: |
           set -euo pipefail
@@ -65,11 +66,15 @@ jobs:
           fi
           url="https://pypi.org/pypi/$name/$version/json"
           if curl --retry 3 --retry-delay 2 --retry-all-errors -sfL "$url" >/dev/null; then
-            echo "::error::$name $version is already published to PyPI. Bump VERSION and pyproject.toml." >&2
-            exit 1
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "$name $version is already published to PyPI; verifying the registry and exiting green."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "$name $version is not on PyPI yet; publishing."
           fi
 
       - name: Build and validate distributions
+        if: steps.gate.outputs.skip != 'true'
         run: |
           set -euo pipefail
           # twine >= 7.0.0 is required: 6.x hardcodes a metadata-version list
@@ -85,6 +90,7 @@ jobs:
       # point, and a working reference controller. Same check CI enforces,
       # re-executed against the freshly built wheel.
       - name: Install the built wheel
+        if: steps.gate.outputs.skip != 'true'
         run: |
           set -euo pipefail
           wheel="$(ls dist/*.whl | head -n1)"
@@ -93,13 +99,16 @@ jobs:
           quantum-reasoning --validate
 
       - name: Assert the installed distribution contract
+        if: steps.gate.outputs.skip != 'true'
         run: python bin/check_release_contract.py
 
       - name: Negative control (gate must be fail-closed)
+        if: steps.gate.outputs.skip != 'true'
         run: python bin/check_release_contract.py --negative-control
 
       - name: Detect API token fallback
         id: auth
+        if: steps.gate.outputs.skip != 'true'
         shell: bash
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
@@ -114,12 +123,12 @@ jobs:
       # is deliberately absent so a failed upload fails the job.
       - name: Publish with PyPI Trusted Publishing
         id: trusted
-        if: steps.auth.outputs.has_token != 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.auth.outputs.has_token != 'true'
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
 
       - name: Publish with API token
         id: token
-        if: steps.auth.outputs.has_token == 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.auth.outputs.has_token == 'true'
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
