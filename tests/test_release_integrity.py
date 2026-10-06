@@ -272,7 +272,7 @@ class DisclosureTests(TreeCase):
 
 
 class TokenPublishPathTests(TreeCase):
-    """The token path must never claim provenance, and never be the default."""
+    """The token path must never claim provenance or activate after OIDC failure."""
 
     def test_provenance_on_the_token_step_is_rejected(self):
         self.patch(
@@ -306,23 +306,20 @@ class TokenPublishPathTests(TreeCase):
         problems = self.evaluate()
         self.assertTrue(problems, "dropping id-token: write must be rejected")
 
-    def test_reverting_to_secret_presence_switching_the_mode_is_rejected(self):
-        """The PR #24 regression: mode chosen by whether a secret exists.
-
-        Reintroducing the old auto-downgrade means the OIDC step is no longer
-        selected by the resolved mode, which the guard rejects.
-        """
+    def test_post_failure_token_fallback_is_rejected(self):
+        """Credential choice must happen before upload, never after OIDC fails."""
         self.patch(
             ".github/workflows/npm-publish.yml",
-            '          if [ "$requested" = "token" ]; then',
-            '          if [ -n "${NPM_TOKEN:-}" ]; then',
+            "        if: steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'token'",
+            "        if: steps.trusted.outcome != 'success'",
         )
         local = self.load_guard_for(self.tree)
         problems = local.check_token_path_cannot_claim_provenance()
         self.assertTrue(
             problems,
-            "selecting the publish mode by secret presence must be rejected",
+            "a token retry keyed on OIDC failure must be rejected",
         )
+        self.assertTrue(any("post-failure fallback" in problem for problem in problems), problems)
 
     def test_oidc_step_remaining_the_default_is_enforced(self):
         local = self.load_guard_for(self.tree)
