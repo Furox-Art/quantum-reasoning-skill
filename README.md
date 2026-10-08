@@ -10,11 +10,11 @@ alive, tests each against evidence and tools, revives alternatives when new evid
 and collapses to the best-supported answer only at the end. It is a **metaphor, not quantum
 computing** — "measurement" means letting evidence collapse a branch.
 
-> **Status: protocol implemented, effectiveness not yet demonstrated.** The skill contract,
-> the reference controller and the benchmark harness are here and run. **No
-> baseline-vs-skill model evaluation has been published**, so this project makes **no claim
-> that it improves accuracy or costs less compute.** See
-> [Benchmark status](#benchmark-status) before citing any number from here.
+> **Status: protocol implemented, controller benchmark published, model evaluation pending.**
+> The skill contract, the reference controller, the benchmark harness and a deterministic
+> falsification benchmark are here and run. **A baseline-vs-skill model evaluation has NOT
+> been published**, so this project makes **no claim that it improves any language model's
+> accuracy.** See [Benchmark status](#benchmark-status) before citing any number from here.
 
 ## Quick start
 
@@ -181,9 +181,22 @@ trivially answerable questions should not pay branching cost.
 
 ## Benchmark status
 
-**There are no published benchmark results.** `benchmark/cases.jsonl` holds six deterministic
-smoke-test cases that prove the harness runs; they are explicitly **not sufficient evidence of
-reasoning improvement**. Anyone can evaluate on models they have access to; every submitted
+**What has been measured — the controller, not the model.** On 9 deterministic falsification
+scenarios, the multi-hypothesis branch controller achieved **100% final accuracy versus 22%**
+for a single-hypothesis policy that commits to its first leader (0/4 on falsification
+scenarios, 0/3 on revival scenarios; both policies scored 2/2 on the control scenarios). It
+abandoned the falsified hypothesis at the same evidence step the falsification arrived, and
+revived a rejected-then-supported alternative in 3/3 revival scenarios. Confidence calibration
+showed **no difference** (Brier score 0.033 vs 0.033), and the accuracy gain cost **109.6%
+more tokens** per scenario. Methodology and reproduction:
+[`benchmark/falsification/METHODOLOGY.md`](benchmark/falsification/METHODOLOGY.md).
+
+These results measure the reference decision controller on **synthetic evidence streams**, not
+any language model. `benchmark/cases.jsonl` holds six deterministic smoke-test cases that
+prove the harness runs; they are explicitly **not sufficient evidence of reasoning
+improvement**. A baseline-vs-skill **model** evaluation has not been published, so this
+project makes **no claim that it improves any language model's accuracy or costs less
+compute.** Anyone can evaluate on models they have access to; every submitted
 number must carry provenance (script, skill commit, provider and exact model version, run date,
 sampling parameters, repetitions, platform), and one positive run establishes no general claim.
 Rules: [CONTRIBUTING.md](CONTRIBUTING.md#benchmark-provenance-requirements).

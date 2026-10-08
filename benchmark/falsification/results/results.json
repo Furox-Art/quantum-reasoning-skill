@@ -1,0 +1,2352 @@
+{
+  "per_scenario": [
+    {
+      "brier": 0.00435,
+      "correct": false,
+      "final_answer": "H_A",
+      "mean_latency_ms": 0.01666,
+      "policy": "single",
+      "revival_success": null,
+      "scenario_id": "falsification-001",
+      "scenario_type": "falsification",
+      "steps": [
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0302,
+          "leader": "H_A",
+          "leader_score": 0.5875,
+          "probabilities": {
+            "H_A": 0.622229,
+            "H_B": 0.25298,
+            "H_C": 0.124791
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0152,
+          "leader": "H_A",
+          "leader_score": 0.6285,
+          "probabilities": {
+            "H_A": 0.618942,
+            "H_B": 0.271694,
+            "H_C": 0.109364
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0134,
+          "leader": "H_A",
+          "leader_score": 0.2775,
+          "probabilities": {
+            "H_A": 0.068487,
+            "H_B": 0.801628,
+            "H_C": 0.129884
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": false,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0116,
+          "leader": "H_A",
+          "leader_score": 0.1925,
+          "probabilities": {
+            "H_A": 0.026852,
+            "H_B": 0.904176,
+            "H_C": 0.068971
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": false,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0129,
+          "leader": "H_A",
+          "leader_score": 0.1775,
+          "probabilities": {
+            "H_A": 0.024591,
+            "H_B": 0.915125,
+            "H_C": 0.060284
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 5,
+          "tokens": 26
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": false,
+      "total_latency_ms": 0.0833,
+      "total_tokens": 130,
+      "truth": "H_B",
+      "wrong_leader_steps": 0
+    },
+    {
+      "brier": 0.004421,
+      "correct": true,
+      "final_answer": "H_B",
+      "mean_latency_ms": 0.05184,
+      "policy": "multi",
+      "revival_success": null,
+      "scenario_id": "falsification-001",
+      "scenario_type": "falsification",
+      "steps": [
+        {
+          "active_branches": 2,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0809,
+          "leader": "H_A",
+          "leader_score": 0.5875,
+          "probabilities": {
+            "H_A": 0.622229,
+            "H_B": 0.25298,
+            "H_C": 0.124791
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 56
+        },
+        {
+          "active_branches": 3,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0558,
+          "leader": "H_A",
+          "leader_score": 0.6285,
+          "probabilities": {
+            "H_A": 0.618942,
+            "H_B": 0.271694,
+            "H_C": 0.109364
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [
+            "H_C"
+          ],
+          "step": 2,
+          "tokens": 62
+        },
+        {
+          "active_branches": 2,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [
+            "H_A"
+          ],
+          "latency_ms": 0.0403,
+          "leader": "H_B",
+          "leader_score": 0.6465,
+          "probabilities": {
+            "H_B": 0.860566,
+            "H_C": 0.139434
+          },
+          "rejected_branches": 1,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 44
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0419,
+          "leader": "H_B",
+          "leader_score": 0.72,
+          "probabilities": {
+            "H_B": 0.929126,
+            "H_C": 0.070874
+          },
+          "rejected_branches": 1,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 38
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0403,
+          "leader": "H_B",
+          "leader_score": 0.72,
+          "probabilities": {
+            "H_B": 0.938197,
+            "H_C": 0.061803
+          },
+          "rejected_branches": 1,
+          "revived_this_step": [],
+          "step": 5,
+          "tokens": 38
+        }
+      ],
+      "switch_delay_steps": 0,
+      "switch_success": true,
+      "total_latency_ms": 0.2592,
+      "total_tokens": 238,
+      "truth": "H_B",
+      "wrong_leader_steps": 2
+    },
+    {
+      "brier": 0.002931,
+      "correct": false,
+      "final_answer": "H_A",
+      "mean_latency_ms": 0.014925,
+      "policy": "single",
+      "revival_success": null,
+      "scenario_id": "falsification-002",
+      "scenario_type": "falsification",
+      "steps": [
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0152,
+          "leader": "H_A",
+          "leader_score": 0.6035,
+          "probabilities": {
+            "H_A": 0.637032,
+            "H_B": 0.275013,
+            "H_C": 0.087955
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0143,
+          "leader": "H_A",
+          "leader_score": 0.6545,
+          "probabilities": {
+            "H_A": 0.657776,
+            "H_B": 0.271021,
+            "H_C": 0.071203
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0163,
+          "leader": "H_A",
+          "leader_score": 0.2425,
+          "probabilities": {
+            "H_A": 0.049947,
+            "H_B": 0.863481,
+            "H_C": 0.086572
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": false,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0139,
+          "leader": "H_A",
+          "leader_score": 0.176,
+          "probabilities": {
+            "H_A": 0.023413,
+            "H_B": 0.925169,
+            "H_C": 0.051417
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 26
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": false,
+      "total_latency_ms": 0.0597,
+      "total_tokens": 104,
+      "truth": "H_B",
+      "wrong_leader_steps": 0
+    },
+    {
+      "brier": 0.002772,
+      "correct": true,
+      "final_answer": "H_B",
+      "mean_latency_ms": 0.05665,
+      "policy": "multi",
+      "revival_success": null,
+      "scenario_id": "falsification-002",
+      "scenario_type": "falsification",
+      "steps": [
+        {
+          "active_branches": 2,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0624,
+          "leader": "H_A",
+          "leader_score": 0.6035,
+          "probabilities": {
+            "H_A": 0.637032,
+            "H_B": 0.275013,
+            "H_C": 0.087955
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 56
+        },
+        {
+          "active_branches": 2,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0638,
+          "leader": "H_A",
+          "leader_score": 0.6545,
+          "probabilities": {
+            "H_A": 0.657776,
+            "H_B": 0.271021,
+            "H_C": 0.071203
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 56
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 1,
+          "falsified_this_step": [
+            "H_A"
+          ],
+          "latency_ms": 0.054,
+          "leader": "H_B",
+          "leader_score": 0.67,
+          "probabilities": {
+            "H_B": 0.908877,
+            "H_C": 0.091123
+          },
+          "rejected_branches": 1,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 38
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0464,
+          "leader": "H_B",
+          "leader_score": 0.7275,
+          "probabilities": {
+            "H_B": 0.94735,
+            "H_C": 0.05265
+          },
+          "rejected_branches": 1,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 38
+        }
+      ],
+      "switch_delay_steps": 0,
+      "switch_success": true,
+      "total_latency_ms": 0.2266,
+      "total_tokens": 188,
+      "truth": "H_B",
+      "wrong_leader_steps": 2
+    },
+    {
+      "brier": 0.003512,
+      "correct": false,
+      "final_answer": "H_A",
+      "mean_latency_ms": 0.011075,
+      "policy": "single",
+      "revival_success": null,
+      "scenario_id": "falsification-003",
+      "scenario_type": "falsification",
+      "steps": [
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0111,
+          "leader": "H_A",
+          "leader_score": 0.613,
+          "probabilities": {
+            "H_A": 0.65764,
+            "H_B": 0.240325,
+            "H_C": 0.102036
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0111,
+          "leader": "H_A",
+          "leader_score": 0.659,
+          "probabilities": {
+            "H_A": 0.673005,
+            "H_B": 0.244306,
+            "H_C": 0.082689
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.011,
+          "leader": "H_A",
+          "leader_score": 0.226,
+          "probabilities": {
+            "H_A": 0.04029,
+            "H_B": 0.867926,
+            "H_C": 0.091784
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": false,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0111,
+          "leader": "H_A",
+          "leader_score": 0.1675,
+          "probabilities": {
+            "H_A": 0.022122,
+            "H_B": 0.918937,
+            "H_C": 0.058942
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 26
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": false,
+      "total_latency_ms": 0.0443,
+      "total_tokens": 104,
+      "truth": "H_B",
+      "wrong_leader_steps": 0
+    },
+    {
+      "brier": 0.003633,
+      "correct": true,
+      "final_answer": "H_B",
+      "mean_latency_ms": 0.04395,
+      "policy": "multi",
+      "revival_success": null,
+      "scenario_id": "falsification-003",
+      "scenario_type": "falsification",
+      "steps": [
+        {
+          "active_branches": 2,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0504,
+          "leader": "H_A",
+          "leader_score": 0.613,
+          "probabilities": {
+            "H_A": 0.65764,
+            "H_B": 0.240325,
+            "H_C": 0.102036
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 56
+        },
+        {
+          "active_branches": 2,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0466,
+          "leader": "H_A",
+          "leader_score": 0.659,
+          "probabilities": {
+            "H_A": 0.673005,
+            "H_B": 0.244306,
+            "H_C": 0.082689
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 56
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 1,
+          "falsified_this_step": [
+            "H_A"
+          ],
+          "latency_ms": 0.0407,
+          "leader": "H_B",
+          "leader_score": 0.6865,
+          "probabilities": {
+            "H_B": 0.904363,
+            "H_C": 0.095637
+          },
+          "rejected_branches": 1,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 38
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0381,
+          "leader": "H_B",
+          "leader_score": 0.7265,
+          "probabilities": {
+            "H_B": 0.939725,
+            "H_C": 0.060275
+          },
+          "rejected_branches": 1,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 38
+        }
+      ],
+      "switch_delay_steps": 0,
+      "switch_success": true,
+      "total_latency_ms": 0.1758,
+      "total_tokens": 188,
+      "truth": "H_B",
+      "wrong_leader_steps": 2
+    },
+    {
+      "brier": 0.007389,
+      "correct": false,
+      "final_answer": "H_A",
+      "mean_latency_ms": 0.01156,
+      "policy": "single",
+      "revival_success": null,
+      "scenario_id": "falsification-004",
+      "scenario_type": "falsification",
+      "steps": [
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0119,
+          "leader": "H_A",
+          "leader_score": 0.574,
+          "probabilities": {
+            "H_A": 0.541165,
+            "H_B": 0.329329,
+            "H_C": 0.129506
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0113,
+          "leader": "H_A",
+          "leader_score": 0.6435,
+          "probabilities": {
+            "H_A": 0.611853,
+            "H_B": 0.292898,
+            "H_C": 0.095249
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0106,
+          "leader": "H_A",
+          "leader_score": 0.6715,
+          "probabilities": {
+            "H_A": 0.620786,
+            "H_B": 0.2952,
+            "H_C": 0.084014
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": false,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0111,
+          "leader": "H_A",
+          "leader_score": 0.2035,
+          "probabilities": {
+            "H_A": 0.0316,
+            "H_B": 0.868267,
+            "H_C": 0.100133
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": false,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0129,
+          "leader": "H_A",
+          "leader_score": 0.1665,
+          "probabilities": {
+            "H_A": 0.022739,
+            "H_B": 0.901513,
+            "H_C": 0.075748
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 5,
+          "tokens": 26
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": false,
+      "total_latency_ms": 0.0578,
+      "total_tokens": 130,
+      "truth": "H_B",
+      "wrong_leader_steps": 0
+    },
+    {
+      "brier": 0.00835,
+      "correct": true,
+      "final_answer": "H_B",
+      "mean_latency_ms": 0.04204,
+      "policy": "multi",
+      "revival_success": null,
+      "scenario_id": "falsification-004",
+      "scenario_type": "falsification",
+      "steps": [
+        {
+          "active_branches": 3,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0459,
+          "leader": "H_A",
+          "leader_score": 0.574,
+          "probabilities": {
+            "H_A": 0.541165,
+            "H_B": 0.329329,
+            "H_C": 0.129506
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 62
+        },
+        {
+          "active_branches": 3,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0457,
+          "leader": "H_A",
+          "leader_score": 0.6435,
+          "probabilities": {
+            "H_A": 0.611853,
+            "H_B": 0.292898,
+            "H_C": 0.095249
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 62
+        },
+        {
+          "active_branches": 3,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0453,
+          "leader": "H_A",
+          "leader_score": 0.6715,
+          "probabilities": {
+            "H_A": 0.620786,
+            "H_B": 0.2952,
+            "H_C": 0.084014
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 62
+        },
+        {
+          "active_branches": 2,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [
+            "H_A"
+          ],
+          "latency_ms": 0.037,
+          "leader": "H_B",
+          "leader_score": 0.7005,
+          "probabilities": {
+            "H_B": 0.8966,
+            "H_C": 0.1034
+          },
+          "rejected_branches": 1,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 44
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0363,
+          "leader": "H_B",
+          "leader_score": 0.7185,
+          "probabilities": {
+            "H_B": 0.92249,
+            "H_C": 0.07751
+          },
+          "rejected_branches": 1,
+          "revived_this_step": [],
+          "step": 5,
+          "tokens": 38
+        }
+      ],
+      "switch_delay_steps": 0,
+      "switch_success": true,
+      "total_latency_ms": 0.2102,
+      "total_tokens": 268,
+      "truth": "H_B",
+      "wrong_leader_steps": 3
+    },
+    {
+      "brier": 0.029398,
+      "correct": false,
+      "final_answer": "H_A",
+      "mean_latency_ms": 0.01152,
+      "policy": "single",
+      "revival_success": false,
+      "scenario_id": "revival-001",
+      "scenario_type": "revival",
+      "steps": [
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0109,
+          "leader": "H_A",
+          "leader_score": 0.5815,
+          "probabilities": {
+            "H_A": 0.65647,
+            "H_B": 0.207862,
+            "H_C": 0.135668
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0115,
+          "leader": "H_A",
+          "leader_score": 0.628,
+          "probabilities": {
+            "H_A": 0.745298,
+            "H_B": 0.139833,
+            "H_C": 0.114868
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0112,
+          "leader": "H_A",
+          "leader_score": 0.603,
+          "probabilities": {
+            "H_A": 0.58624,
+            "H_B": 0.312226,
+            "H_C": 0.101534
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": false,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0118,
+          "leader": "H_A",
+          "leader_score": 0.498,
+          "probabilities": {
+            "H_A": 0.218205,
+            "H_B": 0.710122,
+            "H_C": 0.071672
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": false,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0122,
+          "leader": "H_A",
+          "leader_score": 0.4005,
+          "probabilities": {
+            "H_A": 0.102816,
+            "H_B": 0.839617,
+            "H_C": 0.057567
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 5,
+          "tokens": 26
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": null,
+      "total_latency_ms": 0.0576,
+      "total_tokens": 130,
+      "truth": "H_B",
+      "wrong_leader_steps": 0
+    },
+    {
+      "brier": 0.029398,
+      "correct": true,
+      "final_answer": "H_B",
+      "mean_latency_ms": 0.08186,
+      "policy": "multi",
+      "revival_success": true,
+      "scenario_id": "revival-001",
+      "scenario_type": "revival",
+      "steps": [
+        {
+          "active_branches": 2,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0446,
+          "leader": "H_A",
+          "leader_score": 0.5815,
+          "probabilities": {
+            "H_A": 0.65647,
+            "H_B": 0.207862,
+            "H_C": 0.135668
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 56
+        },
+        {
+          "active_branches": 2,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0473,
+          "leader": "H_A",
+          "leader_score": 0.628,
+          "probabilities": {
+            "H_A": 0.745298,
+            "H_B": 0.139833,
+            "H_C": 0.114868
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 56
+        },
+        {
+          "active_branches": 2,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.2264,
+          "leader": "H_A",
+          "leader_score": 0.603,
+          "probabilities": {
+            "H_A": 0.58624,
+            "H_B": 0.312226,
+            "H_C": 0.101534
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 56
+        },
+        {
+          "active_branches": 2,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0469,
+          "leader": "H_B",
+          "leader_score": 0.675,
+          "probabilities": {
+            "H_A": 0.218205,
+            "H_B": 0.710122,
+            "H_C": 0.071672
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 56
+        },
+        {
+          "active_branches": 2,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0441,
+          "leader": "H_B",
+          "leader_score": 0.7155,
+          "probabilities": {
+            "H_A": 0.102816,
+            "H_B": 0.839617,
+            "H_C": 0.057567
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 5,
+          "tokens": 56
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": null,
+      "total_latency_ms": 0.4093,
+      "total_tokens": 280,
+      "truth": "H_B",
+      "wrong_leader_steps": 0
+    },
+    {
+      "brier": 0.048527,
+      "correct": false,
+      "final_answer": "H_A",
+      "mean_latency_ms": 0.01116,
+      "policy": "single",
+      "revival_success": false,
+      "scenario_id": "revival-002",
+      "scenario_type": "revival",
+      "steps": [
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0109,
+          "leader": "H_A",
+          "leader_score": 0.5975,
+          "probabilities": {
+            "H_A": 0.515584,
+            "H_B": 0.324396,
+            "H_C": 0.16002
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0108,
+          "leader": "H_A",
+          "leader_score": 0.6385,
+          "probabilities": {
+            "H_A": 0.58429,
+            "H_B": 0.301991,
+            "H_C": 0.113719
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0107,
+          "leader": "H_A",
+          "leader_score": 0.6215,
+          "probabilities": {
+            "H_A": 0.47427,
+            "H_B": 0.24188,
+            "H_C": 0.283849
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": false,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0125,
+          "leader": "H_A",
+          "leader_score": 0.5165,
+          "probabilities": {
+            "H_A": 0.199951,
+            "H_B": 0.166457,
+            "H_C": 0.633592
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": false,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0109,
+          "leader": "H_A",
+          "leader_score": 0.437,
+          "probabilities": {
+            "H_A": 0.113122,
+            "H_B": 0.130556,
+            "H_C": 0.756322
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 5,
+          "tokens": 26
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": null,
+      "total_latency_ms": 0.0558,
+      "total_tokens": 130,
+      "truth": "H_C",
+      "wrong_leader_steps": 0
+    },
+    {
+      "brier": 0.048527,
+      "correct": true,
+      "final_answer": "H_C",
+      "mean_latency_ms": 0.0441,
+      "policy": "multi",
+      "revival_success": true,
+      "scenario_id": "revival-002",
+      "scenario_type": "revival",
+      "steps": [
+        {
+          "active_branches": 3,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0448,
+          "leader": "H_A",
+          "leader_score": 0.5975,
+          "probabilities": {
+            "H_A": 0.515584,
+            "H_B": 0.324396,
+            "H_C": 0.16002
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 62
+        },
+        {
+          "active_branches": 3,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0464,
+          "leader": "H_A",
+          "leader_score": 0.6385,
+          "probabilities": {
+            "H_A": 0.58429,
+            "H_B": 0.301991,
+            "H_C": 0.113719
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 62
+        },
+        {
+          "active_branches": 3,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0435,
+          "leader": "H_A",
+          "leader_score": 0.6215,
+          "probabilities": {
+            "H_A": 0.47427,
+            "H_B": 0.24188,
+            "H_C": 0.283849
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 62
+        },
+        {
+          "active_branches": 3,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0426,
+          "leader": "H_C",
+          "leader_score": 0.6895,
+          "probabilities": {
+            "H_A": 0.199951,
+            "H_B": 0.166457,
+            "H_C": 0.633592
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 62
+        },
+        {
+          "active_branches": 3,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0432,
+          "leader": "H_C",
+          "leader_score": 0.722,
+          "probabilities": {
+            "H_A": 0.113122,
+            "H_B": 0.130556,
+            "H_C": 0.756322
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 5,
+          "tokens": 62
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": null,
+      "total_latency_ms": 0.2205,
+      "total_tokens": 310,
+      "truth": "H_C",
+      "wrong_leader_steps": 0
+    },
+    {
+      "brier": 0.049406,
+      "correct": false,
+      "final_answer": "H_A",
+      "mean_latency_ms": 0.0108,
+      "policy": "single",
+      "revival_success": false,
+      "scenario_id": "revival-003",
+      "scenario_type": "revival",
+      "steps": [
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.011,
+          "leader": "H_A",
+          "leader_score": 0.5965,
+          "probabilities": {
+            "H_A": 0.484019,
+            "H_B": 0.268305,
+            "H_C": 0.247677
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0106,
+          "leader": "H_A",
+          "leader_score": 0.6315,
+          "probabilities": {
+            "H_A": 0.634151,
+            "H_B": 0.289731,
+            "H_C": 0.076118
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": false,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0105,
+          "leader": "H_A",
+          "leader_score": 0.6145,
+          "probabilities": {
+            "H_A": 0.463645,
+            "H_B": 0.243663,
+            "H_C": 0.292692
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": false,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0109,
+          "leader": "H_A",
+          "leader_score": 0.524,
+          "probabilities": {
+            "H_A": 0.200612,
+            "H_B": 0.163701,
+            "H_C": 0.635687
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": false,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.011,
+          "leader": "H_A",
+          "leader_score": 0.448,
+          "probabilities": {
+            "H_A": 0.12011,
+            "H_B": 0.13363,
+            "H_C": 0.74626
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 5,
+          "tokens": 26
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": null,
+      "total_latency_ms": 0.054,
+      "total_tokens": 130,
+      "truth": "H_C",
+      "wrong_leader_steps": 0
+    },
+    {
+      "brier": 0.049406,
+      "correct": true,
+      "final_answer": "H_C",
+      "mean_latency_ms": 0.04354,
+      "policy": "multi",
+      "revival_success": true,
+      "scenario_id": "revival-003",
+      "scenario_type": "revival",
+      "steps": [
+        {
+          "active_branches": 3,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0471,
+          "leader": "H_A",
+          "leader_score": 0.5965,
+          "probabilities": {
+            "H_A": 0.484019,
+            "H_B": 0.268305,
+            "H_C": 0.247677
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 62
+        },
+        {
+          "active_branches": 2,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [
+            "H_C"
+          ],
+          "latency_ms": 0.0376,
+          "leader": "H_A",
+          "leader_score": 0.6315,
+          "probabilities": {
+            "H_A": 0.686398,
+            "H_B": 0.313602
+          },
+          "rejected_branches": 1,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 44
+        },
+        {
+          "active_branches": 3,
+          "answer_committed": false,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": null,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0473,
+          "leader": "H_A",
+          "leader_score": 0.6145,
+          "probabilities": {
+            "H_A": 0.463645,
+            "H_B": 0.243663,
+            "H_C": 0.292692
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [
+            "H_C"
+          ],
+          "step": 3,
+          "tokens": 62
+        },
+        {
+          "active_branches": 3,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.044,
+          "leader": "H_C",
+          "leader_score": 0.697,
+          "probabilities": {
+            "H_A": 0.200612,
+            "H_B": 0.163701,
+            "H_C": 0.635687
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 62
+        },
+        {
+          "active_branches": 3,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0417,
+          "leader": "H_C",
+          "leader_score": 0.722,
+          "probabilities": {
+            "H_A": 0.12011,
+            "H_B": 0.13363,
+            "H_C": 0.74626
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 5,
+          "tokens": 62
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": null,
+      "total_latency_ms": 0.2177,
+      "total_tokens": 292,
+      "truth": "H_C",
+      "wrong_leader_steps": 0
+    },
+    {
+      "brier": 0.047674,
+      "correct": true,
+      "final_answer": "H_A",
+      "mean_latency_ms": 0.011375,
+      "policy": "single",
+      "revival_success": null,
+      "scenario_id": "control-001",
+      "scenario_type": "control",
+      "steps": [
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.011,
+          "leader": "H_A",
+          "leader_score": 0.583,
+          "probabilities": {
+            "H_A": 0.601427,
+            "H_B": 0.273866,
+            "H_C": 0.124708
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0109,
+          "leader": "H_A",
+          "leader_score": 0.6455,
+          "probabilities": {
+            "H_A": 0.685553,
+            "H_B": 0.218523,
+            "H_C": 0.095924
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.011,
+          "leader": "H_A",
+          "leader_score": 0.6745,
+          "probabilities": {
+            "H_A": 0.741157,
+            "H_B": 0.179148,
+            "H_C": 0.079695
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0126,
+          "leader": "H_A",
+          "leader_score": 0.707,
+          "probabilities": {
+            "H_A": 0.801811,
+            "H_B": 0.134317,
+            "H_C": 0.063871
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 26
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": null,
+      "total_latency_ms": 0.0455,
+      "total_tokens": 104,
+      "truth": "H_A",
+      "wrong_leader_steps": 0
+    },
+    {
+      "brier": 0.047674,
+      "correct": true,
+      "final_answer": "H_A",
+      "mean_latency_ms": 0.043875,
+      "policy": "multi",
+      "revival_success": null,
+      "scenario_id": "control-001",
+      "scenario_type": "control",
+      "steps": [
+        {
+          "active_branches": 2,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0456,
+          "leader": "H_A",
+          "leader_score": 0.583,
+          "probabilities": {
+            "H_A": 0.601427,
+            "H_B": 0.273866,
+            "H_C": 0.124708
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 56
+        },
+        {
+          "active_branches": 3,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0445,
+          "leader": "H_A",
+          "leader_score": 0.6455,
+          "probabilities": {
+            "H_A": 0.685553,
+            "H_B": 0.218523,
+            "H_C": 0.095924
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [
+            "H_C"
+          ],
+          "step": 2,
+          "tokens": 62
+        },
+        {
+          "active_branches": 2,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.0424,
+          "leader": "H_A",
+          "leader_score": 0.6745,
+          "probabilities": {
+            "H_A": 0.741157,
+            "H_B": 0.179148,
+            "H_C": 0.079695
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 56
+        },
+        {
+          "active_branches": 2,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 1,
+          "falsified_this_step": [],
+          "latency_ms": 0.043,
+          "leader": "H_A",
+          "leader_score": 0.707,
+          "probabilities": {
+            "H_A": 0.801811,
+            "H_B": 0.134317,
+            "H_C": 0.063871
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 4,
+          "tokens": 56
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": null,
+      "total_latency_ms": 0.1755,
+      "total_tokens": 230,
+      "truth": "H_A",
+      "wrong_leader_steps": 0
+    },
+    {
+      "brier": 0.100621,
+      "correct": true,
+      "final_answer": "H_A",
+      "mean_latency_ms": 0.0115,
+      "policy": "single",
+      "revival_success": null,
+      "scenario_id": "control-002",
+      "scenario_type": "control",
+      "steps": [
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0107,
+          "leader": "H_A",
+          "leader_score": 0.565,
+          "probabilities": {
+            "H_A": 0.482909,
+            "H_B": 0.377345,
+            "H_C": 0.139746
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0129,
+          "leader": "H_A",
+          "leader_score": 0.6325,
+          "probabilities": {
+            "H_A": 0.582096,
+            "H_B": 0.30796,
+            "H_C": 0.109944
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 26
+        },
+        {
+          "active_branches": 1,
+          "answer_committed": true,
+          "collapse_reason": "single-hypothesis policy never reconsiders",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0109,
+          "leader": "H_A",
+          "leader_score": 0.6615,
+          "probabilities": {
+            "H_A": 0.651953,
+            "H_B": 0.254671,
+            "H_C": 0.093376
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 26
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": null,
+      "total_latency_ms": 0.0345,
+      "total_tokens": 78,
+      "truth": "H_A",
+      "wrong_leader_steps": 0
+    },
+    {
+      "brier": 0.100621,
+      "correct": true,
+      "final_answer": "H_A",
+      "mean_latency_ms": 0.043733,
+      "policy": "multi",
+      "revival_success": null,
+      "scenario_id": "control-002",
+      "scenario_type": "control",
+      "steps": [
+        {
+          "active_branches": 3,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0444,
+          "leader": "H_A",
+          "leader_score": 0.565,
+          "probabilities": {
+            "H_A": 0.482909,
+            "H_B": 0.377345,
+            "H_C": 0.139746
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 1,
+          "tokens": 62
+        },
+        {
+          "active_branches": 3,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.045,
+          "leader": "H_A",
+          "leader_score": 0.6325,
+          "probabilities": {
+            "H_A": 0.582096,
+            "H_B": 0.30796,
+            "H_C": 0.109944
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 2,
+          "tokens": 62
+        },
+        {
+          "active_branches": 3,
+          "answer_committed": true,
+          "collapse_reason": "leader score below collapse threshold",
+          "collapsed": false,
+          "correct": true,
+          "dormant_branches": 0,
+          "falsified_this_step": [],
+          "latency_ms": 0.0418,
+          "leader": "H_A",
+          "leader_score": 0.6615,
+          "probabilities": {
+            "H_A": 0.651953,
+            "H_B": 0.254671,
+            "H_C": 0.093376
+          },
+          "rejected_branches": 0,
+          "revived_this_step": [],
+          "step": 3,
+          "tokens": 62
+        }
+      ],
+      "switch_delay_steps": null,
+      "switch_success": null,
+      "total_latency_ms": 0.1312,
+      "total_tokens": 186,
+      "truth": "H_A",
+      "wrong_leader_steps": 0
+    }
+  ],
+  "policies": [
+    "single",
+    "multi"
+  ],
+  "reliability_bins": [
+    {
+      "bin": "0.8-1.0",
+      "policy": "single",
+      "scenario_id": "falsification-001",
+      "step": 4,
+      "truth_probability": 0.904176204880981
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "single",
+      "scenario_id": "falsification-001",
+      "step": 5,
+      "truth_probability": 0.915125031015574
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "multi",
+      "scenario_id": "falsification-001",
+      "step": 4,
+      "truth_probability": 0.9291255144541368
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "multi",
+      "scenario_id": "falsification-001",
+      "step": 5,
+      "truth_probability": 0.9381965337364114
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "single",
+      "scenario_id": "falsification-002",
+      "step": 4,
+      "truth_probability": 0.9251691681172851
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "multi",
+      "scenario_id": "falsification-002",
+      "step": 4,
+      "truth_probability": 0.9473498815646972
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "single",
+      "scenario_id": "falsification-003",
+      "step": 4,
+      "truth_probability": 0.9189366849242196
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "multi",
+      "scenario_id": "falsification-003",
+      "step": 4,
+      "truth_probability": 0.9397248193948963
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "single",
+      "scenario_id": "falsification-004",
+      "step": 4,
+      "truth_probability": 0.8682667608006771
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "single",
+      "scenario_id": "falsification-004",
+      "step": 5,
+      "truth_probability": 0.901513434390505
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "multi",
+      "scenario_id": "falsification-004",
+      "step": 4,
+      "truth_probability": 0.8965995485417504
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "multi",
+      "scenario_id": "falsification-004",
+      "step": 5,
+      "truth_probability": 0.9224897920150433
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "single",
+      "scenario_id": "revival-001",
+      "step": 4,
+      "truth_probability": 0.7101222636249791
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "single",
+      "scenario_id": "revival-001",
+      "step": 5,
+      "truth_probability": 0.8396167575841401
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "multi",
+      "scenario_id": "revival-001",
+      "step": 4,
+      "truth_probability": 0.7101222636249791
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "multi",
+      "scenario_id": "revival-001",
+      "step": 5,
+      "truth_probability": 0.8396167575841401
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "single",
+      "scenario_id": "revival-002",
+      "step": 4,
+      "truth_probability": 0.6335918964027618
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "single",
+      "scenario_id": "revival-002",
+      "step": 5,
+      "truth_probability": 0.7563221405681535
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "multi",
+      "scenario_id": "revival-002",
+      "step": 4,
+      "truth_probability": 0.6335918964027618
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "multi",
+      "scenario_id": "revival-002",
+      "step": 5,
+      "truth_probability": 0.7563221405681535
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "single",
+      "scenario_id": "revival-003",
+      "step": 4,
+      "truth_probability": 0.635687168312477
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "single",
+      "scenario_id": "revival-003",
+      "step": 5,
+      "truth_probability": 0.7462601249823866
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "multi",
+      "scenario_id": "revival-003",
+      "step": 4,
+      "truth_probability": 0.635687168312477
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "multi",
+      "scenario_id": "revival-003",
+      "step": 5,
+      "truth_probability": 0.7462601249823866
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "single",
+      "scenario_id": "control-001",
+      "step": 1,
+      "truth_probability": 0.6014267086350914
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "single",
+      "scenario_id": "control-001",
+      "step": 2,
+      "truth_probability": 0.6855526263403118
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "single",
+      "scenario_id": "control-001",
+      "step": 3,
+      "truth_probability": 0.7411566410463417
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "single",
+      "scenario_id": "control-001",
+      "step": 4,
+      "truth_probability": 0.801811032978959
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "multi",
+      "scenario_id": "control-001",
+      "step": 1,
+      "truth_probability": 0.6014267086350914
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "multi",
+      "scenario_id": "control-001",
+      "step": 2,
+      "truth_probability": 0.6855526263403118
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "multi",
+      "scenario_id": "control-001",
+      "step": 3,
+      "truth_probability": 0.7411566410463417
+    },
+    {
+      "bin": "0.8-1.0",
+      "policy": "multi",
+      "scenario_id": "control-001",
+      "step": 4,
+      "truth_probability": 0.801811032978959
+    },
+    {
+      "bin": "0.4-0.6",
+      "policy": "single",
+      "scenario_id": "control-002",
+      "step": 1,
+      "truth_probability": 0.48290857726698966
+    },
+    {
+      "bin": "0.4-0.6",
+      "policy": "single",
+      "scenario_id": "control-002",
+      "step": 2,
+      "truth_probability": 0.5820963685246592
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "single",
+      "scenario_id": "control-002",
+      "step": 3,
+      "truth_probability": 0.6519527156465015
+    },
+    {
+      "bin": "0.4-0.6",
+      "policy": "multi",
+      "scenario_id": "control-002",
+      "step": 1,
+      "truth_probability": 0.48290857726698966
+    },
+    {
+      "bin": "0.4-0.6",
+      "policy": "multi",
+      "scenario_id": "control-002",
+      "step": 2,
+      "truth_probability": 0.5820963685246592
+    },
+    {
+      "bin": "0.6-0.8",
+      "policy": "multi",
+      "scenario_id": "control-002",
+      "step": 3,
+      "truth_probability": 0.6519527156465015
+    }
+  ],
+  "scenario_count": 9,
+  "suite": "falsification-comparative",
+  "summary": {
+    "comparison": {
+      "accuracy_delta": 0.7777777777777778,
+      "brier_delta": 0.00011053732542425782,
+      "decision_switch_success_delta": 1.0,
+      "falsification_accuracy_delta": 1.0,
+      "revival_success_delta": 1.0,
+      "token_percent_change": 109.61538461538463
+    },
+    "multi": {
+      "accuracy": 1.0,
+      "brier_score": 0.032755786880864814,
+      "control": {
+        "accuracy": 1.0,
+        "scenarios": 2
+      },
+      "falsification": {
+        "accuracy": 1.0,
+        "decision_switch_success_rate": 1.0,
+        "mean_switch_delay_steps": 0.0,
+        "scenarios": 4,
+        "switch_events": 4
+      },
+      "mean_latency_ms_per_decision": 0.05017648131966039,
+      "mean_tokens_per_scenario": 242.22222222222223,
+      "revival": {
+        "accuracy": 1.0,
+        "revival_success_rate": 1.0,
+        "scenarios": 3
+      },
+      "scenarios": 9,
+      "total_latency_ms": 2.0260000019334257
+    },
+    "single": {
+      "accuracy": 0.2222222222222222,
+      "brier_score": 0.032645249555440556,
+      "control": {
+        "accuracy": 1.0,
+        "scenarios": 2
+      },
+      "falsification": {
+        "accuracy": 0.0,
+        "decision_switch_success_rate": 0.0,
+        "mean_switch_delay_steps": null,
+        "scenarios": 4,
+        "switch_events": 4
+      },
+      "mean_latency_ms_per_decision": 0.0122861110732494,
+      "mean_tokens_per_scenario": 115.55555555555556,
+      "revival": {
+        "accuracy": 0.0,
+        "revival_success_rate": 0.0,
+        "scenarios": 3
+      },
+      "scenarios": 9,
+      "total_latency_ms": 0.49250001029577106
+    }
+  },
+  "switch_window_steps": 1,
+  "token_model": {
+    "tokens_per_branch_step": 12,
+    "tokens_per_decision": 8,
+    "tokens_per_verification_step": 6
+  }
+}
