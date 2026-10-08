@@ -19,8 +19,8 @@ license: MIT
 # Authoritative release version, kept in lockstep with VERSION, pyproject.toml,
 # package.json and the CHANGELOG section by the CI version-lockstep check and by
 # both release workflows.
-version: 1.1.1
-date-released: 2026-10-04
+version: 1.1.2
+date-released: 2026-10-09
 keywords:
   - agent-skills
   - reasoning

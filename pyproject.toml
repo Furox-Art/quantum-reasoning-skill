@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "quantum-reasoning-skill"
-version = "1.1.1"
+version = "1.1.2"
 description = "Quantum-inspired multi-branch reasoning for AI agents: explore, score, prune, and merge solution paths"
 readme = "README.md"
 license = "MIT"
