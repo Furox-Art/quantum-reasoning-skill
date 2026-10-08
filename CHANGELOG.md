@@ -58,6 +58,35 @@ as evidence of tampering, and do not treat it as evidence of integrity either.
 No version bump: 1.1.1 is already published and the artifact contents are
 unchanged by this fix. The point is to keep the *next* release from failing.
 
+## [1.1.2] - 2026-10-09
+
+Ships the deterministic falsification comparative benchmark from #33: a new
+suite under `benchmark/falsification/` that compares a single-hypothesis policy
+against the multi-hypothesis branch controller on identical, replayable
+evidence streams.
+
+### Added
+
+- `benchmark/falsification/` — a deterministic comparative benchmark with 9
+  scenarios: 4 falsification, 3 revival and 2 control, each a fixed evidence
+  stream with a known ground truth. The two policies compared are a
+  single-hypothesis policy that locks its first leader, and the multi-hypothesis
+  branch controller; the committed results are reproducible byte for byte.
+- Measured results, published in full (single-hypothesis vs multi-hypothesis):
+  overall accuracy 22% → 100%, falsification-scenario accuracy 0% → 100%,
+  decision-switch success 0% → 100%, and revival success 0% → 100%. Confidence
+  calibration was **unchanged** (Brier score 0.033 on both), and the accuracy
+  gain cost **+109.6% tokens** per scenario (115.6 → 242.2). The single-hypothesis
+  policy fails all four falsification and all three revival scenarios and passes
+  both control scenarios; the multi-hypothesis policy passes all nine.
+- The README now states plainly what those numbers do and do not measure: the
+  suite compares the reference decision controller on synthetic evidence
+  streams, **not any language model**. A baseline-vs-skill model evaluation
+  remains unpublished, so the project makes no claim that it improves any
+  language model's accuracy or costs less compute. Methodology, per-scenario
+  results and reproduction steps live in
+  `benchmark/falsification/METHODOLOGY.md`.
+
 ## [1.1.1] - 2026-10-04
 
 Documentation corrections plus one workflow fix. This release exists primarily so
