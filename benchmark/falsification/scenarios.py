@@ -25,8 +25,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-
 SCENARIO_TYPES = ("falsification", "revival", "control")
+
 
 # Evidence steps are 1-indexed. The ground-truth answer becomes known to the
 # run at ``answer_known_from`` inclusive; earlier steps carry no answer credit.
@@ -733,11 +733,7 @@ def build_control_scenarios() -> list[Scenario]:
 
 def build_all_scenarios() -> list[Scenario]:
     """Return the full deterministic scenario set (documented order)."""
-    return (
-        build_falsification_scenarios()
-        + build_revival_scenarios()
-        + build_control_scenarios()
-    )
+    return build_falsification_scenarios() + build_revival_scenarios() + build_control_scenarios()
 
 
 def scenario_as_case_record(scenario: Scenario) -> dict[str, Any]:

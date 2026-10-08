@@ -12,7 +12,7 @@
 | control-scenario accuracy | 1.000 | 1.000 |
 | Brier score (lower is better) | 0.033 | 0.033 |
 | mean tokens per scenario | 115.6 | 242.2 |
-| mean latency per decision (ms) | 0.012 | 0.050 |
+| mean latency per decision (ms) | 0.013 | 0.052 |
 
 ## Per-scenario results
 

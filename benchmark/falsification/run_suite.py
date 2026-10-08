@@ -35,13 +35,13 @@ Metrics (all computed by this file, all deterministic)
 from __future__ import annotations
 
 import argparse
-import importlib.util
 import json
 import sys
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
@@ -52,21 +52,7 @@ from benchmark.falsification.scenarios import (  # noqa: E402
     build_all_scenarios,
     scenario_as_case_record,
 )
-
-
-def _load_branch_controller():
-    """Load reference/branch_controller.py by path (it is not a package module)."""
-    spec = importlib.util.spec_from_file_location(
-        "branch_controller", REPO_ROOT / "reference" / "branch_controller.py"
-    )
-    assert spec and spec.loader
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-BC = _load_branch_controller()
+from reference import branch_controller as BC  # noqa: E402
 
 # Deterministic token accounting. Tokens are a fixed per-branch per-step budget
 # plus a fixed per-decision overhead, so cost differences come only from how
@@ -136,15 +122,12 @@ def _softmax_scores(scores: dict[str, float], temperature: float = 0.15) -> dict
     total = sum(exps.values())
     if total <= 0:
         uniform = 1.0 / len(ids)
-        return {branch: uniform for branch in ids}
+        return dict.fromkeys(ids, uniform)
     return {branch: exps[branch] / total for branch in ids}
 
 
 def _metrics_from_snapshot(snapshot: dict[str, dict[str, float]]) -> dict[str, Any]:
-    return {
-        branch_id: BC.BranchMetrics(**values)
-        for branch_id, values in snapshot.items()
-    }
+    return {branch_id: BC.BranchMetrics(**values) for branch_id, values in snapshot.items()}
 
 
 def _run_multi_policy(scenario: Scenario) -> ScenarioResult:
@@ -212,10 +195,11 @@ def _run_multi_policy(scenario: Scenario) -> ScenarioResult:
             before = branches[branch_id]
             after = BC.update_branch_state(before)
             branches[branch_id] = after
-            if before.state == BC.BranchState.REJECTED and after.state != BC.BranchState.REJECTED:
-                revived_this_step.append(branch_id)
-            elif before.state in (BC.BranchState.DORMANT, BC.BranchState.REJECTED) and (
-                after.state == BC.BranchState.ACTIVE
+            if (
+                before.state == BC.BranchState.REJECTED
+                and after.state != BC.BranchState.REJECTED
+                or before.state in (BC.BranchState.DORMANT, BC.BranchState.REJECTED)
+                and (after.state == BC.BranchState.ACTIVE)
             ):
                 revived_this_step.append(branch_id)
             if after.state == BC.BranchState.REJECTED and before.state != BC.BranchState.REJECTED:
@@ -242,21 +226,12 @@ def _run_multi_policy(scenario: Scenario) -> ScenarioResult:
         if leader_id == scenario.truth_branch:
             abandoned_step = abandoned_step or step.step
 
-        if (
-            scenario.decoy_branch is not None
-            and leader_id == scenario.decoy_branch
-        ):
+        if scenario.decoy_branch is not None and leader_id == scenario.decoy_branch:
             wrong_leader_steps += 1
 
-        active = sum(
-            1 for b in branches.values() if b.state == BC.BranchState.ACTIVE
-        )
-        dormant = sum(
-            1 for b in branches.values() if b.state == BC.BranchState.DORMANT
-        )
-        rejected = sum(
-            1 for b in branches.values() if b.state == BC.BranchState.REJECTED
-        )
+        active = sum(1 for b in branches.values() if b.state == BC.BranchState.ACTIVE)
+        dormant = sum(1 for b in branches.values() if b.state == BC.BranchState.DORMANT)
+        rejected = sum(1 for b in branches.values() if b.state == BC.BranchState.REJECTED)
 
         can_collapse, collapse_reason, _ = BC.collapse_decision(list(branches.values()))
         if can_collapse:
@@ -280,9 +255,7 @@ def _run_multi_policy(scenario: Scenario) -> ScenarioResult:
                 step=step.step,
                 leader=leader_id,
                 leader_score=round(leader_score, 6),
-                probabilities={
-                    branch: round(value, 6) for branch, value in probabilities.items()
-                },
+                probabilities={branch: round(value, 6) for branch, value in probabilities.items()},
                 answer_committed=bool(step.answer_known_from),
                 correct=correct_answer,
                 active_branches=active,
@@ -306,9 +279,7 @@ def _run_multi_policy(scenario: Scenario) -> ScenarioResult:
                 }
             )
 
-        previous_metrics = {
-            branch_id: branch.metrics for branch_id, branch in branches.items()
-        }
+        previous_metrics = {branch_id: branch.metrics for branch_id, branch in branches.items()}
 
     final_answer = step_records[-1].leader if step_records else ""
     switch_success: bool | None = None
@@ -385,8 +356,7 @@ def _run_single_policy(scenario: Scenario) -> ScenarioResult:
         step_start = time.perf_counter()
         metrics = _metrics_from_snapshot(step.metrics)
         scores = {
-            branch_id: BC.branch_score(bc_metrics)
-            for branch_id, bc_metrics in metrics.items()
+            branch_id: BC.branch_score(bc_metrics) for branch_id, bc_metrics in metrics.items()
         }
         probabilities = _softmax_scores(scores)
         leader_id = committed
@@ -413,9 +383,7 @@ def _run_single_policy(scenario: Scenario) -> ScenarioResult:
                 step=step.step,
                 leader=leader_id,
                 leader_score=round(leader_score, 6),
-                probabilities={
-                    branch: round(value, 6) for branch, value in probabilities.items()
-                },
+                probabilities={branch: round(value, 6) for branch, value in probabilities.items()},
                 answer_committed=bool(step.answer_known_from),
                 correct=correct_answer,
                 active_branches=active,
@@ -517,7 +485,9 @@ def aggregate(results: list[ScenarioResult]) -> dict[str, Any]:
             if switch_rows
             else None
         )
-        switch_delays = [r.switch_delay_steps for r in switch_rows if r.switch_delay_steps is not None]
+        switch_delays = [
+            r.switch_delay_steps for r in switch_rows if r.switch_delay_steps is not None
+        ]
         revival_rows = [r for r in revival if r.revival_success is not None]
         revival_success = (
             sum(1 for r in revival_rows if r.revival_success) / len(revival_rows)
@@ -543,24 +513,18 @@ def aggregate(results: list[ScenarioResult]) -> dict[str, Any]:
                 "scenarios": len(revival),
                 "revival_success_rate": revival_success,
                 "accuracy": (
-                    sum(1 for r in revival if r.correct) / len(revival)
-                    if revival
-                    else None
+                    sum(1 for r in revival if r.correct) / len(revival) if revival else None
                 ),
             },
             "control": {
                 "scenarios": len(control),
                 "accuracy": (
-                    sum(1 for r in control if r.correct) / len(control)
-                    if control
-                    else None
+                    sum(1 for r in control if r.correct) / len(control) if control else None
                 ),
             },
             "brier_score": _mean(r.brier for r in brier_rows),
             "mean_tokens_per_scenario": _mean(float(r.total_tokens) for r in rows),
-            "mean_latency_ms_per_decision": _mean(
-                r.mean_latency_ms for r in rows if r.steps
-            ),
+            "mean_latency_ms_per_decision": _mean(r.mean_latency_ms for r in rows if r.steps),
             "total_latency_ms": sum(r.total_latency_ms for r in rows),
         }
 
@@ -694,9 +658,7 @@ def render_markdown_table(
     lines: list[str] = []
     lines.append("## Aggregate summary")
     lines.append("")
-    lines.append(
-        "| metric | single-hypothesis | multi-hypothesis |"
-    )
+    lines.append("| metric | single-hypothesis | multi-hypothesis |")
     lines.append("|---|---:|---:|")
     single = summary["single"]
     multi = summary["multi"]
@@ -708,9 +670,7 @@ def render_markdown_table(
             return f"{value:.{digits}f}"
         return str(value)
 
-    lines.append(
-        f"| overall accuracy | {fmt(single['accuracy'])} | {fmt(multi['accuracy'])} |"
-    )
+    lines.append(f"| overall accuracy | {fmt(single['accuracy'])} | {fmt(multi['accuracy'])} |")
     lines.append(
         "| falsification-scenario accuracy | "
         f"{fmt(single['falsification']['accuracy'])} | "
@@ -827,17 +787,14 @@ def main() -> int:
 
     markdown_path = args.output_dir / "RESULTS.md"
     markdown_path.write_text(
-        "# Falsification benchmark results\n\n"
-        + render_markdown_table(summary, results),
+        "# Falsification benchmark results\n\n" + render_markdown_table(summary, results),
         encoding="utf-8",
     )
 
     args.cases_output.parent.mkdir(parents=True, exist_ok=True)
     with args.cases_output.open("w", encoding="utf-8", newline="\n") as handle:
         for scenario in scenarios:
-            handle.write(
-                json.dumps(scenario_as_case_record(scenario), sort_keys=True) + "\n"
-            )
+            handle.write(json.dumps(scenario_as_case_record(scenario), sort_keys=True) + "\n")
 
     if not args.quiet:
         print(render_markdown_table(summary, results))
