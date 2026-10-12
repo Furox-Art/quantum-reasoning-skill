@@ -58,6 +58,16 @@ as evidence of tampering, and do not treat it as evidence of integrity either.
 No version bump: 1.1.1 is already published and the artifact contents are
 unchanged by this fix. The point is to keep the *next* release from failing.
 
+## [1.1.3] - 2026-10-12
+
+### Housekeeping — release alignment
+
+- Publishes the post-1.1.2 repository state (platformdirs 4.12.2 -> 4.12.3
+  dependency bump) to PyPI and npm: both registries were one commit behind
+  `main`. No behavioural change.
+- `codemeta.json` said `1.1.0` while the package shipped as 1.1.2; it now
+  follows the release line.
+
 ## [1.1.2] - 2026-10-09
 
 Ships the deterministic falsification comparative benchmark from #33: a new
