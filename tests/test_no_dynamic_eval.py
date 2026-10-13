@@ -24,6 +24,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import conftest  # noqa: E402  (repository root is on sys.path only after the insert)
+
+assert_close = conftest.assert_close
+
 evaluate = importlib.import_module("benchmark.evaluate")
 validator = importlib.import_module("benchmark.validate_submission")
 
@@ -274,7 +278,7 @@ class UntrustedPayloadTests(unittest.TestCase):
                 [{"id": "c1", "domain": "math", "prompt": "1+1?", "accepted_answers": ["2"]}],
                 rows,
             )
-            self.assertEqual(summary["accuracy"], 1.0)
+            assert_close(summary["accuracy"], 1.0)
 
     def test_pickle_reduce_pairs_never_reach_a_loader(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -9,10 +9,17 @@ data only:
 
 * JSON is parsed with :func:`json.loads` and never passed to ``eval``/``exec``;
 * input files are read through :func:`benchmark.paths.require_within`, so a
-  symlink or ``..`` segment cannot make the evaluator read outside ``--cases-dir``
-  (default: the current directory);
+  symlink or ``..`` segment cannot make the evaluator read outside the anchor
+  directory (``--cases-dir``, or the current directory when it is not given);
 * reads are bounded by ``--max-bytes`` so an oversized submission fails fast
   instead of exhausting memory.
+
+Command-line paths are resolved against the current working directory (or
+``--cases-dir``), never against the input file's own parent, so a command copied
+out of the README works from a fresh clone. A path that does not exist is a typed
+:class:`MissingInputError`: the CLI reports it and exits 2 instead of raising an
+uncatchable :class:`FileNotFoundError` traceback. Missing measurements are never
+substituted with placeholder rows.
 """
 
 from __future__ import annotations
@@ -21,6 +28,7 @@ import argparse
 import json
 import math
 import statistics
+import sys
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -34,9 +42,30 @@ except ImportError:  # pragma: no cover - direct `python benchmark/evaluate.py`
 
 DEFAULT_MAX_BYTES = 32 * 1024 * 1024
 
+#: The seed cases that ship with the repository. Used as the ``--cases`` default
+#: so the documented command works from a clean checkout.
+PACKAGED_CASES = Path(__file__).resolve().parent / "cases.jsonl"
+
+#: Exit code used when a requested input file is missing. Distinct from 1 so a
+#: caller can tell "your results file is not there yet" from a validation
+#: failure or a crash.
+EXIT_MISSING_INPUT = 2
+
+#: Printed with :class:`MissingInputError` so the operator knows what to create.
+MISSING_INPUT_HINT = (
+    "A results file holds one JSON object per line, e.g. "
+    '{"case_id": "case-1", "answer": "42", "tokens": 120, "tool_calls": 0, '
+    '"latency_ms": 950}. The evaluator never invents missing measurements; see '
+    "benchmark/README.md for the full record contract."
+)
+
 
 class UnsafeJsonError(ValueError):
     """Raised when an input file cannot be read within the configured limits."""
+
+
+class MissingInputError(ValueError):
+    """Raised when a requested input file does not exist (or is not a file)."""
 
 
 REQUIRED_RESULT_FIELDS = {
@@ -61,13 +90,34 @@ def read_text_limited(path: Path, max_bytes: int) -> str:
     """Read ``path`` refusing to load more than ``max_bytes`` of text.
 
     The size is checked before reading so an oversized file never lands in memory.
+    A path that does not exist raises the typed :class:`MissingInputError` rather
+    than a bare :class:`OSError`, so the CLI can report it as a user error.
     """
+    path = Path(path)
+    if not path.is_file():
+        raise MissingInputError(f"{path}: no such input file")
     size = path.stat().st_size
     if size > max_bytes:
         raise UnsafeJsonError(
             f"{path}: {size} bytes exceeds the {max_bytes} byte limit"
         )
     return path.read_text(encoding="utf-8")
+
+
+def resolve_input(path: Path, *, cases_dir: Path | None, what: str) -> Path:
+    """Resolve one command-line input path and confirm it stays in the anchor.
+
+    The anchor is ``cases_dir`` when given. Without it the documented default
+    applies: each input is confined to its own directory. Either way the path is
+    resolved against the **current working directory** first, which is what makes
+    the commands documented in the README work -- ``benchmark/cases.jsonl`` run
+    from the repository root is that file, not a directory nested inside itself.
+    """
+    raw = Path(path)
+    if cases_dir is not None:
+        return require_within(cases_dir, raw, what=what)
+    target = raw if raw.is_absolute() else Path.cwd() / raw
+    return require_within(target.parent, target, what=what)
 
 
 def read_jsonl(path: Path, *, base: Path | None = None, max_bytes: int = DEFAULT_MAX_BYTES) -> list[dict[str, Any]]:
@@ -272,7 +322,15 @@ def ensure_finite(value: Any, label: str) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cases", type=Path, required=True)
+    parser.add_argument(
+        "--cases",
+        type=Path,
+        default=PACKAGED_CASES,
+        help=(
+            "Path to the benchmark cases JSONL file "
+            "(default: the packaged seed cases, benchmark/cases.jsonl)"
+        ),
+    )
     parser.add_argument("--skill", type=Path, required=True)
     parser.add_argument("--baseline", type=Path)
     parser.add_argument("--output", type=Path)
@@ -282,7 +340,7 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help=(
             "Directory that input files must stay inside. "
-            "Defaults to each input file's own parent directory."
+            "Defaults to the current working directory."
         ),
     )
     parser.add_argument(
@@ -296,15 +354,28 @@ def main(argv: list[str] | None = None) -> int:
     if args.max_bytes < 1:
         parser.error("--max-bytes must be positive")
 
-    cases = read_jsonl(args.cases, base=args.cases_dir, max_bytes=args.max_bytes)
-    skill_results = read_jsonl(args.skill, base=args.cases_dir, max_bytes=args.max_bytes)
+    def read_rows(label: str, path: Path) -> list[dict[str, Any]]:
+        try:
+            resolved = resolve_input(path, cases_dir=args.cases_dir, what=f"--{label}")
+            return read_jsonl(resolved, base=args.cases_dir, max_bytes=args.max_bytes)
+        except MissingInputError as exc:
+            raise MissingInputError(f"--{label}: {exc}") from exc
+
+    # A file the caller named but did not create is a user error, not a crash:
+    # report it as one instead of unwinding a FileNotFoundError traceback.
+    try:
+        cases = read_rows("cases", args.cases)
+        skill_results = read_rows("skill", args.skill)
+        baseline_results = read_rows("baseline", args.baseline) if args.baseline else None
+    except MissingInputError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        print(MISSING_INPUT_HINT, file=sys.stderr)
+        return EXIT_MISSING_INPUT
+
     skill_summary = summarize(cases, skill_results)
 
     payload: dict[str, Any] = {"skill": skill_summary}
-    if args.baseline:
-        baseline_results = read_jsonl(
-            args.baseline, base=args.cases_dir, max_bytes=args.max_bytes
-        )
+    if baseline_results is not None:
         baseline_summary = summarize(cases, baseline_results)
         payload["baseline"] = baseline_summary
         payload["comparison"] = compare(baseline_summary, skill_summary)

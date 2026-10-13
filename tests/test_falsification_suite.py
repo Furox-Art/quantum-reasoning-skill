@@ -19,6 +19,11 @@ SUITE_DIR = REPO_ROOT / "benchmark" / "falsification"
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+import conftest  # noqa: E402  (repository root is on sys.path only after the insert)
+
+assert_close = conftest.assert_close
+TOLERANCE = conftest.NUMERIC_TOLERANCE
+
 
 def _load(name: str, path: Path):
     spec = importlib.util.spec_from_file_location(name, path)
@@ -152,13 +157,13 @@ class MetricTests(unittest.TestCase):
         rows = [
             {"step": 1, "scenario_id": "s", "truth": "H_A", "probabilities": {"H_A": 1.0}},
         ]
-        self.assertEqual(runner._brier_from_rows(rows), 0.0)
+        assert_close(runner._brier_from_rows(rows), 0.0)
 
     def test_brier_confident_wrong_is_near_two(self):
         rows = [
             {"step": 1, "scenario_id": "s", "truth": "H_A", "probabilities": {"H_A": 0.0}},
         ]
-        self.assertAlmostEqual(runner._brier_from_rows(rows), 1.0)
+        assert_close(runner._brier_from_rows(rows), 1.0)
 
     def test_brier_uniform_three_branches(self):
         rows = [
@@ -170,14 +175,14 @@ class MetricTests(unittest.TestCase):
             },
         ]
         expected = ((1 / 3 - 1) ** 2 + 2 * (1 / 3) ** 2) / 3
-        self.assertAlmostEqual(runner._brier_from_rows(rows), expected)
+        assert_close(runner._brier_from_rows(rows), expected)
 
     def test_softmax_is_deterministic_and_sums_to_one(self):
         scores = {"H_A": 0.8, "H_B": 0.4, "H_C": 0.1}
         first = runner._softmax_scores(scores)
         second = runner._softmax_scores(scores)
         self.assertEqual(first, second)
-        self.assertAlmostEqual(sum(first.values()), 1.0)
+        assert_close(sum(first.values()), 1.0)
         self.assertGreater(first["H_A"], first["H_C"])
 
 
@@ -191,20 +196,20 @@ class AggregateTests(unittest.TestCase):
         self.assertEqual(self.summary["multi"]["scenarios"], 9)
 
     def test_aggregate_reports_expected_headline_numbers(self):
-        self.assertAlmostEqual(self.summary["single"]["accuracy"], 2 / 9)
-        self.assertAlmostEqual(self.summary["multi"]["accuracy"], 1.0)
-        self.assertAlmostEqual(
+        assert_close(self.summary["single"]["accuracy"], 2 / 9)
+        assert_close(self.summary["multi"]["accuracy"], 1.0)
+        assert_close(
             self.summary["single"]["falsification"]["decision_switch_success_rate"], 0.0
         )
-        self.assertAlmostEqual(
+        assert_close(
             self.summary["multi"]["falsification"]["decision_switch_success_rate"], 1.0
         )
-        self.assertAlmostEqual(self.summary["multi"]["revival"]["revival_success_rate"], 1.0)
+        assert_close(self.summary["multi"]["revival"]["revival_success_rate"], 1.0)
 
     def test_comparison_deltas_are_consistent(self):
         comparison = self.summary["comparison"]
-        self.assertAlmostEqual(comparison["accuracy_delta"], 1.0 - 2 / 9)
-        self.assertAlmostEqual(comparison["decision_switch_success_delta"], 1.0)
+        assert_close(comparison["accuracy_delta"], 1.0 - 2 / 9)
+        assert_close(comparison["decision_switch_success_delta"], 1.0)
         self.assertIsNotNone(comparison["token_percent_change"])
         self.assertGreater(comparison["token_percent_change"], 0.0)
 
@@ -238,18 +243,135 @@ class ArtifactTests(unittest.TestCase):
         stored = json.loads(path.read_text(encoding="utf-8"))
         fresh = runner.aggregate(runner.run_suite(ALL_SCENARIOS))
         # Latency is wall-clock and legitimately varies between runs, so compare
-        # every deterministic field and the accuracy-critical subset.
+        # every deterministic field and the accuracy-critical subset. Floats go
+        # through the shared tolerance helper, never through exact equality.
         self.assertEqual(stored["scenario_count"], 9)
-        self.assertEqual(stored["summary"]["single"]["accuracy"], fresh["single"]["accuracy"])
-        self.assertEqual(stored["summary"]["multi"]["accuracy"], fresh["multi"]["accuracy"])
-        self.assertEqual(
+        assert_close(stored["summary"]["single"]["accuracy"], fresh["single"]["accuracy"])
+        assert_close(stored["summary"]["multi"]["accuracy"], fresh["multi"]["accuracy"])
+        assert_close(
             stored["summary"]["multi"]["falsification"]["decision_switch_success_rate"],
             fresh["multi"]["falsification"]["decision_switch_success_rate"],
         )
         self.assertEqual(
             stored["per_scenario"][0]["final_answer"],
-            fresh and runner.run_suite([ALL_SCENARIOS[0]], policies=("single",))[0].final_answer,
+            runner.run_suite([ALL_SCENARIOS[0]], policies=("single",))[0].final_answer,
         )
+
+
+class ToleranceTests(unittest.TestCase):
+    """One documented tolerance, and the cases that prove it is the right one.
+
+    The committed artifacts round some floats to six decimals while others are
+    stored at full precision, so the two classes of field need different working
+    room. Both classes are compared here against a fresh run with
+    ``conftest.NUMERIC_TOLERANCE``, and each is shown to fail under a tighter
+    comparison -- which is what pins the number instead of leaving it to taste.
+    """
+
+    def setUp(self):
+        self.path = SUITE_DIR / "results" / "results.json"
+        self.assertTrue(self.path.exists(), "run run_suite.py to generate artifacts")
+        self.stored = json.loads(self.path.read_text(encoding="utf-8"))
+        self.fresh_results = runner.run_suite(ALL_SCENARIOS)
+        self.fresh_summary = runner.aggregate(self.fresh_results)
+
+    def stored_vs_fresh_pairs(self) -> list[tuple[str, float, float]]:
+        """Every deterministic float that appears in both the file and a fresh run."""
+        pairs: list[tuple[str, float, float]] = []
+        for policy in ("single", "multi"):
+            block = self.stored["summary"][policy]
+            fresh_block = self.fresh_summary[policy]
+            for field in ("brier_score", "mean_tokens_per_scenario"):
+                pairs.append(
+                    (f"{policy}.{field}", block[field], fresh_block[field])
+                )
+        for stored_row, fresh_result in zip(
+            self.stored["per_scenario"], self.fresh_results, strict=True
+        ):
+            if stored_row["brier"] is None or fresh_result.brier is None:
+                continue
+            label = f"{stored_row['scenario_id']}/{stored_row['policy']}.brier"
+            pairs.append((label, stored_row["brier"], fresh_result.brier))
+            for stored_step, fresh_step in zip(
+                stored_row["steps"], fresh_result.steps, strict=True
+            ):
+                pairs.append((
+                    f"{label}.step{stored_step['step']}.leader_score",
+                    stored_step["leader_score"],
+                    fresh_step.leader_score,
+                ))
+        # Reliability bins are keyed by scenario/policy/step, so rebuild them from
+        # the fresh run rather than zipping by index.
+        fresh_bins = [
+            (result.scenario_id, result.policy, row)
+            for result in self.fresh_results
+            for row in result.probability_rows
+        ]
+        for stored_bin, (scenario_id, policy, row) in zip(
+            self.stored["reliability_bins"], fresh_bins, strict=True
+        ):
+            self.assertEqual(
+                (stored_bin["scenario_id"], stored_bin["policy"], stored_bin["step"]),
+                (scenario_id, policy, row["step"]),
+            )
+            pairs.append((
+                f"{scenario_id}/{policy}.step{row['step']}.truth_probability",
+                stored_bin["truth_probability"],
+                row["probabilities"].get(row["truth"], 0.0),
+            ))
+        return pairs
+
+    def test_the_documented_tolerance_absorbs_every_artifact_difference(self):
+        differences = []
+        for label, stored, fresh in self.stored_vs_fresh_pairs():
+            if not conftest.is_close(stored, fresh, tolerance=TOLERANCE):
+                differences.append((label, stored, fresh))
+        self.assertEqual(differences, [], "artifact values drifted beyond tolerance")
+
+    def test_exact_equality_rejects_the_committed_artifacts(self):
+        """The audited case: exact float equality is not a usable predicate.
+
+        The rounded `brier` differs from its full-precision recomputation by up
+        to ~4.9e-7 and the reliability-bin `truth_probability` by up to ~3.4e-16.
+        Both are the same measurement.
+        """
+        rounded = [
+            (label, stored, fresh)
+            for label, stored, fresh in self.stored_vs_fresh_pairs()
+            if stored != fresh
+        ]
+        self.assertTrue(rounded, "expected floating-point drift in the artifacts")
+        for label, stored, fresh in rounded:
+            with self.subTest(field=label):
+                with self.assertRaises(AssertionError):
+                    conftest.assert_close(stored, fresh, tolerance=0.0)
+                conftest.assert_close(
+                    stored, fresh, tolerance=TOLERANCE, message="documented tolerance"
+                )
+
+    def test_a_tighter_tolerance_rejects_the_rounded_fields(self):
+        """The other half: the tolerance cannot be shrunk below the rounding step."""
+        rounded = [
+            (label, stored, fresh)
+            for label, stored, fresh in self.stored_vs_fresh_pairs()
+            if label.endswith(".brier") and stored != fresh
+        ]
+        self.assertTrue(rounded, "expected rounded brier values in the artifacts")
+        for label, stored, fresh in rounded:
+            with self.subTest(field=label), self.assertRaises(AssertionError):
+                conftest.assert_close(stored, fresh, tolerance=TOLERANCE / 1000)
+
+    def test_the_helper_names_both_values_when_it_fails(self):
+        with self.assertRaises(AssertionError) as ctx:
+            conftest.assert_close(1.0, 2.0, message="metric")
+        self.assertIn("1.0", str(ctx.exception))
+        self.assertIn("2.0", str(ctx.exception))
+        self.assertIn("metric", str(ctx.exception))
+
+    def test_absent_measurements_only_agree_with_each_other(self):
+        self.assertTrue(conftest.is_close(None, None))
+        self.assertFalse(conftest.is_close(None, 0.0))
+        self.assertFalse(conftest.is_close(0.0, None))
 
 
 if __name__ == "__main__":

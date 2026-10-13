@@ -129,7 +129,7 @@ never generates reasoning and never calls a model — it only consumes measureme
 | `BranchMetrics`, `Branch`, `BranchState` | input types; `BranchMetrics` rejects values outside `[0, 1]` |
 | `branch_score`, `effective_independence` | weighted score in `[0, 1]`, after penalising branches that share assumptions or near-duplicate a leader |
 | `classify_branch`, `update_branch_state`, `should_revive` | move a branch to `dormant` or `rejected`, or revive it on material new evidence |
-| `collapse_decision` | `(can_collapse, reason, leader)`; refuses when the margin is too small or a strong alternative is unresolved |
+| `collapse_decision` | `(can_collapse, reason, leader)`; refuses when the margin is too small or a strong alternative is unresolved. The high-information guard runs **before** the generic margin check — its band sits inside the generic one, so the other order hides it |
 | `uncertainty_from_branches`, `normalized_entropy` | normalised Shannon entropy over surviving branch scores |
 | `recommended_width` | uncertainty → suggested branch count for the next step |
 | `diversity_ratio`, `rank_branches` | fraction of branch pairs that are materially distinct; ordering helper |
@@ -150,19 +150,32 @@ producing more text: `benchmark/evaluate.py` (evaluator), `benchmark/validate_su
 python benchmark/evaluate.py --cases benchmark/cases.jsonl --skill skill-results.jsonl
 ```
 
+`--cases` is optional: it defaults to the packaged seed cases. Paths are resolved against the
+current working directory, so the command above runs unchanged from a fresh clone. If a named
+file does not exist the evaluator prints a typed error, names the flag, and exits 2 — it never
+substitutes placeholder rows, because a fabricated measurement is worse than a missing one.
 Inputs are confined to `--cases-dir` (default: each input's own directory), `--output` must
 stay inside it, and reads are bounded by `--max-bytes`. Both `python benchmark/evaluate.py`
 and `python -m benchmark.evaluate` work.
 
 ## Tests, tooling and governance
 
-About **43% of the Python here is tests** — 1,575 of 3,635 lines across **9 test modules**,
+About **44% of the Python here is tests** — 3,714 of 8,483 lines across **15 test modules**,
 run with the standard library's `unittest` on Python 3.10–3.14 on Linux, Windows and macOS.
 They cover the controller, the benchmark harness, import hardening, path boundaries,
-dependency-lock drift and release-gate polling; `tests/test_readme_badges.py` keeps this
-file's badges honest. The toolchain is pinned twice — `pyproject.toml`'s `dev` group with
+dependency-lock drift and release-gate polling; the documented benchmark command run as a
+subprocess against a clean copy of the tree; the `paths` filters that decide when a release
+publishes, derived from `pyproject.toml` and `package.json` rather than hand-listed; and
+`tests/test_docs_counts.py`, which recomputes the counts in this paragraph so they cannot go
+stale, beside `tests/test_readme_badges.py` keeping this file's badges honest. The toolchain is
+pinned twice — `pyproject.toml`'s `dev` group with
 `==`, and [`constraints.txt`](constraints.txt) with `==` **and** `--hash` digests for the full
 transitive closure ([details](CONTRIBUTING.md#toolchain-pinning)).
+
+All numeric comparisons in the suite use one documented tolerance
+(`conftest.NUMERIC_TOLERANCE = 1e-6`), chosen because the committed artifacts round their
+floats to six decimals — exact equality rejects correct artifacts
+([rationale](docs/MEASUREMENT.md#numeric-tolerance-for-artifact-comparisons)).
 
 Also here: [`codemeta.json`](codemeta.json) for machine-readable citation beside
 [`CITATION.cff`](CITATION.cff); five issue templates (bug, feature, question, benchmark

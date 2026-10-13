@@ -18,6 +18,21 @@ ROOT = Path(__file__).resolve().parent
 SEMVER = re.compile(r"^\d+\.\d+\.\d+(?:[.-][0-9A-Za-z.-]+)?$")
 CHANGELOG_VERSION = re.compile(r"^##\s+\[([^\]]+)\]", re.MULTILINE)
 
+#: The one numeric tolerance this repository compares floats with.
+#:
+#: Why a single number instead of `assertEqual` or `assertAlmostEqual`: the
+#: metrics are floating-point arithmetic, and the committed artifacts round some
+#: of them to six decimals (``benchmark/falsification/run_suite.py`` writes
+#: ``round(value, 6)`` for `brier`, `latency_ms`, `leader_score` and
+#: `probabilities`). Measured on one machine, the stored and freshly recomputed
+#: `brier` differ by up to 4.9e-7 and the stored and fresh reliability-bin
+#: `truth_probability` by up to 3.4e-16. Exact equality therefore rejects
+#: artifacts that are correct, while `assertAlmostEqual`'s default of seven
+#: decimal places is a third, undocumented tolerance. One helper, one number:
+#: large enough to absorb the six-decimal rounding, small enough that no two
+#: distinct published metrics are within it.
+NUMERIC_TOLERANCE = 1e-6
+
 
 def repo_version() -> str:
     """Return the canonical repository version from the ``VERSION`` file."""
@@ -58,6 +73,40 @@ def load_script(name: str, relative: str):
     sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def is_close(
+    actual: float | None,
+    expected: float | None,
+    *,
+    tolerance: float = NUMERIC_TOLERANCE,
+) -> bool:
+    """Absolute-tolerance comparison used for every numeric equality here.
+
+    ``None`` means "not measured", so two absent values agree and an absent one
+    never agrees with a measured one.
+    """
+    if actual is None or expected is None:
+        return actual is expected
+    return abs(actual - expected) <= tolerance
+
+
+def assert_close(
+    actual: float | None,
+    expected: float | None,
+    *,
+    tolerance: float = NUMERIC_TOLERANCE,
+    message: str = "",
+) -> None:
+    """Raise :class:`AssertionError` unless the values are within ``tolerance``."""
+    if is_close(actual, expected, tolerance=tolerance):
+        return
+    if actual is None or expected is None:
+        detail = f"{actual!r} vs {expected!r}"
+    else:
+        detail = f"{actual!r} vs {expected!r} differ by {abs(actual - expected):.3g}"
+    context = f" ({message})" if message else ""
+    raise AssertionError(f"{detail} exceeds tolerance {tolerance:g}{context}")
 
 
 def version_lockstep_failures() -> list[str]:

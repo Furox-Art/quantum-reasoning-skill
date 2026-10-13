@@ -10,9 +10,15 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import conftest  # noqa: E402  (repository root is on sys.path only after the insert)
+
 # Resolved through the package so the evaluator is always benchmark.evaluate,
 # never a bare top-level module name that a local file could shadow.
 evaluate = importlib.import_module("benchmark.evaluate")
+
+# One documented tolerance for every numeric comparison, instead of a mix of
+# exact equality and `assertAlmostEqual`'s undocumented seven decimal places.
+assert_close = conftest.assert_close
 
 
 CASES = [
@@ -62,12 +68,12 @@ class BenchmarkTests(unittest.TestCase):
             },
         ]
         summary = evaluate.summarize(CASES, results)
-        self.assertEqual(summary["accuracy"], 0.5)
-        self.assertEqual(summary["mean_tokens"], 150.0)
-        self.assertEqual(summary["mean_tool_calls"], 2.0)
-        self.assertEqual(summary["mean_latency_ms"], 100.0)
-        self.assertEqual(summary["branch_diversity_ratio"], 4 / 6)
-        self.assertEqual(summary["contradiction_resolution_rate"], 2 / 3)
+        assert_close(summary["accuracy"], 0.5)
+        assert_close(summary["mean_tokens"], 150.0)
+        assert_close(summary["mean_tool_calls"], 2.0)
+        assert_close(summary["mean_latency_ms"], 100.0)
+        assert_close(summary["branch_diversity_ratio"], 4 / 6)
+        assert_close(summary["contradiction_resolution_rate"], 2 / 3)
 
     def test_compare_reports_cost_and_accuracy_changes(self):
         baseline = {
@@ -87,12 +93,12 @@ class BenchmarkTests(unittest.TestCase):
             "contradiction_resolution_rate": 0.8,
         }
         delta = evaluate.compare(baseline, skill)
-        self.assertEqual(delta["accuracy_delta"], 0.25)
-        self.assertEqual(delta["tokens_percent_change"], 50.0)
-        self.assertEqual(delta["tool_calls_percent_change"], 100.0)
-        self.assertEqual(delta["latency_percent_change"], 20.0)
-        self.assertAlmostEqual(delta["branch_diversity_delta"], 0.3)
-        self.assertAlmostEqual(delta["contradiction_resolution_delta"], 0.3)
+        assert_close(delta["accuracy_delta"], 0.25)
+        assert_close(delta["tokens_percent_change"], 50.0)
+        assert_close(delta["tool_calls_percent_change"], 100.0)
+        assert_close(delta["latency_percent_change"], 20.0)
+        assert_close(delta["branch_diversity_delta"], 0.3)
+        assert_close(delta["contradiction_resolution_delta"], 0.3)
 
     def test_missing_result_fields_fail(self):
         with self.assertRaises(ValueError):

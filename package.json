@@ -1,6 +1,6 @@
 {
   "name": "quantum-reasoning-skill",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Quantum-inspired reasoning skill for exploring multiple solution paths",
   "main": "index.js",
   "bin": {
