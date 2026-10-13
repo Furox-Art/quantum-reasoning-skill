@@ -105,21 +105,50 @@ def covered(path: str, patterns: list[str]) -> bool:
     return False
 
 
+def _readme_of(text: str) -> str:
+    match = re.search(r'^readme\s*=\s*"([^"]+)"', text, re.MULTILINE)
+    if match is None:
+        raise AssertionError("pyproject.toml does not declare project.readme")
+    return match.group(1)
+
+
+def _hatch_string_list(text: str, key: str) -> list[str]:
+    """Values of a hatch ``key = [ ... ]`` array.
+
+    Parsed as text rather than with tomllib: the supported interpreter floor
+    is 3.10, which has no stdlib TOML parser, and a packaging-gap guard that
+    cannot import is the very class of silent gap this test exists to catch.
+    """
+    match = re.search(rf"^{re.escape(key)}\s*=\s*\[(.*?)\]", text, re.DOTALL | re.MULTILINE)
+    if match is None:
+        return []
+    return re.findall(r'"([^"]*)"', match.group(1))
+
+
+def _hatch_force_include_keys(text: str) -> list[str]:
+    """Keys of a hatch ``[tool.hatch.build.targets.<t>.force-include]`` table."""
+    keys: list[str] = []
+    in_table = False
+    for line in text.splitlines():
+        if line.strip().startswith("["):
+            in_table = line.strip().endswith("force-include]")
+            continue
+        if in_table:
+            match = re.match(r'^"([^"]+)"\s*=', line.strip())
+            if match:
+                keys.append(match.group(1))
+    return keys
+
+
 def pypi_artifact_inputs() -> set[str]:
     """Every repository path hatchling reads to build the distributions."""
-    import tomllib
-
-    document = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
-    wheel = document["tool"]["hatch"]["build"]["targets"]["wheel"]
-    sdist = document["tool"]["hatch"]["build"]["targets"]["sdist"]
-
-    paths = {str(document["project"]["readme"])}
+    text = PYPROJECT.read_text(encoding="utf-8")
+    paths = {_readme_of(text)}
     # The build definition itself, and the version file the job cross-checks.
     paths.update({"pyproject.toml", "VERSION"})
-    for section in (wheel, sdist):
-        paths.update(section.get("only-include", []))
-        paths.update(section.get("include", []))
-        paths.update(section.get("force-include", {}))
+    paths.update(_hatch_string_list(text, "only-include"))
+    paths.update(_hatch_string_list(text, "include"))
+    paths.update(_hatch_force_include_keys(text))
     # A leading slash is a "repo-root relative" marker in hatchling, not a path.
     return {path.lstrip("/") for path in paths}
 
