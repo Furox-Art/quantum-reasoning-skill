@@ -94,8 +94,16 @@ The reference controller permits collapse only when all applicable checks pass:
 1. leader score `>= 0.78`
 2. leader verification `>= 0.75`
 3. leader contradiction `<= 0.15`
-4. if a runner-up exists, leader margin `>= 0.12`
-5. no unresolved high-information alternative remains close enough to plausibly change the outcome
+4. no unresolved high-information alternative remains close enough to plausibly change the outcome
+5. if a runner-up exists, leader margin `>= 0.12`
+
+Check 4 is evaluated **before** check 5, and that order is load-bearing. A runner-up is
+"high-information" when its `information_gain >= 0.60`, and "close enough" when the leader
+margin is `<= 0.10`. Because `0.10` sits inside the generic `0.12` margin band, any runner-up
+that satisfies check 4 also satisfies check 5 — so evaluating the generic margin first made
+check 4 unreachable and reported the weaker "leader margin is too small" reason instead of the
+specific one. Both outcomes block collapse, but only the specific reason tells an operator that
+further work on the runner-up, not more evidence for the leader, is what keeps the search open.
 
 If these checks fail, the system should continue verification, keep multiple surviving alternatives, or report unresolved alternatives rather than manufacture certainty.
 

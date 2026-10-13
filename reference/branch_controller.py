@@ -64,6 +64,10 @@ class Thresholds:
 
 DEFAULT_THRESHOLDS = Thresholds()
 
+#: A runner-up at or above this information gain is still worth resolving: it may
+#: carry the decisive evidence that the current measurements do not yet show.
+HIGH_INFORMATION_GAIN = 0.60
+
 
 WEIGHTS = {
     "evidence": 0.25,
@@ -207,6 +211,14 @@ def collapse_decision(
 
     Returns ``(can_collapse, reason, leader)``. Collapse is blocked when a strong,
     unresolved alternative remains close enough to the leader to matter.
+
+    Two guards protect a near-tied runner-up and they are evaluated in order of
+    specificity. The high-information guard comes first because the band it
+    covers (``margin <= unresolved_near_leader_margin``) lies *inside* the
+    generic band (``margin < collapse_margin``) for the reference thresholds.
+    Checking the generic margin first made the high-information guard
+    unreachable: every margin that could satisfy it had already returned. The
+    more specific reason is the one an operator needs, so it is reported.
     """
     ranked = rank_branches(branches)
     if not ranked:
@@ -224,14 +236,14 @@ def collapse_decision(
     if len(ranked) > 1:
         runner_up = ranked[1]
         runner_score = branch_score(runner_up.metrics)
-        if leader_score - runner_score < thresholds.collapse_margin:
-            return (False, "leader margin is too small", leader)
+        margin = leader_score - runner_score
         if (
-            runner_up.metrics.information_gain >= 0.60
-            and leader_score - runner_score
-            <= thresholds.unresolved_near_leader_margin
+            runner_up.metrics.information_gain >= HIGH_INFORMATION_GAIN
+            and margin <= thresholds.unresolved_near_leader_margin
         ):
             return (False, "high-information alternative remains unresolved", leader)
+        if margin < thresholds.collapse_margin:
+            return (False, "leader margin is too small", leader)
 
     return (True, "collapse criteria satisfied", leader)
 

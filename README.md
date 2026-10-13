@@ -129,7 +129,7 @@ never generates reasoning and never calls a model — it only consumes measureme
 | `BranchMetrics`, `Branch`, `BranchState` | input types; `BranchMetrics` rejects values outside `[0, 1]` |
 | `branch_score`, `effective_independence` | weighted score in `[0, 1]`, after penalising branches that share assumptions or near-duplicate a leader |
 | `classify_branch`, `update_branch_state`, `should_revive` | move a branch to `dormant` or `rejected`, or revive it on material new evidence |
-| `collapse_decision` | `(can_collapse, reason, leader)`; refuses when the margin is too small or a strong alternative is unresolved |
+| `collapse_decision` | `(can_collapse, reason, leader)`; refuses when the margin is too small or a strong alternative is unresolved. The high-information guard runs **before** the generic margin check — its band sits inside the generic one, so the other order hides it |
 | `uncertainty_from_branches`, `normalized_entropy` | normalised Shannon entropy over surviving branch scores |
 | `recommended_width` | uncertainty → suggested branch count for the next step |
 | `diversity_ratio`, `rank_branches` | fraction of branch pairs that are materially distinct; ordering helper |
