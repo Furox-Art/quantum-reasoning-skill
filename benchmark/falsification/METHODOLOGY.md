@@ -171,7 +171,7 @@ Headline numbers from the committed run (`benchmark/falsification/results/`):
 
 Latency is omitted from the table above because it is wall-clock and
 machine-dependent; `results.json` records the value from the committed run
-(0.012 ms and 0.050 ms per decision on the author's machine) and any
+(0.013 ms and 0.052 ms per decision on the author's machine) and any
 reproduction will legitimately differ. Only the deterministic metrics above
 are stable across machines.
 

@@ -50,7 +50,7 @@ Tool versions are pinned twice, and the two are not interchangeable:
 - the `dev` dependency group in `pyproject.toml` pins the **direct** tools (`build`,
   `coverage`, `mypy`, `ruff`, `twine`) with `==`;
 - [`constraints.txt`](constraints.txt) pins those plus `pip-audit` and the whole transitive
-  closure with `==` **and** `--hash` digests — 52 entries, every one version-locked and
+  closure with `==` **and** `--hash` digests — 56 entries, every one version-locked and
   hashed.
 
 Install with `pip install -r constraints.txt` when you want the locked, hash-verified set.
