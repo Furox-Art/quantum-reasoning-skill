@@ -107,6 +107,16 @@ further work on the runner-up, not more evidence for the leader, is what keeps t
 
 If these checks fail, the system should continue verification, keep multiple surviving alternatives, or report unresolved alternatives rather than manufacture certainty.
 
+### Numeric tolerance for artifact comparisons
+
+The suite's own comparisons use one absolute tolerance, `conftest.NUMERIC_TOLERANCE = 1e-6`.
+Committed artifacts round their floats to six decimals (`brier`, `latency_ms`, `leader_score`,
+`probabilities`), while the reliability-bin `truth_probability` is stored at full precision; on
+one machine, stored-vs-recomputed `brier` differs by up to `4.9e-7` and stored-vs-recomputed
+`truth_probability` by up to `3.4e-16`. Exact equality would reject artifacts that are correct,
+and `assertAlmostEqual`'s seven-decimal default is a second undocumented tolerance. Every
+numeric comparison in the tests therefore goes through `conftest.assert_close`.
+
 ## 7. Diversity diagnostic
 
 Given pairwise semantic similarities, a pair is treated as redundant when similarity is `>= 0.85` by default.

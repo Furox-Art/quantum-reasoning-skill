@@ -168,6 +168,11 @@ file's badges honest. The toolchain is pinned twice — `pyproject.toml`'s `dev`
 `==`, and [`constraints.txt`](constraints.txt) with `==` **and** `--hash` digests for the full
 transitive closure ([details](CONTRIBUTING.md#toolchain-pinning)).
 
+All numeric comparisons in the suite use one documented tolerance
+(`conftest.NUMERIC_TOLERANCE = 1e-6`), chosen because the committed artifacts round their
+floats to six decimals — exact equality rejects correct artifacts
+([rationale](docs/MEASUREMENT.md#numeric-tolerance-for-artifact-comparisons)).
+
 Also here: [`codemeta.json`](codemeta.json) for machine-readable citation beside
 [`CITATION.cff`](CITATION.cff); five issue templates (bug, feature, question, benchmark
 result, plus a chooser in `config.yml`) and a pull-request template; a

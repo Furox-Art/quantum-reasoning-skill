@@ -23,6 +23,12 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import conftest  # noqa: E402  (repository root is on sys.path only after the insert)
+
+assert_close = conftest.assert_close
 
 
 def _load_module():
@@ -210,7 +216,7 @@ class WaitLoopTests(unittest.TestCase):
         self.assertTrue(any("gave up after" in reason for reason in reasons))
         # 60s / 15s = four polls, then the deadline check trips.
         self.assertEqual(calls["n"], 5)
-        self.assertEqual(sum(clock.slept), 60.0)
+        assert_close(sum(clock.slept), 60.0)
 
     def test_in_progress_until_deadline_fails_at_deadline(self):
         fetch, _ = sequenced([run("installed API contract", "in_progress", None)])
