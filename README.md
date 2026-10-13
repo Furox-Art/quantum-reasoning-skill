@@ -160,11 +160,15 @@ and `python -m benchmark.evaluate` work.
 
 ## Tests, tooling and governance
 
-About **43% of the Python here is tests** — 1,575 of 3,635 lines across **9 test modules**,
+About **44% of the Python here is tests** — 3,674 of 8,443 lines across **15 test modules**,
 run with the standard library's `unittest` on Python 3.10–3.14 on Linux, Windows and macOS.
 They cover the controller, the benchmark harness, import hardening, path boundaries,
-dependency-lock drift and release-gate polling; `tests/test_readme_badges.py` keeps this
-file's badges honest. The toolchain is pinned twice — `pyproject.toml`'s `dev` group with
+dependency-lock drift and release-gate polling; the documented benchmark command run as a
+subprocess against a clean copy of the tree; the `paths` filters that decide when a release
+publishes, derived from `pyproject.toml` and `package.json` rather than hand-listed; and
+`tests/test_docs_counts.py`, which recomputes the counts in this paragraph so they cannot go
+stale, beside `tests/test_readme_badges.py` keeping this file's badges honest. The toolchain is
+pinned twice — `pyproject.toml`'s `dev` group with
 `==`, and [`constraints.txt`](constraints.txt) with `==` **and** `--hash` digests for the full
 transitive closure ([details](CONTRIBUTING.md#toolchain-pinning)).
 
