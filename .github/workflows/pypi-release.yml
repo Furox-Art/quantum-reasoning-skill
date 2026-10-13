@@ -4,14 +4,38 @@ name: PyPI Release
 # NOT triggered by `workflow_run` (which lets a fork trigger privileged code)
 # and NOT by `pull_request` (which is untrusted). The caller must be able to
 # push to main, which already implies write access.
+#
+# The `paths` list below is the complete set of files that can change what ships:
+# everything the wheel and the sdist contain (see the `only-include`/`include`
+# lists in pyproject.toml), the files hatchling embeds, and the release gates this
+# job runs. Leaving one out publishes a stale artifact: the version is already
+# unpublished, the workflow is never triggered, and the change reaches neither
+# registry. tests/test_publish_triggers.py derives this list from pyproject.toml
+# and fails when an artifact input is missing from it.
 on:
   push:
     branches: [main]
     paths:
       - ".github/pypi-release-trigger"
+      - ".github/**"
       - "pyproject.toml"
       - "VERSION"
+      - "README.md"
+      - "LICENSE"
+      - "SKILL.md"
+      - "CHANGELOG.md"
+      - "CONTRIBUTING.md"
+      - "SECURITY.md"
+      - "CITATION.cff"
+      - "index.js"
+      - "package.json"
       - "quantum_reasoning_skill/**"
+      - "reference/**"
+      - "benchmark/**"
+      - "docs/**"
+      - "examples/**"
+      - "bin/**"
+      - "tests/**"
   workflow_dispatch:
 
 concurrency:

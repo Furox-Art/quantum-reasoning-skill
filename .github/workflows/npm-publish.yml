@@ -3,9 +3,13 @@ name: npm Publish
 # npm is a supported distribution channel again, so publishing is real.
 #
 # Triggering is deliberately narrow: a default-branch push that changes a file
-# capable of changing what ships. The job then refuses unless the new version is
-# actually unpublished and lockstep-consistent, so merging a docs-only change
-# cannot attempt a release.
+# capable of changing what ships. The `paths` list is every input `npm pack`
+# reads -- the `files` allowlist in package.json, package.json itself and
+# .npmignore -- so a tarball-affecting change can never be silently skipped.
+# A change that cannot reach the tarball (CI configuration, tests, CONTRIBUTING,
+# the Python reference and benchmark sources) still cannot attempt a release.
+# tests/test_publish_triggers.py derives the list from package.json and fails
+# when a tarball input is missing from it.
 on:
   push:
     branches: [main]
@@ -14,6 +18,9 @@ on:
       - "index.js"
       - "VERSION"
       - "SKILL.md"
+      - "LICENSE"
+      - "README.md"
+      - ".npmignore"
   workflow_dispatch:
     inputs:
       use_token_fallback:
