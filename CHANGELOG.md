@@ -11,6 +11,14 @@ All notable changes to this project are documented here.
   paths, and pinned every doc claim to a test so it cannot silently
   drift again. Regression tests fail without the corresponding fix.
 
+## [1.1.5] - 2026-10-13
+
+Second-round hardening: publish triggers now cover codemeta.json and CITATION.cff
+(the artifact inputs that were excluded, so a metadata-only change shipped a
+stale wheel); docs counts regenerated from their sources (quickstart version,
+methodology latency, constraints entries); one documented numeric tolerance
+(1e-6) pinned by tests; README test share regenerated.
+
 ## [Unreleased]
 
 ### npm attestation status
