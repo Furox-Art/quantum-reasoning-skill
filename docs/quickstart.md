@@ -38,7 +38,7 @@ reading this repository.
 **Provenance for the block below:**
 
 - Script: `docs/quickstart.py`
-- Skill version: `1.1.0` (from `VERSION`)
+- Skill version: `1.1.4` (from `VERSION`)
 - Skill commit: `9a78b15485c47f78a6274ec4e60470bc150532fd`
 - Controller: `reference/branch_controller.py`, `DEFAULT_THRESHOLDS`
 - Benchmark inputs: `benchmark/cases.jsonl`, evaluated by `benchmark/evaluate.py`
@@ -51,9 +51,10 @@ endings converted, not a different `SKILL.md`; 7145 is the value CI and every Li
 macOS user sees.
 
 The `commit` and `branch` lines name whichever checkout you ran, so they change between
-runs and cannot match a pasted copy forever. Every other line is deterministic for a given
-commit. This file is the single source for this output — the README links here instead of
-repeating it, precisely because a duplicated copy drifts.
+runs and cannot match a pasted copy forever. The version lines follow the current
+`VERSION` file. Every other line is deterministic for a given commit. This file is the
+single source for this output — the README links here instead of repeating it, precisely
+because a duplicated copy drifts.
 
 ```text
 Quantum Reasoning Skill - quickstart verification
@@ -61,7 +62,7 @@ Quantum Reasoning Skill - quickstart verification
 
 [1/4] Checkout identity
     commit      : 9a78b15485c47f78a6274ec4e60470bc150532fd
-    VERSION     : 1.1.0
+    VERSION     : 1.1.4
     SKILL.md    : 7145 bytes  sha256:bd70f42ce11d1713
     branch      : docs/readme-truthfulness
 
@@ -98,7 +99,7 @@ Quantum Reasoning Skill - quickstart verification
 Provenance for every number printed above
 --------------------------------------------------------------
     script      : docs/quickstart.py
-    skill ver   : 1.1.0   (VERSION)
+    skill ver   : 1.1.4   (VERSION)
     commit      : 9a78b15485c47f78a6274ec4e60470bc150532fd
     platform    : Windows 11 (AMD64)
     python      : 3.12.10 (CPython)

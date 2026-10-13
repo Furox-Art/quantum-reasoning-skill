@@ -7,20 +7,53 @@ count in a repository that publishes its own measurement surface is the same
 class of defect as a stale metric in a results file.
 
 These tests recompute the numbers from the sources on every run and compare them
-with what the README claims, so the sentence is either true or red.
+with what the documents claim, so each sentence is either true or red:
+
+* the README's tests-share sentence, against every Python source in the tree;
+* the quickstart's version lines, against the ``VERSION`` file;
+* the lock-file entry count in ``CONTRIBUTING.md``, against ``constraints.txt``;
+* the latency quote in ``METHODOLOGY.md``, against the committed
+  ``results.json`` it claims to quote.
 """
 
 from __future__ import annotations
 
+import json
 import re
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT / "README.md"
+CONTRIBUTING = ROOT / "CONTRIBUTING.md"
+QUICKSTART = ROOT / "docs" / "quickstart.md"
+METHODOLOGY = ROOT / "benchmark" / "falsification" / "METHODOLOGY.md"
+RESULTS_JSON = ROOT / "benchmark" / "falsification" / "results" / "results.json"
+VERSION_FILE = ROOT / "VERSION"
+CONSTRAINTS = ROOT / "constraints.txt"
 
 #: Build/test residue, never part of the counted surface.
 EXCLUDED_PARTS = {".git", "__pycache__", ".mypy_cache", ".ruff_cache", ".pytest_cache"}
+
+#: A requirement line in the lock file: ``name==version``, optionally with the
+#: trailing continuation backslash. Same grammar tests/test_constraints_lock.py
+#: parses with, restated here so this module stays self-contained.
+LOCK_PIN = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)==(\S+)\s*\\?$")
+
+#: The entry-count claim in CONTRIBUTING.md ("— 52 entries, every one ...").
+CONSTRAINTS_CLAIM = re.compile(r"\b(\d+) entries\b")
+
+#: A quickstart line whose version is read from the VERSION file: the
+#: provenance bullet "Skill version: `1.1.4` (from `VERSION`)", the captured
+#: "VERSION     : 1.1.4" line and the "skill ver   : 1.1.4   (VERSION)" line.
+QUICKSTART_VERSION_CLAIM = re.compile(
+    r"(?:Skill version|VERSION|skill ver)\s*:?\s*`?(\d+\.\d+\.\d+)`?"
+)
+
+#: The latency quote in METHODOLOGY.md: "(0.013 ms and 0.052 ms per decision ...)".
+METHODOLOGY_LATENCY_CLAIM = re.compile(
+    r"\((\d+\.\d+) ms and (\d+\.\d+) ms per decision"
+)
 
 SENTENCE = re.compile(
     r"About \*\*(\d+)% of the Python here is tests\*\* — ([\d,]+) of ([\d,]+) lines "
@@ -96,6 +129,85 @@ class ReadmeCountTests(unittest.TestCase):
         actual = measured()
         self.assertGreater(actual["test_modules"], 0, "no test modules were found")
         self.assertLess(actual["test_lines"], actual["total_lines"])
+
+
+class QuickstartVersionClaimTests(unittest.TestCase):
+    """Every version line in the quickstart follows the ``VERSION`` file.
+
+    The quickstart's verified output is a captured block, but the version lines
+    are not run-dependent the way ``commit`` and ``branch`` are: each one states
+    that it comes from ``VERSION``. When the release moves and the captured
+    block does not, the document contradicts the file it cites. That happened:
+    the block said 1.1.0 while ``VERSION`` said 1.1.4.
+    """
+
+    def setUp(self):
+        self.version = VERSION_FILE.read_text(encoding="utf-8").strip().lstrip("v")
+        self.claims = QUICKSTART_VERSION_CLAIM.findall(
+            QUICKSTART.read_text(encoding="utf-8")
+        )
+
+    def test_the_quickstart_states_the_current_version(self):
+        self.assertEqual(
+            self.claims,
+            [self.version] * len(self.claims),
+            "every quickstart version line must equal the VERSION file",
+        )
+
+    def test_the_claim_is_actually_present(self):
+        """A document that stopped stating a version must not pass silently."""
+        self.assertTrue(self.claims, "no quickstart version claim was found")
+
+
+class ConstraintsEntryCountTests(unittest.TestCase):
+    """``CONTRIBUTING.md`` counts the entries the lock file actually has.
+
+    The lock grows with the transitive closure; the sentence did not. It said
+    52 while the file pins 56, and nothing recomputed it.
+    """
+
+    def test_the_stated_entry_count_matches_the_lock(self):
+        pins = [
+            line
+            for line in CONSTRAINTS.read_text(encoding="utf-8").splitlines()
+            if LOCK_PIN.match(line.strip())
+        ]
+        claimed = CONSTRAINTS_CLAIM.search(CONTRIBUTING.read_text(encoding="utf-8"))
+        self.assertIsNotNone(claimed, "CONTRIBUTING.md no longer states an entry count")
+        self.assertEqual(
+            int(claimed.group(1)),
+            len(pins),
+            "CONTRIBUTING.md claims "
+            f"{claimed.group(1)} entries but constraints.txt pins {len(pins)}",
+        )
+
+
+class MethodologyLatencyClaimTests(unittest.TestCase):
+    """The latency quote in METHODOLOGY.md quotes the committed run.
+
+    The sentence says ``results.json`` records the committed run's value, so the
+    check is a comparison against that artifact -- rounded the way the
+    surrounding tables round (three decimals), which is how the generated
+    ``RESULTS.md`` renders the same numbers.
+    """
+
+    def test_the_quoted_latency_matches_the_committed_artifact(self):
+        summary = json.loads(RESULTS_JSON.read_text(encoding="utf-8"))["summary"]
+        expected = tuple(
+            f"{summary[policy]['mean_latency_ms_per_decision']:.3f}"
+            for policy in ("single", "multi")
+        )
+        claimed = METHODOLOGY_LATENCY_CLAIM.search(
+            METHODOLOGY.read_text(encoding="utf-8")
+        )
+        self.assertIsNotNone(claimed, "METHODOLOGY.md no longer quotes a latency")
+        self.assertEqual(
+            (claimed.group(1), claimed.group(2)),
+            expected,
+            "METHODOLOGY.md quotes "
+            f"({claimed.group(1)} ms and {claimed.group(2)} ms) but results.json "
+            f"records ({expected[0]} ms and {expected[1]} ms) for the committed run",
+        )
 
 
 if __name__ == "__main__":
