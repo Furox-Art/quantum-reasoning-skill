@@ -1,4 +1,4 @@
-"""The publishing triggers must cover every file that can change the artifact.
+"""The publishing triggers must cover every file that can change a release.
 
 A GitHub Actions ``paths`` filter is an allowlist: a commit that only touches
 files outside it never runs the publish job. When the version is new and
@@ -17,10 +17,20 @@ configuration itself rather than against a hand-maintained copy of it:
 * ``npm-publish.yml`` must cover every input ``npm pack`` reads -- the ``files``
   allowlist, ``package.json`` itself and ``.npmignore``.
 
-Codes that only exist to publish metadata but ship in no artifact are
-deliberately absent: ``codemeta.json`` is not in either wheel or sdist, so it
-is not required here. Asserting the derived set, rather than a snapshot, is what
-keeps the filter honest when packaging changes.
+On top of the artifact inputs, both filters must list the version-bearing
+citation surfaces (``CITATION.cff`` and ``codemeta.json``). Neither ships in
+the npm tarball and only ``CITATION.cff`` ships in the sdist, but both carry
+the release version, so an edit to one is a release-affecting change that has
+to re-run the release gates. This is not hypothetical: ``codemeta.json`` said
+``1.1.0`` while 1.1.2 shipped (recorded in CHANGELOG.md under 1.1.3), and
+nothing at the time re-ran the gates on a metadata-only edit. The publish jobs
+are idempotent -- they no-op when the version is already published -- so
+listing metadata cannot cause an accidental republish.
+
+``codemeta.json`` remains absent from the packaging configuration, and that is
+asserted from the packaging configuration rather than assumed: adding it to a
+wheel or sdist has to move it into the filter too. Asserting the derived sets,
+rather than a snapshot, is what keeps the filter honest when packaging changes.
 """
 
 from __future__ import annotations
@@ -161,6 +171,46 @@ def npm_artifact_inputs() -> set[str]:
     return paths
 
 
+#: The version-bearing citation surfaces. They are part of a release even where
+#: they ship in no artifact, so both publishing filters must list them.
+RELEASE_METADATA_SURFACES = ("CITATION.cff", "codemeta.json")
+
+#: The filters as they stood when the audit ran: the PyPI list already carried
+#: ``CITATION.cff`` (added with the sdist inputs) but not ``codemeta.json``; the
+#: npm list carried neither.
+AUDITED_PYPI_PATHS = [
+    ".github/pypi-release-trigger",
+    ".github/**",
+    "pyproject.toml",
+    "VERSION",
+    "README.md",
+    "LICENSE",
+    "SKILL.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "CITATION.cff",
+    "index.js",
+    "package.json",
+    "quantum_reasoning_skill/**",
+    "reference/**",
+    "benchmark/**",
+    "docs/**",
+    "examples/**",
+    "bin/**",
+    "tests/**",
+]
+AUDITED_NPM_PATHS = [
+    "package.json",
+    "index.js",
+    "VERSION",
+    "SKILL.md",
+    "LICENSE",
+    "README.md",
+    ".npmignore",
+]
+
+
 class PathFilterMatcherTests(unittest.TestCase):
     """The matcher must not over- or under-report coverage."""
 
@@ -209,14 +259,66 @@ class PypiPublishTriggerTests(unittest.TestCase):
         self.assertNotIn("**", self.paths, "a bare ** triggers on every push")
 
     def test_codemeta_json_ships_in_no_artifact(self):
-        """Documented, verified exclusion rather than an accidental omission.
+        """Documented, verified packaging fact rather than an accidental omission.
 
         ``codemeta.json`` is in neither the wheel's ``only-include`` nor the
-        sdist's ``include``, so it cannot change what either registry serves. It
-        is asserted absent from the artifact inputs so that adding it to
-        packaging has to move it into the filter too.
+        sdist's ``include``, so it cannot change what either registry serves.
+        It is asserted absent from the artifact inputs so that adding it to
+        packaging has to move it into the filter too. Being outside the
+        artifact does not put it outside the *release*: it carries the release
+        version, so it belongs in the trigger anyway -- pinned by
+        :class:`ReleaseMetadataTriggerTests`.
         """
         self.assertNotIn("codemeta.json", pypi_artifact_inputs())
+        self.assertNotIn("codemeta.json", npm_artifact_inputs())
+
+
+class ReleaseMetadataTriggerTests(unittest.TestCase):
+    """The version-bearing citation surfaces belong in both publishing filters.
+
+    Read back from the parsed workflow YAML rather than grepped from the file,
+    so the pin cannot be satisfied by a comment or a stray string.
+    """
+
+    def test_the_metadata_surfaces_are_in_both_triggers(self):
+        for workflow in ("pypi-release.yml", "npm-publish.yml"):
+            paths = push_paths(workflow)
+            for surface in RELEASE_METADATA_SURFACES:
+                self.assertIn(
+                    surface,
+                    paths,
+                    f"{workflow} paths miss {surface}; a release-metadata edit "
+                    "would never re-run the release gates",
+                )
+
+    def test_the_pins_survive_a_real_yaml_parse(self):
+        """The paths are read through the duplicate-rejecting loader."""
+        for workflow in ("pypi-release.yml", "npm-publish.yml"):
+            document = load_document(workflow)
+            push = triggers(document)["push"]
+            self.assertEqual(push["branches"], ["main"])
+            for surface in RELEASE_METADATA_SURFACES:
+                self.assertIn(surface, list(push["paths"]), workflow)
+
+    def test_the_audited_filters_missed_them(self):
+        """Negative control: the exclusion the audit flagged really was a gap.
+
+        Before the widening, the PyPI filter had ``CITATION.cff`` but no
+        ``codemeta.json``, and the npm filter had neither. Replaying those
+        audited lists through the same matcher shows the failure mode.
+        """
+        pypi_missing = [
+            surface
+            for surface in RELEASE_METADATA_SURFACES
+            if not covered(surface, AUDITED_PYPI_PATHS)
+        ]
+        self.assertEqual(pypi_missing, ["codemeta.json"])
+        npm_missing = [
+            surface
+            for surface in RELEASE_METADATA_SURFACES
+            if not covered(surface, AUDITED_NPM_PATHS)
+        ]
+        self.assertEqual(npm_missing, list(RELEASE_METADATA_SURFACES))
 
 
 class NpmPublishTriggerTests(unittest.TestCase):

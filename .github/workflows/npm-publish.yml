@@ -5,11 +5,14 @@ name: npm Publish
 # Triggering is deliberately narrow: a default-branch push that changes a file
 # capable of changing what ships. The `paths` list is every input `npm pack`
 # reads -- the `files` allowlist in package.json, package.json itself and
-# .npmignore -- so a tarball-affecting change can never be silently skipped.
-# A change that cannot reach the tarball (CI configuration, tests, CONTRIBUTING,
-# the Python reference and benchmark sources) still cannot attempt a release.
-# tests/test_publish_triggers.py derives the list from package.json and fails
-# when a tarball input is missing from it.
+# .npmignore -- plus the version-bearing citation surfaces (`CITATION.cff`,
+# which this job's own version-lockstep gate reads, and `codemeta.json`, the
+# sixth version surface that shipped stale in 1.1.3), so a tarball-affecting
+# change and a release-metadata change can never be silently skipped. A change
+# that can reach neither (CI configuration, tests, CONTRIBUTING, the Python
+# reference and benchmark sources) still cannot attempt a release.
+# tests/test_publish_triggers.py derives the tarball inputs from package.json
+# and fails when a tarball input is missing from it.
 on:
   push:
     branches: [main]
@@ -21,6 +24,8 @@ on:
       - "LICENSE"
       - "README.md"
       - ".npmignore"
+      - "CITATION.cff"
+      - "codemeta.json"
   workflow_dispatch:
     inputs:
       use_token_fallback:

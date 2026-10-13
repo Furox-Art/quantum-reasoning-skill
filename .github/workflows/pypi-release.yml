@@ -7,11 +7,16 @@ name: PyPI Release
 #
 # The `paths` list below is the complete set of files that can change what ships:
 # everything the wheel and the sdist contain (see the `only-include`/`include`
-# lists in pyproject.toml), the files hatchling embeds, and the release gates this
-# job runs. Leaving one out publishes a stale artifact: the version is already
-# unpublished, the workflow is never triggered, and the change reaches neither
-# registry. tests/test_publish_triggers.py derives this list from pyproject.toml
-# and fails when an artifact input is missing from it.
+# lists in pyproject.toml), the files hatchling embeds, the release gates this
+# job runs, and the version-bearing citation surfaces (`CITATION.cff`,
+# `codemeta.json`). Leaving one out publishes a stale artifact: the version is
+# already unpublished, the workflow is never triggered, and the change reaches
+# neither registry. The citation surfaces are listed even though `codemeta.json`
+# ships in no artifact, because it carries the release version and shipped stale
+# once already (1.1.3 published with `codemeta.json` still saying 1.1.0); an edit
+# to release metadata must re-run these gates. tests/test_publish_triggers.py
+# derives the artifact inputs from pyproject.toml and package.json and fails when
+# an artifact input is missing from the filter.
 on:
   push:
     branches: [main]
@@ -27,6 +32,7 @@ on:
       - "CONTRIBUTING.md"
       - "SECURITY.md"
       - "CITATION.cff"
+      - "codemeta.json"
       - "index.js"
       - "package.json"
       - "quantum_reasoning_skill/**"
