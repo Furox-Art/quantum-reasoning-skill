@@ -29,6 +29,47 @@ as evidence of tampering, and do not treat it as evidence of integrity either.
 
 ### Fixed
 
+- `benchmark/evaluate.py` resolved command-line input paths against **each input file's own
+  parent directory**, so the command documented in the README
+  (`--cases benchmark/cases.jsonl`) looked for `benchmark/benchmark/cases.jsonl` and died with
+  a `FileNotFoundError` traceback on a fresh clone. CLI paths are now resolved against the
+  current working directory (containment is unchanged: `--cases-dir` when given, otherwise each
+  input's own directory), and `--cases` defaults to the packaged seed cases. A named file that
+  does not exist is a new typed `benchmark.evaluate.MissingInputError`: the CLI prints
+  `error: --skill: <path>: no such input file` plus the record contract and exits 2. No
+  placeholder rows are ever generated — `tests/test_evaluator_cli.py` runs the documented
+  command as a subprocess against a `.git`-free copy of the tree.
+- `reference/branch_controller.py` evaluated the "revive high-information alternative" guard
+  *after* the generic leader-margin guard. The near-leader band (`margin <= 0.10`) lies inside
+  the generic band (`margin < 0.12`) for the reference thresholds, so every margin that could
+  satisfy the specific guard had already returned with the weaker "leader margin is too small"
+  reason: the protection could never fire. The guards are reordered, `HIGH_INFORMATION_GAIN`
+  replaces the inline `0.60`, and `tests/test_reference.py` pins both the reported reason and
+  the ordering. The collapse decision itself is unchanged for every scenario, so
+  `benchmark/falsification/results/results.json` is bit-identical apart from wall-clock latency.
+
+### Added
+
+- `tests/test_publish_triggers.py` asserts that the publishing `paths` filters cover every file
+  that can change a published artifact, **derived from the packaging configuration** rather than
+  hand-listed: `pypi-release.yml` must cover the wheel `only-include`/`force-include` sets, the
+  sdist `include` set, the project readme and `pyproject.toml`; `npm-publish.yml` must cover the
+  `files` allowlist, `package.json` and `.npmignore`. The PyPI filter is widened accordingly
+  (the sdist ships `README.md`, `LICENSE`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`,
+  `CITATION.cff`, `index.js`, `package.json`, `benchmark/`, `reference/`, `docs/`, `examples/`,
+  `bin/`, `tests/` and `.github/`, none of which republished the release before) and the npm
+  filter with `README.md`, `LICENSE` and `.npmignore`. `codemeta.json` is deliberately *not*
+  added: it is in neither the wheel nor the sdist, so it cannot change a published artifact, and
+  the test asserts that too. Trigger events, branches and the manual trigger file are unchanged.
+- `conftest.NUMERIC_TOLERANCE` (1e-6) with `conftest.assert_close` / `conftest.is_close` is now
+  the single numeric tolerance for the suite. Comparisons previously mixed exact `assertEqual`
+  on floats with `assertAlmostEqual`'s undocumented seven decimal places; measured against the
+  committed artifacts, stored-vs-recomputed `brier` differs by up to `4.9e-7` and the
+  reliability-bin `truth_probability` by up to `3.4e-16` — exact equality rejects correct
+  artifacts. `tests/test_docs_counts.py` regenerates the README's test-line counts from the
+  sources on every run, so the stale "1,575 of 3,635 lines across 9 test modules" sentence
+  cannot come back.
+
 - `twine` is pinned to `7.0.0` instead of `6.1.0` in every workflow that runs
   `twine check`. The 6.x line hardcodes a metadata-version list ending at `2.4`
   in `twine/package.py`, replacing the list `packaging` would supply, so
