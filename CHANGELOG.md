@@ -108,6 +108,35 @@ as evidence of tampering, and do not treat it as evidence of integrity either.
 No version bump: 1.1.1 is already published and the artifact contents are
 unchanged by this fix. The point is to keep the *next* release from failing.
 
+### Housekeeping — audit follow-up hardening
+
+Follow-up to the audit-hardening release. No version bump: no published
+artifact changes, only filters, documents and tests.
+
+- The publishing triggers now cover the version-bearing citation surfaces.
+  `codemeta.json` joins `CITATION.cff` in the `pypi-release.yml` filter, and
+  both join the `npm-publish.yml` filter, so an edit to release metadata
+  re-runs the release gates instead of sitting in the tree beside a release
+  that never saw it — the drift that published `codemeta.json` still saying
+  `1.1.0` from the 1.1.2 release. `codemeta.json` still ships in no artifact;
+  the packaging derivation that proves it is unchanged and still asserted, and
+  the publish jobs no-op on an already-published version, so the wider filter
+  cannot cause an accidental republish.
+- Documentation counts are regenerated from their sources again:
+  `docs/quickstart.md` states the version `VERSION` actually carries (1.1.4,
+  not 1.1.0), `benchmark/falsification/METHODOLOGY.md` quotes the latency the
+  committed `results.json` records (0.013 ms and 0.052 ms per decision, not
+  0.012 and 0.050), and `CONTRIBUTING.md` counts the 56 entries
+  `constraints.txt` pins (not 52). `tests/test_docs_counts.py` recomputes all
+  three on every run.
+- `tests/test_numeric_tolerance.py` pins the single documented tolerance's
+  boundary directly: a delta below `conftest.NUMERIC_TOLERANCE` passes, a
+  delta just above it fails, `assertAlmostEqual` cannot return as a second
+  tolerance, and `docs/MEASUREMENT.md` cannot drift from the constant.
+- Verified against the remaining audit findings: this repository has no
+  expression/verdict grader and no session lookup to harden, and every float
+  comparison site already goes through the shared tolerance helper.
+
 ## [1.1.3] - 2026-10-12
 
 ### Housekeeping — release alignment
