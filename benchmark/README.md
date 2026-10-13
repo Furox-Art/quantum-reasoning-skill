@@ -62,6 +62,18 @@ python benchmark/evaluate.py \
   --skill path/to/skill-results.jsonl
 ```
 
+Run it from the repository root: relative paths resolve against the current working directory,
+and `--cases` defaults to the seed cases that ship beside it. Both
+`python benchmark/evaluate.py` and `python -m benchmark.evaluate` work.
+
+`path/to/skill-results.jsonl` is a file **you** create by recording real runs. If it is not
+there yet the evaluator exits 2 with a typed error that names the flag and the path instead of
+a traceback; it does not invent rows. One row per case:
+
+```json
+{"case_id": "math-arithmetic-001", "answer": "323", "tokens": 120, "tool_calls": 0, "latency_ms": 950}
+```
+
 ## Compare baseline vs skill
 
 ```bash
@@ -70,6 +82,11 @@ python benchmark/evaluate.py \
   --baseline path/to/baseline-results.jsonl \
   --skill path/to/skill-results.jsonl \
   --output comparison.json
+```
+
+```bash
+# the same run through the module entry point, from a clean checkout
+python -m benchmark.evaluate --skill skill-results.jsonl
 ```
 
 The evaluator reports exact-answer accuracy, mean token use, tool calls, latency, branch diversity, revival/error recovery, contradiction resolution, and baseline-to-skill deltas.

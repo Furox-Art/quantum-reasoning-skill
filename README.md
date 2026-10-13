@@ -150,6 +150,10 @@ producing more text: `benchmark/evaluate.py` (evaluator), `benchmark/validate_su
 python benchmark/evaluate.py --cases benchmark/cases.jsonl --skill skill-results.jsonl
 ```
 
+`--cases` is optional: it defaults to the packaged seed cases. Paths are resolved against the
+current working directory, so the command above runs unchanged from a fresh clone. If a named
+file does not exist the evaluator prints a typed error, names the flag, and exits 2 — it never
+substitutes placeholder rows, because a fabricated measurement is worse than a missing one.
 Inputs are confined to `--cases-dir` (default: each input's own directory), `--output` must
 stay inside it, and reads are bounded by `--max-bytes`. Both `python benchmark/evaluate.py`
 and `python -m benchmark.evaluate` work.
