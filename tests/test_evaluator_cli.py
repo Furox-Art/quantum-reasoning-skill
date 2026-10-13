@@ -101,7 +101,7 @@ class DocumentedCommandTests(unittest.TestCase):
                     "latency_ms": 950,
                 }
             )
-            for case_id, answer in zip(seed_case_ids(), answers)
+            for case_id, answer in zip(seed_case_ids(), answers, strict=True)
         ]
         target = cwd / name
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -113,8 +113,10 @@ class DocumentedCommandTests(unittest.TestCase):
         with CleanCheckout() as cwd:
             result = self.run_command(
                 cwd,
-                "--cases", "benchmark/cases.jsonl",
-                "--skill", "skill-results.jsonl",
+                "--cases",
+                "benchmark/cases.jsonl",
+                "--skill",
+                "skill-results.jsonl",
             )
         self.assertEqual(result.returncode, EXIT_MISSING_INPUT, result.stdout)
         self.assertNotIn("Traceback", result.stderr)
@@ -129,8 +131,10 @@ class DocumentedCommandTests(unittest.TestCase):
             self.write_results(cwd)
             result = self.run_command(
                 cwd,
-                "--cases", "benchmark/absent-cases.jsonl",
-                "--skill", "skill-results.jsonl",
+                "--cases",
+                "benchmark/absent-cases.jsonl",
+                "--skill",
+                "skill-results.jsonl",
             )
         self.assertEqual(result.returncode, EXIT_MISSING_INPUT, result.stderr)
         self.assertNotIn("Traceback", result.stderr)
@@ -142,8 +146,10 @@ class DocumentedCommandTests(unittest.TestCase):
             self.write_results(cwd)
             result = self.run_command(
                 cwd,
-                "--cases", "benchmark/cases.jsonl",
-                "--skill", "skill-results.jsonl",
+                "--cases",
+                "benchmark/cases.jsonl",
+                "--skill",
+                "skill-results.jsonl",
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             payload = json.loads(result.stdout)
@@ -166,9 +172,12 @@ class DocumentedCommandTests(unittest.TestCase):
             self.write_results(cwd, "nested/skill-results.jsonl")
             result = self.run_command(
                 cwd,
-                "--cases", "benchmark/cases.jsonl",
-                "--skill", "nested/skill-results.jsonl",
-                "--output", "summary.json",
+                "--cases",
+                "benchmark/cases.jsonl",
+                "--skill",
+                "nested/skill-results.jsonl",
+                "--output",
+                "summary.json",
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue((cwd / "summary.json").is_file())
@@ -179,9 +188,12 @@ class DocumentedCommandTests(unittest.TestCase):
             self.write_results(cwd, "baseline-results.jsonl")
             result = self.run_command(
                 cwd,
-                "--cases", "benchmark/cases.jsonl",
-                "--baseline", "baseline-results.jsonl",
-                "--skill", "skill-results.jsonl",
+                "--cases",
+                "benchmark/cases.jsonl",
+                "--baseline",
+                "baseline-results.jsonl",
+                "--skill",
+                "skill-results.jsonl",
             )
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
@@ -195,9 +207,13 @@ class DocumentedCommandTests(unittest.TestCase):
             self.write_results(cwd)
             result = subprocess.run(
                 [
-                    sys.executable, "-m", "benchmark.evaluate",
-                    "--cases", "benchmark/cases.jsonl",
-                    "--skill", "skill-results.jsonl",
+                    sys.executable,
+                    "-m",
+                    "benchmark.evaluate",
+                    "--cases",
+                    "benchmark/cases.jsonl",
+                    "--skill",
+                    "skill-results.jsonl",
                 ],
                 cwd=str(cwd),
                 capture_output=True,
@@ -232,9 +248,7 @@ class MissingInputErrorTests(unittest.TestCase):
     def test_existing_file_still_reads(self):
         target = self.base / "rows.jsonl"
         target.write_text('{"case_id": "c1"}\n', encoding="utf-8")
-        self.assertEqual(
-            evaluate.read_text_limited(target, 1024), '{"case_id": "c1"}\n'
-        )
+        self.assertEqual(evaluate.read_text_limited(target, 1024), '{"case_id": "c1"}\n')
 
     def test_main_returns_the_typed_exit_code(self):
         import contextlib

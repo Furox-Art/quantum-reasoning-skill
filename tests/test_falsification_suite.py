@@ -285,12 +285,16 @@ class ToleranceTests(unittest.TestCase):
                 pairs.append(
                     (f"{policy}.{field}", block[field], fresh_block[field])
                 )
-        for stored_row, fresh_result in zip(self.stored["per_scenario"], self.fresh_results):
+        for stored_row, fresh_result in zip(
+            self.stored["per_scenario"], self.fresh_results, strict=True
+        ):
             if stored_row["brier"] is None or fresh_result.brier is None:
                 continue
             label = f"{stored_row['scenario_id']}/{stored_row['policy']}.brier"
             pairs.append((label, stored_row["brier"], fresh_result.brier))
-            for stored_step, fresh_step in zip(stored_row["steps"], fresh_result.steps):
+            for stored_step, fresh_step in zip(
+                stored_row["steps"], fresh_result.steps, strict=True
+            ):
                 pairs.append((
                     f"{label}.step{stored_step['step']}.leader_score",
                     stored_step["leader_score"],
@@ -304,7 +308,7 @@ class ToleranceTests(unittest.TestCase):
             for row in result.probability_rows
         ]
         for stored_bin, (scenario_id, policy, row) in zip(
-            self.stored["reliability_bins"], fresh_bins
+            self.stored["reliability_bins"], fresh_bins, strict=True
         ):
             self.assertEqual(
                 (stored_bin["scenario_id"], stored_bin["policy"], stored_bin["step"]),
@@ -354,9 +358,8 @@ class ToleranceTests(unittest.TestCase):
         ]
         self.assertTrue(rounded, "expected rounded brier values in the artifacts")
         for label, stored, fresh in rounded:
-            with self.subTest(field=label):
-                with self.assertRaises(AssertionError):
-                    conftest.assert_close(stored, fresh, tolerance=TOLERANCE / 1000)
+            with self.subTest(field=label), self.assertRaises(AssertionError):
+                conftest.assert_close(stored, fresh, tolerance=TOLERANCE / 1000)
 
     def test_the_helper_names_both_values_when_it_fails(self):
         with self.assertRaises(AssertionError) as ctx:

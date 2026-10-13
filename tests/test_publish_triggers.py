@@ -57,9 +57,7 @@ checker = _load_checker()
 
 def load_document(name: str):
     """Parse a workflow with the repository's duplicate-rejecting loader."""
-    return checker.strict_load(
-        (WORKFLOW_DIR / name).read_text(encoding="utf-8"), source=name
-    )
+    return checker.strict_load((WORKFLOW_DIR / name).read_text(encoding="utf-8"), source=name)
 
 
 def triggers(document) -> dict:
@@ -164,9 +162,7 @@ class PypiPublishTriggerTests(unittest.TestCase):
         self.paths = push_paths("pypi-release.yml")
 
     def test_every_artifact_input_is_covered(self):
-        missing = sorted(
-            path for path in pypi_artifact_inputs() if not covered(path, self.paths)
-        )
+        missing = sorted(path for path in pypi_artifact_inputs() if not covered(path, self.paths))
         self.assertEqual(missing, [], f"pypi-release.yml paths miss {missing}")
 
     def test_the_trigger_event_and_branch_are_unchanged(self):
@@ -199,9 +195,7 @@ class NpmPublishTriggerTests(unittest.TestCase):
         self.paths = push_paths("npm-publish.yml")
 
     def test_every_artifact_input_is_covered(self):
-        missing = sorted(
-            path for path in npm_artifact_inputs() if not covered(path, self.paths)
-        )
+        missing = sorted(path for path in npm_artifact_inputs() if not covered(path, self.paths))
         self.assertEqual(missing, [], f"npm-publish.yml paths miss {missing}")
 
     def test_the_trigger_event_and_branch_are_unchanged(self):
