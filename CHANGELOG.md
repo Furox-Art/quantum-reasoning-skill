@@ -2,15 +2,6 @@
 
 All notable changes to this project are documented here.
 
-## [1.1.4] - 2026-10-12
-### Housekeeping — audit hardening
-
-- Closes the findings of the full-repository audit: patched the concrete
-  defects (correctness, fail-closed behaviour, platform independence),
-  wired every standalone guard into CI, removed dead or duplicated code
-  paths, and pinned every doc claim to a test so it cannot silently
-  drift again. Regression tests fail without the corresponding fix.
-
 ## [Unreleased]
 
 ### npm attestation status
@@ -136,6 +127,23 @@ artifact changes, only filters, documents and tests.
 - Verified against the remaining audit findings: this repository has no
   expression/verdict grader and no session lookup to harden, and every float
   comparison site already goes through the shared tolerance helper.
+
+## [1.1.5] - 2026-10-13
+
+Second-round hardening: publish triggers now cover codemeta.json and CITATION.cff
+(the artifact inputs that were excluded, so a metadata-only change shipped a
+stale wheel); docs counts regenerated from their sources (quickstart version,
+methodology latency, constraints entries); one documented numeric tolerance
+(1e-6) pinned by tests; README test share regenerated.
+
+## [1.1.4] - 2026-10-12
+### Housekeeping — audit hardening
+
+- Closes the findings of the full-repository audit: patched the concrete
+  defects (correctness, fail-closed behaviour, platform independence),
+  wired every standalone guard into CI, removed dead or duplicated code
+  paths, and pinned every doc claim to a test so it cannot silently
+  drift again. Regression tests fail without the corresponding fix.
 
 ## [1.1.3] - 2026-10-12
 

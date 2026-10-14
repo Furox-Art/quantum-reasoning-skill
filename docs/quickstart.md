@@ -38,7 +38,7 @@ reading this repository.
 **Provenance for the block below:**
 
 - Script: `docs/quickstart.py`
-- Skill version: `1.1.4` (from `VERSION`)
+- Skill version: `1.1.5` (from `VERSION`)
 - Skill commit: `9a78b15485c47f78a6274ec4e60470bc150532fd`
 - Controller: `reference/branch_controller.py`, `DEFAULT_THRESHOLDS`
 - Benchmark inputs: `benchmark/cases.jsonl`, evaluated by `benchmark/evaluate.py`
@@ -62,7 +62,7 @@ Quantum Reasoning Skill - quickstart verification
 
 [1/4] Checkout identity
     commit      : 9a78b15485c47f78a6274ec4e60470bc150532fd
-    VERSION     : 1.1.4
+    VERSION     : 1.1.5
     SKILL.md    : 7145 bytes  sha256:bd70f42ce11d1713
     branch      : docs/readme-truthfulness
 
@@ -99,7 +99,7 @@ Quantum Reasoning Skill - quickstart verification
 Provenance for every number printed above
 --------------------------------------------------------------
     script      : docs/quickstart.py
-    skill ver   : 1.1.4   (VERSION)
+    skill ver   : 1.1.5   (VERSION)
     commit      : 9a78b15485c47f78a6274ec4e60470bc150532fd
     platform    : Windows 11 (AMD64)
     python      : 3.12.10 (CPython)
