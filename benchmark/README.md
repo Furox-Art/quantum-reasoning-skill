@@ -52,7 +52,7 @@ A result row requires:
 
 Failed/refused runs should still be represented rather than silently removed. The optional `status` field may be `ok`, `refusal`, `timeout`, or `error`.
 
-Skill-aware runners may additionally record observable aggregate telemetry such as `branches_total`, `branches_distinct`, `revived_branches`, `recovered_errors`, `contradictions_found`, and `contradictions_resolved`. Do not store private chain-of-thought.
+Token, tool-call, and optional event/branch counters must be non-negative JSON integer literals (not fractional values or booleans); only latency may be fractional.\n\nSkill-aware runners may additionally record observable aggregate telemetry such as `branches_total`, `branches_distinct`, `revived_branches`, `recovered_errors`, `contradictions_found`, and `contradictions_resolved`. Do not store private chain-of-thought.
 
 ## Evaluate one run
 

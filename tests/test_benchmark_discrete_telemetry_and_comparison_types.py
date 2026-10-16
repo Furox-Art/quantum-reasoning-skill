@@ -95,3 +95,14 @@ def test_boolean_or_float_count_spoof_cannot_pass_bundle_verification(
 def test_valid_bundle_remains_accepted(tmp_path: Path) -> None:
     bundle = SubmissionValidationTests().make_bundle(tmp_path)
     validate_bundle(bundle)
+
+
+def test_published_schema_declares_discrete_counters_as_integers() -> None:
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parents[1] / "benchmark" / "schemas" / "result.schema.json"
+    schema = json.loads(path.read_text(encoding="utf-8"))
+    for field in COUNT_FIELDS:
+        assert schema["properties"][field]["type"] == "integer"
+        assert schema["properties"][field]["minimum"] == 0
+    assert schema["properties"]["latency_ms"]["type"] == "number"

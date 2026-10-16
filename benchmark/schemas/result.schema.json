@@ -8,18 +8,18 @@
   "properties": {
     "case_id": {"type": "string", "minLength": 1},
     "answer": {},
-    "tokens": {"type": "number", "minimum": 0},
-    "tool_calls": {"type": "number", "minimum": 0},
+    "tokens": {"type": "integer", "minimum": 0},
+    "tool_calls": {"type": "integer", "minimum": 0},
     "latency_ms": {"type": "number", "minimum": 0},
     "status": {
       "type": "string",
       "enum": ["ok", "refusal", "timeout", "error"]
     },
-    "branches_total": {"type": "number", "minimum": 0},
-    "branches_distinct": {"type": "number", "minimum": 0},
-    "revived_branches": {"type": "number", "minimum": 0},
-    "recovered_errors": {"type": "number", "minimum": 0},
-    "contradictions_found": {"type": "number", "minimum": 0},
-    "contradictions_resolved": {"type": "number", "minimum": 0}
+    "branches_total": {"type": "integer", "minimum": 0},
+    "branches_distinct": {"type": "integer", "minimum": 0},
+    "revived_branches": {"type": "integer", "minimum": 0},
+    "recovered_errors": {"type": "integer", "minimum": 0},
+    "contradictions_found": {"type": "integer", "minimum": 0},
+    "contradictions_resolved": {"type": "integer", "minimum": 0}
   }
 }
