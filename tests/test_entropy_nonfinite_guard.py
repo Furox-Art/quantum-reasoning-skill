@@ -20,4 +20,4 @@ class NonfiniteEntropyRegressionTests(unittest.TestCase):
 
     def test_finite_probabilities_remain_supported(self) -> None:
         self.assertEqual(normalized_entropy([0.0, 0.0]), 0.0)
-        self.assertAlmostEqual(normalized_entropy([1.0, 1.0]), 1.0)
+        self.assertEqual(normalized_entropy([1.0, 1.0]), 1.0)
