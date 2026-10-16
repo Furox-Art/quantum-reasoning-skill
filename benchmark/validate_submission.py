@@ -101,6 +101,29 @@ def _case_map(cases):
     return out
 
 
+def _same_json_value(actual: object, expected: object) -> bool:
+    """Compare JSON structures without Python bool/int numeric aliasing.
+
+    Under ordinary equality, True == 1 and 1 == 1.0: a reviewer
+    could change benchmark counts into booleans or ratios into counts while
+    keeping the validator satisfied. A comparison artifact must preserve
+    both the numeric value and its JSON representation type.
+    """
+    if type(actual) is not type(expected):
+        return False
+    if isinstance(expected, dict):
+        return (
+            actual.keys() == expected.keys()
+            and all(_same_json_value(actual[key], value) for key, value in expected.items())
+        )
+    if isinstance(expected, list):
+        return (
+            len(actual) == len(expected)
+            and all(_same_json_value(left, right) for left, right in zip(actual, expected, strict=True))
+        )
+    return actual == expected
+
+
 def validate_bundle(bundle: Path) -> None:
     """Validate one bundle directory.
 
@@ -142,7 +165,7 @@ def validate_bundle(bundle: Path) -> None:
     }
     expected["comparison"] = evaluate.compare(expected["baseline"], expected["skill"])
     submitted = load_json(member("comparison.json"))
-    if submitted != expected:
+    if not _same_json_value(submitted, expected):
         raise ValueError(f"{bundle}: comparison.json does not match evaluator recomputation")
     if not load_text(member("README.md")).strip():
         raise ValueError(f"{bundle}: README.md must not be empty")

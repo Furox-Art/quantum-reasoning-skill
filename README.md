@@ -160,7 +160,7 @@ and `python -m benchmark.evaluate` work.
 
 ## Tests, tooling and governance
 
-About **46% of the Python here is tests** — 4,156 of 8,978 lines across **18 test modules**,
+About **47% of the Python here is tests** — 4,253 of 9,105 lines across **19 test modules**,
 run with the standard library's `unittest` on Python 3.10–3.14 on Linux, Windows and macOS.
 They cover the controller, the benchmark harness, import hardening, path boundaries,
 dependency-lock drift and release-gate polling; the documented benchmark command run as a

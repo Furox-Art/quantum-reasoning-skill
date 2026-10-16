@@ -190,6 +190,16 @@ def validate_case(case: dict[str, Any]) -> None:
         raise ValueError(f"case {case['id']!r}: accepted_answers must be a non-empty list")
 
 
+def _valid_count(value: Any) -> bool:
+    """Telemetry counts are discrete, not rounded continuous measurements."""
+    if type(value) is not int or value < 0:
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
+
+
 def validate_result(result: dict[str, Any]) -> None:
     if not isinstance(result, dict):
         raise ValueError("result must be a JSON object")
@@ -199,37 +209,34 @@ def validate_result(result: dict[str, Any]) -> None:
             f"result {result.get('case_id', '<unknown>')!r} missing fields: "
             + ", ".join(sorted(missing))
         )
-    for field in ("tokens", "tool_calls", "latency_ms"):
-        value = result[field]
-        try:
-            valid = (
-                isinstance(value, (int, float))
-                and not isinstance(value, bool)
-                and math.isfinite(value)
-                and value >= 0
-            )
-        except OverflowError:
-            valid = False
-        if not valid:
+    for field in ("tokens", "tool_calls"):
+        if not _valid_count(result[field]):
             raise ValueError(
-                f"result {result['case_id']!r}: {field} must be finite and non-negative"
+                f"result {result['case_id']!r}: {field} must be a finite and non-negative integer"
             )
+    latency = result["latency_ms"]
+    if (
+        not isinstance(latency, (int, float))
+        or isinstance(latency, bool)
+        or latency < 0
+    ):
+        raise ValueError(
+            f"result {result['case_id']!r}: latency_ms must be finite and non-negative"
+        )
+    try:
+        if not math.isfinite(latency):
+            raise ValueError(
+                f"result {result['case_id']!r}: latency_ms must be finite and non-negative"
+            )
+    except OverflowError as exc:
+        raise ValueError(
+            f"result {result['case_id']!r}: latency_ms must be finite and non-negative"
+        ) from exc
     for field in OPTIONAL_TELEMETRY_FIELDS:
-        if field in result:
-            value = result[field]
-            try:
-                valid = (
-                    isinstance(value, (int, float))
-                    and not isinstance(value, bool)
-                    and math.isfinite(value)
-                    and value >= 0
-                )
-            except OverflowError:
-                valid = False
-            if not valid:
-                raise ValueError(
-                    f"result {result['case_id']!r}: {field} must be finite and non-negative"
-                )
+        if field in result and not _valid_count(result[field]):
+            raise ValueError(
+                f"result {result['case_id']!r}: {field} must be a finite and non-negative integer"
+            )
     if "branches_distinct" in result and "branches_total" in result:
         if result["branches_distinct"] > result["branches_total"]:
             raise ValueError(
