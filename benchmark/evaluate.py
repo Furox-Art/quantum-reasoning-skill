@@ -186,8 +186,16 @@ def validate_case(case: dict[str, Any]) -> None:
     for field in ("id", "domain", "prompt", "accepted_answers"):
         if field not in case:
             raise ValueError(f"case missing required field: {field}")
+    for field in ("id", "domain", "prompt"):
+        if not isinstance(case[field], str) or not case[field].strip():
+            raise ValueError(f"case: {field} must be a non-empty string")
     if not isinstance(case["accepted_answers"], list) or not case["accepted_answers"]:
         raise ValueError(f"case {case['id']!r}: accepted_answers must be a non-empty list")
+    if any(
+        not isinstance(answer, str) or not answer.strip()
+        for answer in case["accepted_answers"]
+    ):
+        raise ValueError(f"case {case['id']!r}: accepted_answers items must be non-empty strings")
 
 
 def _valid_count(value: Any) -> bool:

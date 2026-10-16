@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from datetime import date
 from pathlib import Path
 try:  # `python -m benchmark.validate_submission`
@@ -60,7 +61,9 @@ def validate_metadata(meta: object) -> None:
     for key in ("provider", "model", "skill_version"):
         if not isinstance(meta[key], str) or not meta[key].strip():
             raise ValueError(f"metadata.{key} must be a non-empty string")
-    if not isinstance(meta["run_date"], str):
+    if not isinstance(meta["run_date"], str) or re.fullmatch(
+        r"[0-9]{4}-[0-9]{2}-[0-9]{2}", meta["run_date"]
+    ) is None:
         raise ValueError("metadata.run_date must be YYYY-MM-DD")
     try:
         date.fromisoformat(meta["run_date"])

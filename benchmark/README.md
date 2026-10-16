@@ -38,6 +38,10 @@ The contracts are versioned with the repository:
 - [`schemas/metadata.schema.json`](./schemas/metadata.schema.json) — experiment metadata
 - [`schemas/comparison.schema.json`](./schemas/comparison.schema.json) — evaluator comparison output
 
+Each benchmark case must provide a non-blank string ID, domain, and
+prompt, plus at least one non-blank string in accepted_answers. Metadata
+run_date uses a real calendar date in canonical YYYY-MM-DD notation.
+
 A result row requires:
 
 ```json
