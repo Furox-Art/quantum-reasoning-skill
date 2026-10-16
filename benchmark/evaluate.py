@@ -68,6 +68,37 @@ class MissingInputError(ValueError):
     """Raised when a requested input file does not exist (or is not a file)."""
 
 
+def _unique_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """Untrusted benchmark JSON must not have parser-dependent duplicate keys."""
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key: {key!r}")
+        result[key] = value
+    return result
+
+
+def _strict_float(value: str) -> float:
+    number = float(value)
+    if not math.isfinite(number):
+        raise ValueError("non-finite numeric JSON value")
+    return number
+
+
+def _reject_constant(value: str) -> None:
+    raise ValueError(f"non-standard numeric JSON constant: {value}")
+
+
+def strict_json_loads(text: str) -> Any:
+    """Parse JSON without duplicate keys, NaN/Infinity, or float overflow."""
+    return json.loads(
+        text,
+        object_pairs_hook=_unique_json_keys,
+        parse_float=_strict_float,
+        parse_constant=_reject_constant,
+    )
+
+
 REQUIRED_RESULT_FIELDS = {
     "case_id",
     "answer",
@@ -136,8 +167,8 @@ def read_jsonl(path: Path, *, base: Path | None = None, max_bytes: int = DEFAULT
         if not line:
             continue
         try:
-            value = json.loads(line)
-        except json.JSONDecodeError as exc:
+            value = strict_json_loads(line)
+        except (json.JSONDecodeError, ValueError) as exc:
             raise ValueError(f"{resolved}:{line_number}: invalid JSON: {exc}") from exc
         if not isinstance(value, dict):
             raise ValueError(f"{resolved}:{line_number}: row must be a JSON object")
@@ -170,14 +201,34 @@ def validate_result(result: dict[str, Any]) -> None:
         )
     for field in ("tokens", "tool_calls", "latency_ms"):
         value = result[field]
-        if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
-            raise ValueError(f"result {result['case_id']!r}: {field} must be non-negative")
+        try:
+            valid = (
+                isinstance(value, (int, float))
+                and not isinstance(value, bool)
+                and math.isfinite(value)
+                and value >= 0
+            )
+        except OverflowError:
+            valid = False
+        if not valid:
+            raise ValueError(
+                f"result {result['case_id']!r}: {field} must be finite and non-negative"
+            )
     for field in OPTIONAL_TELEMETRY_FIELDS:
         if field in result:
             value = result[field]
-            if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
+            try:
+                valid = (
+                    isinstance(value, (int, float))
+                    and not isinstance(value, bool)
+                    and math.isfinite(value)
+                    and value >= 0
+                )
+            except OverflowError:
+                valid = False
+            if not valid:
                 raise ValueError(
-                    f"result {result['case_id']!r}: {field} must be non-negative"
+                    f"result {result['case_id']!r}: {field} must be finite and non-negative"
                 )
     if "branches_distinct" in result and "branches_total" in result:
         if result["branches_distinct"] > result["branches_total"]:

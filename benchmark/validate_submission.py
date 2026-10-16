@@ -46,8 +46,8 @@ def load_json(path: Path, *, max_bytes: int = evaluate.DEFAULT_MAX_BYTES) -> obj
     except evaluate.UnsafeJsonError as exc:
         raise ValueError(str(exc)) from exc
     try:
-        return json.loads(text)
-    except json.JSONDecodeError as exc:
+        return evaluate.strict_json_loads(text)
+    except (json.JSONDecodeError, ValueError) as exc:
         raise ValueError(f"{path}: invalid JSON: {exc}") from exc
 
 
