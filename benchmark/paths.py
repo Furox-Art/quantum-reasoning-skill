@@ -49,7 +49,7 @@ def resolve_within(base: Path, candidate: Path | str) -> Path:
     # looping link an error instead of a silent fallback to the link itself.
     try:
         resolved = resolved.resolve(strict=False)
-    except (OSError, RuntimeError) as exc:  # pragma: no cover - platform specific
+    except (OSError, RuntimeError) as exc:
         raise PathBoundaryError(f"cannot resolve {target}: {exc}") from exc
 
     if resolved != resolved_base and not resolved.is_relative_to(resolved_base):

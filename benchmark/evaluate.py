@@ -34,7 +34,7 @@ from typing import Any, Iterable
 
 try:  # normal package import, and the supported way to reach this module
     from benchmark.paths import require_within
-except ImportError:  # pragma: no cover - direct `python benchmark/evaluate.py`
+except ImportError:  # direct `python benchmark/evaluate.py`
     import sys
 
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))

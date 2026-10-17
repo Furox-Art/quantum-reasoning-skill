@@ -9,7 +9,7 @@ name: validate-skill
 # including from forks.
 on:
   push:
-    branches: [main]
+    branches: [main, "dev/**"]
   pull_request:
 
 permissions:

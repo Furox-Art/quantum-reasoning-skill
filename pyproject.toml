@@ -174,17 +174,10 @@ branch = true
 source = ["quantum_reasoning_skill", "reference", "benchmark"]
 omit = [
   "*/tests/*",
-  "*/__main__.py",
 ]
 
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
-# Measured total with branch coverage enabled is 68%. Ratchet upward as the
-# reference controller and evaluator gain tests; never lower this number.
+# Full statement and branch coverage is required; do not exempt production paths.
 fail_under = 100
-exclude_lines = [
-  "pragma: no cover",
-  "if TYPE_CHECKING:",
-  "raise NotImplementedError",
-]
