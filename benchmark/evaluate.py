@@ -217,6 +217,13 @@ def validate_result(result: dict[str, Any]) -> None:
             f"result {result.get('case_id', '<unknown>')!r} missing fields: "
             + ", ".join(sorted(missing))
         )
+    case_id = result["case_id"]
+    if not isinstance(case_id, str) or not case_id.strip():
+        raise ValueError("result case_id must be a non-empty string")
+    if "status" in result and result["status"] not in (
+        "ok", "refusal", "timeout", "error",
+    ):
+        raise ValueError(f"result {case_id!r}: invalid status")
     for field in ("tokens", "tool_calls"):
         if not _valid_count(result[field]):
             raise ValueError(
@@ -288,7 +295,7 @@ def summarize(cases: list[dict[str, Any]], results: list[dict[str, Any]]) -> dic
 
     result_by_id: dict[str, dict[str, Any]] = {}
     for result in results:
-        case_id = str(result["case_id"])
+        case_id = result["case_id"]
         if case_id in result_by_id:
             raise ValueError(f"duplicate result for case_id {case_id!r}")
         if case_id not in case_by_id:
@@ -299,7 +306,12 @@ def summarize(cases: list[dict[str, Any]], results: list[dict[str, Any]]) -> dic
     evaluated = []
     for case_id, result in result_by_id.items():
         case = case_by_id[case_id]
-        evaluated.append((case, result, answer_is_correct(case, result["answer"])))
+        # Refusals, tool errors and timeouts are not completed correct runs,
+        # even if an answer field happens to contain a reference answer.
+        is_correct = result.get("status", "ok") == "ok" and answer_is_correct(
+            case, result["answer"]
+        )
+        evaluated.append((case, result, is_correct))
 
     total = len(evaluated)
     correct = sum(int(is_correct) for _, _, is_correct in evaluated)

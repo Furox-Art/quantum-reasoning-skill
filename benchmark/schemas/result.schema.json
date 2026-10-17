@@ -6,7 +6,7 @@
   "additionalProperties": true,
   "required": ["case_id", "answer", "tokens", "tool_calls", "latency_ms"],
   "properties": {
-    "case_id": {"type": "string", "minLength": 1},
+    "case_id": {"type": "string", "minLength": 1, "pattern": "\\S"},
     "answer": {},
     "tokens": {"type": "integer", "minimum": 0},
     "tool_calls": {"type": "integer", "minimum": 0},
