@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from enum import Enum
-from math import log2
+from math import isfinite, log2
 from typing import Iterable, Sequence
 
 
@@ -170,9 +170,11 @@ def normalized_entropy(probabilities: Sequence[float]) -> float:
     """Normalized Shannon entropy in [0, 1]."""
     if not probabilities:
         return 0.0
-    if any(value < 0 for value in probabilities):
-        raise ValueError("probabilities cannot contain negative values")
+    if any(not isfinite(value) or value < 0 for value in probabilities):
+        raise ValueError("probabilities must be finite and non-negative")
     total = sum(probabilities)
+    if not isfinite(total):
+        raise ValueError("probability total must be finite")
     if total <= 0:
         return 0.0
     normalized = [value / total for value in probabilities if value > 0]
