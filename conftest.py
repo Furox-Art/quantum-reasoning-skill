@@ -141,3 +141,16 @@ def version_lockstep_failures() -> list[str]:
     if not SEMVER.match(canonical):
         failures.append(f"VERSION is not a semantic version: {canonical!r}")
     return failures
+
+
+def pytest_sessionfinish(session, exitstatus: int) -> None:
+    """Treat any skipped test as a failed full-suite run."""
+    reporter = session.config.pluginmanager.get_plugin("terminalreporter")
+    if reporter is None:
+        return
+    skipped = reporter.stats.get("skipped", ())
+    if skipped:
+        import pytest
+
+        reporter.write_sep("!", f"QUALITY GATE FAILED: {len(skipped)} skipped test(s)")
+        session.exitstatus = pytest.ExitCode.TESTS_FAILED

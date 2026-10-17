@@ -120,9 +120,7 @@ def _softmax_scores(scores: dict[str, float], temperature: float = 0.15) -> dict
     top = max(scaled.values())
     exps = {branch: pow(2.718281828459045, scaled[branch] - top) for branch in ids}
     total = sum(exps.values())
-    if total <= 0:
-        uniform = 1.0 / len(ids)
-        return dict.fromkeys(ids, uniform)
+    # Max-shift guarantees one exp(0) = 1, hence positive denominator.
     return {branch: exps[branch] / total for branch in ids}
 
 
@@ -473,7 +471,9 @@ def aggregate(results: list[ScenarioResult]) -> dict[str, Any]:
         by_policy.setdefault(result.policy, []).append(result)
 
     def policy_block(policy: str) -> dict[str, Any]:
-        rows = by_policy[policy]
+        # An empty (or policy-filtered) experiment has unknown metrics, not
+        # fabricated zero-valued successes or an unhandled KeyError.
+        rows = by_policy.get(policy, [])
         falsification = [r for r in rows if r.scenario_type == "falsification"]
         revival = [r for r in rows if r.scenario_type == "revival"]
         control = [r for r in rows if r.scenario_type == "control"]
@@ -529,53 +529,53 @@ def aggregate(results: list[ScenarioResult]) -> dict[str, Any]:
         }
 
     payload = {policy: policy_block(policy) for policy in ("single", "multi")}
-    if "single" in payload and "multi" in payload:
-        payload["comparison"] = {
-            "accuracy_delta": (
-                payload["multi"]["accuracy"] - payload["single"]["accuracy"]
-                if payload["multi"]["accuracy"] is not None
-                and payload["single"]["accuracy"] is not None
-                else None
-            ),
-            "falsification_accuracy_delta": (
-                payload["multi"]["falsification"]["accuracy"]
-                - payload["single"]["falsification"]["accuracy"]
-                if payload["multi"]["falsification"]["accuracy"] is not None
-                and payload["single"]["falsification"]["accuracy"] is not None
-                else None
-            ),
-            "decision_switch_success_delta": (
-                payload["multi"]["falsification"]["decision_switch_success_rate"]
-                - payload["single"]["falsification"]["decision_switch_success_rate"]
-                if payload["multi"]["falsification"]["decision_switch_success_rate"] is not None
-                and payload["single"]["falsification"]["decision_switch_success_rate"] is not None
-                else None
-            ),
-            "revival_success_delta": (
-                payload["multi"]["revival"]["revival_success_rate"]
-                - payload["single"]["revival"]["revival_success_rate"]
-                if payload["multi"]["revival"]["revival_success_rate"] is not None
-                and payload["single"]["revival"]["revival_success_rate"] is not None
-                else None
-            ),
-            "brier_delta": (
-                payload["multi"]["brier_score"] - payload["single"]["brier_score"]
-                if payload["multi"]["brier_score"] is not None
-                and payload["single"]["brier_score"] is not None
-                else None
-            ),
-            "token_percent_change": (
-                (
-                    payload["multi"]["mean_tokens_per_scenario"]
-                    - payload["single"]["mean_tokens_per_scenario"]
-                )
-                / payload["single"]["mean_tokens_per_scenario"]
-                * 100.0
-                if payload["multi"]["mean_tokens_per_scenario"] is not None
-                and payload["single"]["mean_tokens_per_scenario"] not in (None, 0)
-                else None
-            ),
-        }
+    # Both policy blocks are generated even when the input has no results.
+    payload["comparison"] = {
+        "accuracy_delta": (
+            payload["multi"]["accuracy"] - payload["single"]["accuracy"]
+            if payload["multi"]["accuracy"] is not None
+            and payload["single"]["accuracy"] is not None
+            else None
+        ),
+        "falsification_accuracy_delta": (
+            payload["multi"]["falsification"]["accuracy"]
+            - payload["single"]["falsification"]["accuracy"]
+            if payload["multi"]["falsification"]["accuracy"] is not None
+            and payload["single"]["falsification"]["accuracy"] is not None
+            else None
+        ),
+        "decision_switch_success_delta": (
+            payload["multi"]["falsification"]["decision_switch_success_rate"]
+            - payload["single"]["falsification"]["decision_switch_success_rate"]
+            if payload["multi"]["falsification"]["decision_switch_success_rate"] is not None
+            and payload["single"]["falsification"]["decision_switch_success_rate"] is not None
+            else None
+        ),
+        "revival_success_delta": (
+            payload["multi"]["revival"]["revival_success_rate"]
+            - payload["single"]["revival"]["revival_success_rate"]
+            if payload["multi"]["revival"]["revival_success_rate"] is not None
+            and payload["single"]["revival"]["revival_success_rate"] is not None
+            else None
+        ),
+        "brier_delta": (
+            payload["multi"]["brier_score"] - payload["single"]["brier_score"]
+            if payload["multi"]["brier_score"] is not None
+            and payload["single"]["brier_score"] is not None
+            else None
+        ),
+        "token_percent_change": (
+            (
+                payload["multi"]["mean_tokens_per_scenario"]
+                - payload["single"]["mean_tokens_per_scenario"]
+            )
+            / payload["single"]["mean_tokens_per_scenario"]
+            * 100.0
+            if payload["multi"]["mean_tokens_per_scenario"] is not None
+            and payload["single"]["mean_tokens_per_scenario"] not in (None, 0)
+            else None
+        ),
+    }
     return payload
 
 
