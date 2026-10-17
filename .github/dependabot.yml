@@ -2,6 +2,7 @@ version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
+    open-pull-requests-limit: 2
     schedule:
       interval: weekly
     commit-message:
@@ -19,6 +20,7 @@ updates:
 
   - package-ecosystem: pip
     directory: /
+    open-pull-requests-limit: 2
     schedule:
       interval: weekly
     commit-message:
