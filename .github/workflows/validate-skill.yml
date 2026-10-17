@@ -32,6 +32,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
 
       # `yaml.safe_load` accepts duplicate mapping keys and silently keeps the
       # last one, so every "does this parse?" check passed a workflow that GitHub
@@ -272,6 +274,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
 
       # The workflow-validation tests parse every workflow with PyYAML's
       # duplicate-rejecting loader, which is what proves the parser in
@@ -294,6 +298,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
 
       - name: Install ruff
         run: python -m pip install --disable-pip-version-check "ruff==0.16.10"
@@ -319,6 +325,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
 
       - name: Install mypy
         run: python -m pip install --disable-pip-version-check "mypy==2.4.0"
@@ -338,6 +346,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
 
       - name: Install coverage
         run: python -m pip install --disable-pip-version-check "coverage==7.16.2" "pyyaml==6.0.3"
@@ -369,6 +379,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
 
       - name: Install build tooling
         # twine >= 7.0.0 is required: 6.x hardcodes a metadata-version list
@@ -415,6 +427,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
 
       - name: Install build tooling
         run: python -m pip install --disable-pip-version-check "build==1.6.1"
@@ -467,6 +481,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
 
       - name: Download built distributions
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
