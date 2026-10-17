@@ -8,6 +8,14 @@ updates:
       prefix: "ci"
     labels:
       - dependencies
+    groups:
+      routine-actions:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: pip
     directory: /
@@ -17,3 +25,11 @@ updates:
       prefix: "deps"
     labels:
       - dependencies
+    groups:
+      routine-python:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
