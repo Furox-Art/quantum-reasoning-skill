@@ -38,6 +38,7 @@ import argparse
 import json
 import sys
 import time
+from bisect import bisect_left
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -529,53 +530,52 @@ def aggregate(results: list[ScenarioResult]) -> dict[str, Any]:
         }
 
     payload = {policy: policy_block(policy) for policy in ("single", "multi")}
-    if "single" in payload and "multi" in payload:
-        payload["comparison"] = {
-            "accuracy_delta": (
-                payload["multi"]["accuracy"] - payload["single"]["accuracy"]
-                if payload["multi"]["accuracy"] is not None
-                and payload["single"]["accuracy"] is not None
-                else None
-            ),
-            "falsification_accuracy_delta": (
-                payload["multi"]["falsification"]["accuracy"]
-                - payload["single"]["falsification"]["accuracy"]
-                if payload["multi"]["falsification"]["accuracy"] is not None
-                and payload["single"]["falsification"]["accuracy"] is not None
-                else None
-            ),
-            "decision_switch_success_delta": (
-                payload["multi"]["falsification"]["decision_switch_success_rate"]
-                - payload["single"]["falsification"]["decision_switch_success_rate"]
-                if payload["multi"]["falsification"]["decision_switch_success_rate"] is not None
-                and payload["single"]["falsification"]["decision_switch_success_rate"] is not None
-                else None
-            ),
-            "revival_success_delta": (
-                payload["multi"]["revival"]["revival_success_rate"]
-                - payload["single"]["revival"]["revival_success_rate"]
-                if payload["multi"]["revival"]["revival_success_rate"] is not None
-                and payload["single"]["revival"]["revival_success_rate"] is not None
-                else None
-            ),
-            "brier_delta": (
-                payload["multi"]["brier_score"] - payload["single"]["brier_score"]
-                if payload["multi"]["brier_score"] is not None
-                and payload["single"]["brier_score"] is not None
-                else None
-            ),
-            "token_percent_change": (
-                (
-                    payload["multi"]["mean_tokens_per_scenario"]
-                    - payload["single"]["mean_tokens_per_scenario"]
-                )
-                / payload["single"]["mean_tokens_per_scenario"]
-                * 100.0
-                if payload["multi"]["mean_tokens_per_scenario"] is not None
-                and payload["single"]["mean_tokens_per_scenario"] not in (None, 0)
-                else None
-            ),
-        }
+    payload["comparison"] = {
+        "accuracy_delta": (
+            payload["multi"]["accuracy"] - payload["single"]["accuracy"]
+            if payload["multi"]["accuracy"] is not None
+            and payload["single"]["accuracy"] is not None
+            else None
+        ),
+        "falsification_accuracy_delta": (
+            payload["multi"]["falsification"]["accuracy"]
+            - payload["single"]["falsification"]["accuracy"]
+            if payload["multi"]["falsification"]["accuracy"] is not None
+            and payload["single"]["falsification"]["accuracy"] is not None
+            else None
+        ),
+        "decision_switch_success_delta": (
+            payload["multi"]["falsification"]["decision_switch_success_rate"]
+            - payload["single"]["falsification"]["decision_switch_success_rate"]
+            if payload["multi"]["falsification"]["decision_switch_success_rate"] is not None
+            and payload["single"]["falsification"]["decision_switch_success_rate"] is not None
+            else None
+        ),
+        "revival_success_delta": (
+            payload["multi"]["revival"]["revival_success_rate"]
+            - payload["single"]["revival"]["revival_success_rate"]
+            if payload["multi"]["revival"]["revival_success_rate"] is not None
+            and payload["single"]["revival"]["revival_success_rate"] is not None
+            else None
+        ),
+        "brier_delta": (
+            payload["multi"]["brier_score"] - payload["single"]["brier_score"]
+            if payload["multi"]["brier_score"] is not None
+            and payload["single"]["brier_score"] is not None
+            else None
+        ),
+        "token_percent_change": (
+            (
+                payload["multi"]["mean_tokens_per_scenario"]
+                - payload["single"]["mean_tokens_per_scenario"]
+            )
+            / payload["single"]["mean_tokens_per_scenario"]
+            * 100.0
+            if payload["multi"]["mean_tokens_per_scenario"] is not None
+            and payload["single"]["mean_tokens_per_scenario"] not in (None, 0)
+            else None
+        ),
+    }
     return payload
 
 
@@ -586,13 +586,11 @@ def reliability_rows(results: list[ScenarioResult]) -> list[dict[str, Any]]:
     for result in results:
         for row in result.probability_rows:
             truth_probability = row["probabilities"].get(row["truth"], 0.0)
-            index = 0
-            for position, edge in enumerate(bins[1:], start=1):
-                if truth_probability <= edge:
-                    index = position - 1
-                    break
-            else:
-                index = len(bins) - 2
+            # Each value is a probability, not an arbitrary telemetry score.
+            # Invalid inputs must not be silently assigned a plausible bin.
+            if not 0.0 <= truth_probability <= 1.0:
+                raise ValueError("truth probability must be finite and in [0, 1]")
+            index = min(bisect_left(bins[1:], truth_probability), len(bins) - 2)
             rows.append(
                 {
                     "scenario_id": result.scenario_id,

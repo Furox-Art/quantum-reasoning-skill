@@ -381,9 +381,10 @@ def main(argv: list[str] | None = None) -> int:
         payload["comparison"] = compare(baseline_summary, skill_summary)
 
     for section_name, section in payload.items():
-        if isinstance(section, dict):
-            for key, value in section.items():
-                ensure_finite(value, f"{section_name}.{key}")
+        if not isinstance(section, dict):
+            raise ValueError(f"{section_name} must be a JSON object")
+        for key, value in section.items():
+            ensure_finite(value, f"{section_name}.{key}")
 
     rendered = json.dumps(payload, indent=2, sort_keys=True)
     print(rendered)
