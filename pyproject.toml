@@ -180,9 +180,9 @@ omit = [
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
-# Measured total with branch coverage enabled is 68%. Ratchet upward as the
-# reference controller and evaluator gain tests; never lower this number.
-fail_under = 65
+# Full Python production-source statement and branch coverage is required.
+# A regression must fail CI rather than silently lower the quality threshold.
+fail_under = 100
 exclude_lines = [
   "pragma: no cover",
   "if TYPE_CHECKING:",
