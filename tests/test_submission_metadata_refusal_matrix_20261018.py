@@ -6,7 +6,6 @@ these assertions are deliberately independent of pytest and external plugins.
 
 from __future__ import annotations
 
-import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -16,7 +15,8 @@ from benchmark import validate_submission as subject
 
 
 def metadata():
-    conditions = lambda label: {
+    def conditions(label):
+        return {
         "instruction_config": label, "sampling": {}, "tool_availability": [],
         "context_limit": 1000, "output_limit": 100,
     }
@@ -157,14 +157,12 @@ class SubmissionMetadataRefusalTests(unittest.TestCase):
                     raise PermissionError("not accessible")
                 return real(path)
 
-            with patch.object(Path, "iterdir", unreadable):
-                with self.assertRaisesRegex(SystemExit, "not readable"):
-                    subject.main(["--root", str(target)])
+            with patch.object(Path, "iterdir", unreadable), self.assertRaisesRegex(SystemExit, "not readable"):
+                subject.main(["--root", str(target)])
 
     def test_duplicate_case_identifier_is_refused(self):
-        with patch.object(subject.evaluate, "validate_case", return_value=None):
-            with self.assertRaisesRegex(ValueError, "duplicate case id"):
-                subject._case_map([{"id": "same"}, {"id": "same"}])
+        with patch.object(subject.evaluate, "validate_case", return_value=None), self.assertRaisesRegex(ValueError, "duplicate case id"):
+            subject._case_map([{"id": "same"}, {"id": "same"}])
 
 
 if __name__ == "__main__":
