@@ -28,15 +28,21 @@ Executable behavior changes should include tests.
    contract. Use the [feature request](https://github.com/Furox-Art/quantum-reasoning-skill/issues/new?template=feature-request.yml)
    template so the evidence requirement is visible early.
 2. Branch from `main`.
-3. Run the validation suite. These six checks are the required status checks on `main`:
+3. Run the validation suite. The required status checks on `main` are the seven CI jobs
+   `repository contract`, `lint`, `types`, `coverage`, `build distributions`,
+   `installed API contract` and `toolchain pins`; after a plain test run, the commands
+   below reproduce them locally (`repository contract` also checks that the required
+   files exist):
 
    ```bash
    python -m unittest discover -s tests -v
+   python bin/check_workflows.py --verbose
    ruff check .
    mypy
    python -m coverage run -m unittest discover -s tests && python -m coverage report
    python -m build --outdir dist && python -m twine check --strict dist/*
    pip install --force-reinstall dist/*.whl && python bin/check_release_contract.py
+   python bin/check_toolchain_pins.py
    ```
 
    Plus `python docs/quickstart.py` for the user-facing path.

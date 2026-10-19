@@ -11,14 +11,16 @@ Describe the change and the behavior it affects. Reference the issue it closes, 
 
 ## Validation
 
-The six required status checks on `main`:
+The seven required status checks on `main`, with their local equivalents (the coverage
+run executes the full unittest suite):
 
-- [ ] `python -m unittest discover -s tests -v`
+- [ ] Repository contract: `python bin/check_workflows.py --verbose`
 - [ ] `ruff check .`
 - [ ] `mypy`
 - [ ] `python -m coverage run -m unittest discover -s tests && python -m coverage report`
 - [ ] `python -m build --outdir dist && python -m twine check --strict dist/*`
 - [ ] Installed API contract: install the built wheel and run `python bin/check_release_contract.py`
+- [ ] Toolchain pins: `python bin/check_toolchain_pins.py`
 
 Also run `python docs/quickstart.py` if you changed anything a user runs.
 
