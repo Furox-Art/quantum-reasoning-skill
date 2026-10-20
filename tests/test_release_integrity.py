@@ -113,7 +113,7 @@ class TreeCase(unittest.TestCase):
         for line in text.splitlines():
             if "was published through the long-lived-token path" in line:
                 return line
-        self.fail("README.md no longer contains the disclosure sentence")
+        raise AssertionError("README.md no longer contains the disclosure sentence")
 
 
 class RealTreeTests(TreeCase):

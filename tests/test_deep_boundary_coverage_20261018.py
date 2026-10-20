@@ -15,7 +15,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import benchmark
-from benchmark import evaluate
+import benchmark.evaluate
 from benchmark.falsification import run_suite, scenarios
 from reference import branch_controller as bc
 
@@ -116,7 +116,7 @@ class RealCommandEntryPointContracts(unittest.TestCase):
                     "--skill", str(Path(td) / "not-created-results.jsonl")]
             with patch.object(sys, "argv", args), self.assertRaises(SystemExit) as stopped:
                 runpy.run_module("benchmark.evaluate", run_name="__main__")
-            self.assertEqual(stopped.exception.code, evaluate.EXIT_MISSING_INPUT)
+            self.assertEqual(stopped.exception.code, benchmark.evaluate.EXIT_MISSING_INPUT)
 
     def test_actual_validator_entrypoint_accepts_explicit_empty_root_only(self):
         with tempfile.TemporaryDirectory() as td:
@@ -154,7 +154,7 @@ class RealCommandEntryPointContracts(unittest.TestCase):
                 path.write_text(json.dumps(value) + "\n")
             output = root / "comparison.json"
             with redirect_stdout(StringIO()):
-                rc = evaluate.main(["--cases", str(paths[0]), "--baseline", str(paths[1]),
+                rc = benchmark.evaluate.main(["--cases", str(paths[0]), "--baseline", str(paths[1]),
                                     "--skill", str(paths[2]), "--cases-dir", td,
                                     "--output", str(output)])
             self.assertEqual(rc, 0)
