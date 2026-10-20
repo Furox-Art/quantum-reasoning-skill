@@ -335,7 +335,7 @@ class PublishBehaviourTests(unittest.TestCase):
         for step in self.steps:
             if step.get("name") == name:
                 return step
-        self.fail(f"step {name!r} is missing from npm-publish.yml")
+        raise AssertionError(f"step {name!r} is missing from npm-publish.yml")
 
     # -- structure -----------------------------------------------------------
     def test_credential_mode_selection_survives(self):
