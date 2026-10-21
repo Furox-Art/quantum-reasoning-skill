@@ -2,8 +2,9 @@
 
 Community benchmark bundles arrive through pull requests, so every path the
 validator touches is untrusted. The guards under test live in
-:mod:`benchmark.paths` and are applied by :mod:`benchmark.validate_submission`
-and :mod:`benchmark.evaluate`.
+:mod:`quantum_reasoning_skill.benchmark.paths` and are applied by
+:mod:`quantum_reasoning_skill.benchmark.validate_submission` and
+:mod:`quantum_reasoning_skill.benchmark.evaluate`.
 """
 
 from __future__ import annotations
@@ -15,14 +16,17 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-paths = importlib.import_module("benchmark.paths")
-evaluate = importlib.import_module("benchmark.evaluate")
-validator = importlib.import_module("benchmark.validate_submission")
+paths = importlib.import_module("quantum_reasoning_skill.benchmark.paths")
+evaluate = importlib.import_module("quantum_reasoning_skill.benchmark.evaluate")
+validator = importlib.import_module(
+    "quantum_reasoning_skill.benchmark.validate_submission"
+)
 
 PathBoundaryError = paths.PathBoundaryError
 
@@ -187,6 +191,24 @@ class ValidateBundleBoundaryTests(unittest.TestCase):
     def test_valid_bundle_still_passes(self):
         with tempfile.TemporaryDirectory() as tmp:
             validator.validate_bundle(self.make_bundle(Path(tmp) / "b"))
+
+    def test_boundary_failure_is_reported_as_a_bundle_value_error(self):
+        """Every member lookup is wrapped with the bundle path for diagnosis.
+
+        The symlink test exercises the guard itself. This test pins the
+        translation step even on hosts where creating a symlink is not
+        permitted, so a boundary failure can never escape as the wrong type.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            bundle = self.make_bundle(Path(tmp) / "b")
+            with mock.patch.object(
+                validator,
+                "safe_bundle_member",
+                side_effect=PathBoundaryError("must stay inside"),
+            ), self.assertRaises(ValueError) as raised:
+                validator.validate_bundle(bundle)
+
+        self.assertEqual(str(raised.exception), f"{bundle}: must stay inside")
 
     @unittest.skipUnless(hasattr(os, "symlink"), "symlinks unavailable")
     def test_symlinked_member_escaping_the_bundle_is_rejected(self):

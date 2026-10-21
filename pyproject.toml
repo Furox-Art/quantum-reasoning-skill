@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "quantum-reasoning-skill"
-version = "1.1.5"
+version = "1.2.0"
 description = "Quantum-inspired multi-branch reasoning for AI agents: explore, score, prune, and merge solution paths"
 readme = "README.md"
 license = "MIT"
@@ -38,8 +38,9 @@ Repository = "https://github.com/Furox-Art/quantum-reasoning-skill"
 Issues = "https://github.com/Furox-Art/quantum-reasoning-skill/issues"
 
 # `quantum-reasoning` is a standalone skill inspector that reads the packaged
-# SKILL.md and reports the skill contract. It is authored in `bin/` and
-# installed into the package as `quantum_reasoning_skill.cli`.
+# SKILL.md and reports the skill contract. It lives in the importable package at
+# `quantum_reasoning_skill/cli.py`; `bin/quantum-reasoning` is a thin checkout
+# launcher for the same entry point.
 [project.scripts]
 quantum-reasoning = "quantum_reasoning_skill.cli:main"
 
@@ -65,29 +66,20 @@ dev = [
 # shipped; tests and CI configuration are not.
 [tool.hatch.build.targets.wheel]
 packages = ["quantum_reasoning_skill"]
-only-include = [
-  "quantum_reasoning_skill",
-  "SKILL.md",
-  "VERSION",
-  "reference",
-  "benchmark",
-  "docs",
-  "examples",
-]
-# `bin/quantum-reasoning` is installed as a console script by hatchling.
+# Assets and tooling ship *inside* the package instead of install-time top-level
+# directories (`docs/`, `examples/`), which would pollute site-packages with
+# generic names every project could claim. `reference/` and `benchmark/` are
+# ordinary package subdirectories now, so `packages` ships them without a
+# force-include mapping.
 [tool.hatch.build.targets.wheel.force-include]
 "SKILL.md" = "quantum_reasoning_skill/SKILL.md"
 "VERSION" = "quantum_reasoning_skill/VERSION"
-# The CLI lives in `bin/` (checked in, reviewable, runnable from a checkout) and
-# is installed into the package as a normal module so that a cross-platform
-# console_scripts entry point can be generated from it.
-"bin/quantum-reasoning" = "quantum_reasoning_skill/cli.py"
+"docs" = "quantum_reasoning_skill/docs"
+"examples" = "quantum_reasoning_skill/examples"
 
 [tool.hatch.build.targets.sdist]
 include = [
   "/quantum_reasoning_skill",
-  "/reference",
-  "/benchmark",
   "/docs",
   "/examples",
   "/tests",
@@ -138,21 +130,20 @@ ignore = [
 # gate becomes blocking once the owning areas are formatted.
 [tool.ruff.format]
 exclude = [
-  "benchmark",
-  "reference",
   "tests",
   "quantum_reasoning_skill",
 ]
 
 [tool.ruff.lint.per-file-ignores]
-# NOTE: `benchmark/`, `reference/`, `tests/` and `quantum_reasoning_skill/`
-# library source are owned by other maintainers. These are narrowly scoped
-# suppressions for the exact rules those files currently violate, so that the
-# lint gate is green today while still catching *new* violations of every other
-# rule. Remove each entry as the owning area is cleaned up.
-"benchmark/evaluate.py" = ["I001", "SIM102", "TRY004", "UP035", "UP038"]
-"benchmark/validate_submission.py" = ["E401", "F401", "I001", "TRY004"]
-"reference/branch_controller.py" = ["UP035"]
+# NOTE: `quantum_reasoning_skill/benchmark/`, `quantum_reasoning_skill/reference/`,
+# `tests/` and the rest of `quantum_reasoning_skill/` are owned by other
+# maintainers. These are narrowly scoped suppressions for the exact rules those
+# files currently violate, so that the lint gate is green today while still
+# catching *new* violations of every other rule. Remove each entry as the owning
+# area is cleaned up.
+"quantum_reasoning_skill/benchmark/evaluate.py" = ["I001", "SIM102", "TRY004", "UP035", "UP038"]
+"quantum_reasoning_skill/benchmark/validate_submission.py" = ["E401", "F401", "I001", "TRY004"]
+"quantum_reasoning_skill/reference/branch_controller.py" = ["UP035"]
 "quantum_reasoning_skill/__init__.py" = ["W293"]
 "tests/*" = ["E401", "I001", "TRY002", "W292"]
 
@@ -166,12 +157,12 @@ strict_equality = true
 files = ["quantum_reasoning_skill", "bin/quantum-reasoning"]
 
 [[tool.mypy.overrides]]
-module = ["benchmark.*"]
+module = ["quantum_reasoning_skill.benchmark.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]
 branch = true
-source = ["quantum_reasoning_skill", "reference", "benchmark"]
+source = ["quantum_reasoning_skill"]
 omit = [
   "*/tests/*",
   "*/__main__.py",

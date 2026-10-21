@@ -12,11 +12,11 @@ Policies
 
 ``multi``
     Runs the reference branch controller from
-    ``reference/branch_controller.py``: branches are scored from explicit
-    metric snapshots, contradicted branches are pruned, dormant branches are
-    revived on material evidence change, and the final answer is the surviving
-    leader. Rejected branches are reopened only when their rejection premise is
-    explicitly invalidated by the scenario.
+    ``quantum_reasoning_skill/reference/branch_controller.py``: branches are
+    scored from explicit metric snapshots, contradicted branches are pruned,
+    dormant branches are revived on material evidence change, and the final
+    answer is the surviving leader. Rejected branches are reopened only when
+    their rejection premise is explicitly invalidated by the scenario.
 
 Metrics (all computed by this file, all deterministic)
 -----------------------------------------------------
@@ -44,16 +44,20 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from benchmark.falsification.scenarios import (  # noqa: E402
+from quantum_reasoning_skill.benchmark.falsification.scenarios import (  # noqa: E402
     Scenario,
     build_all_scenarios,
     scenario_as_case_record,
 )
-from reference import branch_controller as BC  # noqa: E402
+from quantum_reasoning_skill.reference import branch_controller as BC  # noqa: E402
+
+#: Artifacts are written beside this module so the runner works from a checkout
+#: and from an installed wheel without depending on the current directory.
+PACKAGE_DIR = Path(__file__).resolve().parent
 
 # Deterministic token accounting. Tokens are a fixed per-branch per-step budget
 # plus a fixed per-decision overhead, so cost differences come only from how
@@ -743,13 +747,13 @@ def main() -> int:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("benchmark/falsification/results"),
+        default=PACKAGE_DIR / "results",
         help="Directory for committed result artifacts (JSON + Markdown).",
     )
     parser.add_argument(
         "--cases-output",
         type=Path,
-        default=Path("benchmark/falsification/scenarios.jsonl"),
+        default=PACKAGE_DIR / "scenarios.jsonl",
         help="Path for the generated cases file.",
     )
     parser.add_argument(

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from reference.branch_controller import normalized_entropy
+from quantum_reasoning_skill.reference.branch_controller import normalized_entropy
 
 
 class NonfiniteEntropyRegressionTests(unittest.TestCase):

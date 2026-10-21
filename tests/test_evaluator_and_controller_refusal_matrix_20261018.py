@@ -7,8 +7,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from benchmark import evaluate
-from reference import branch_controller as bc
+from quantum_reasoning_skill.benchmark import evaluate
+from quantum_reasoning_skill.reference import branch_controller as bc
 
 
 def valid_case():

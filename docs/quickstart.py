@@ -99,8 +99,8 @@ def main() -> int:
             failures.append("SKILL.md description exceeds the 1024-char skill limit")
         out("    status      : front matter parses and is host-ready")
 
-    step(3, total, "Reference controller (reference/branch_controller.py)")
-    from reference.branch_controller import (  # noqa: PLC0415
+    step(3, total, "Reference controller (quantum_reasoning_skill/reference/branch_controller.py)")
+    from quantum_reasoning_skill.reference.branch_controller import (  # noqa: PLC0415
         Branch,
         BranchMetrics,
         collapse_decision,
@@ -205,7 +205,7 @@ def main() -> int:
     out("    No language model is called. Baseline and skill rows below are")
     out("    byte-identical placeholders that exist only to prove the harness runs.")
     out("    The resulting accuracy is NOT a measurement of this skill.")
-    cases_path = ROOT / "benchmark" / "cases.jsonl"
+    cases_path = ROOT / "quantum_reasoning_skill" / "benchmark" / "cases.jsonl"
     case_ids = [
         json.loads(line)["id"]
         for line in cases_path.read_text(encoding="utf-8").splitlines()
@@ -232,7 +232,7 @@ def main() -> int:
         result = subprocess.run(
             [
                 sys.executable,
-                str(ROOT / "benchmark" / "evaluate.py"),
+                str(ROOT / "quantum_reasoning_skill" / "benchmark" / "evaluate.py"),
                 "--cases", str(cases_path),
                 "--baseline", str(baseline),
                 "--skill", str(skill),
@@ -242,7 +242,7 @@ def main() -> int:
             check=False,
         )
     if result.returncode != 0:
-        failures.append("benchmark/evaluate.py failed on placeholder rows")
+        failures.append("quantum_reasoning_skill/benchmark/evaluate.py failed on placeholder rows")
         out(f"    FAIL: {result.stderr.strip()[:200]}")
     else:
         payload = json.loads(result.stdout)
@@ -265,8 +265,9 @@ def main() -> int:
         f"({platform.machine()})")
     out(f"    python      : {platform.python_version()} "
         f"({platform.python_implementation()})")
-    out("    controller  : reference/branch_controller.py DEFAULT_THRESHOLDS")
-    out("    benchmark   : benchmark/cases.jsonl + benchmark/evaluate.py")
+    out("    controller  : quantum_reasoning_skill/reference/branch_controller.py DEFAULT_THRESHOLDS")
+    out("    benchmark   : quantum_reasoning_skill/benchmark/cases.jsonl + "
+        "quantum_reasoning_skill/benchmark/evaluate.py")
     out()
     if failures:
         out(f"RESULT: FAIL ({len(failures)} problem(s))")

@@ -14,8 +14,8 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-from benchmark import evaluate, validate_submission
-from benchmark.falsification import run_suite, scenarios
+from quantum_reasoning_skill.benchmark import evaluate, validate_submission
+from quantum_reasoning_skill.benchmark.falsification import run_suite, scenarios
 
 
 def _input_pair(root):
@@ -89,7 +89,7 @@ class StrictEntrypointGuardTests(unittest.TestCase):
         original_import = builtins.__import__
         blocked = [True]
         def fail_once(name, *args, **kwargs):
-            if name == "benchmark" and blocked[0]:
+            if name == "quantum_reasoning_skill.benchmark" and blocked[0]:
                 blocked[0] = False
                 raise ImportError("module path unavailable to plain script")
             return original_import(name, *args, **kwargs)

@@ -1,0 +1,177 @@
+"""Inspect the packaged quantum-reasoning skill contract.
+
+This module backs the ``quantum-reasoning`` console script. It reads the
+``SKILL.md`` that ships inside the distribution and reports the skill contract.
+It depends on nothing outside the standard library and reads the version from
+the packaged ``VERSION`` asset, so an installed wheel and a source checkout
+report the same source of truth.
+
+Exit codes:
+    0  success
+    1  invalid skill contract (bad front matter, missing fields)
+    2  SKILL.md could not be located
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+REQUIRED_FIELDS = ("name", "description")
+
+
+def _candidate_skill_paths() -> list[Path]:
+    """Return SKILL.md locations to probe, most specific first."""
+    candidates: list[Path] = []
+    # Installed alongside the package (see [tool.hatch.build.targets.wheel.force-include]).
+    candidates.append(Path(__file__).resolve().parent / "SKILL.md")
+    # Running straight from a checkout.
+    candidates.append(Path(__file__).resolve().parents[1] / "SKILL.md")
+    candidates.append(Path.cwd() / "SKILL.md")
+    seen: set[Path] = set()
+    ordered: list[Path] = []
+    for candidate in candidates:
+        if candidate not in seen:
+            seen.add(candidate)
+            ordered.append(candidate)
+    return ordered
+
+
+def _candidate_version_paths() -> list[Path]:
+    """Return VERSION locations to probe, most specific first."""
+    package_dir = Path(__file__).resolve().parent
+    return [package_dir / "VERSION", package_dir.parent / "VERSION"]
+
+
+def locate_skill_file() -> Path | None:
+    for candidate in _candidate_skill_paths():
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def package_version() -> str | None:
+    """Read the version from the packaged VERSION asset, then the checkout root."""
+    for candidate in _candidate_version_paths():
+        try:
+            value = candidate.read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if value:
+            return value.removeprefix("v")
+    return None
+
+
+def parse_front_matter(text: str) -> tuple[dict[str, str], int]:
+    """Parse leading ``---`` delimited YAML-ish front matter.
+
+    Deliberately dependency-free: only ``key: value`` pairs are supported, which
+    is what the skill contract actually uses.
+    """
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        raise ValueError("SKILL.md must start with a `---` front matter fence")
+    try:
+        end = next(i for i, line in enumerate(lines[1:], start=1) if line.strip() == "---")
+    except StopIteration as exc:
+        raise ValueError("SKILL.md front matter is not closed") from exc
+    fields: dict[str, str] = {}
+    for line in lines[1:end]:
+        if ":" not in line or line.lstrip().startswith("#"):
+            continue
+        key, _, value = line.partition(":")
+        fields[key.strip()] = value.strip().strip('"').strip("'")
+    return fields, end
+
+
+def validate_skill_text(text: str) -> dict[str, object]:
+    """Validate the skill contract and return a machine-readable report."""
+    fields, fence_end = parse_front_matter(text)
+    problems: list[str] = []
+    for required in REQUIRED_FIELDS:
+        if not fields.get(required):
+            problems.append(f"front matter must define a non-empty `{required}`")
+    if fields.get("name") != "quantum-reasoning":
+        problems.append("front matter `name` must be `quantum-reasoning`")
+    body_lines = len(text.splitlines()[fence_end + 1 :])
+    if body_lines < 20:
+        problems.append(f"SKILL.md body is too short ({body_lines} lines, expected >= 20)")
+    return {
+        "name": fields.get("name", ""),
+        "description": fields.get("description", ""),
+        "description_length": len(fields.get("description", "")),
+        "body_lines": body_lines,
+        "valid": not problems,
+        "problems": problems,
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="quantum-reasoning",
+        description="Inspect and validate the packaged quantum-reasoning skill contract.",
+    )
+    parser.add_argument("--skill-file", type=Path, help="explicit path to SKILL.md")
+    parser.add_argument(
+        "--validate",
+        action="store_true",
+        help="exit non-zero when the skill contract is invalid",
+    )
+    parser.add_argument("--json", action="store_true", help="emit the report as JSON")
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="suppress the report; rely on the exit code",
+    )
+    args = parser.parse_args(argv)
+
+    if args.skill_file is not None:
+        skill_file: Path | None = args.skill_file if args.skill_file.is_file() else None
+    else:
+        skill_file = locate_skill_file()
+
+    if skill_file is None:
+        print(
+            "error: SKILL.md not found. Reinstall quantum-reasoning-skill or pass --skill-file.",
+            file=sys.stderr,
+        )
+        return 2
+
+    try:
+        report = validate_skill_text(skill_file.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError) as exc:
+        print(f"error: cannot read {skill_file}: {exc}", file=sys.stderr)
+        return 2
+    except ValueError as exc:
+        print(f"error: {skill_file}: {exc}", file=sys.stderr)
+        return 1
+
+    version = package_version()
+    report["package_version"] = version
+
+    if not args.quiet:
+        if args.json:
+            print(json.dumps(report, indent=2, sort_keys=True))
+        else:
+            valid = bool(report["valid"])
+            name = str(report["name"] or "<missing name>")
+            body_lines = int(report["body_lines"])  # type: ignore[call-overload]
+            problems = report["problems"]
+            assert isinstance(problems, list)
+            print(f"skill:   {name}")
+            print(f"status:  {'valid' if valid else 'INVALID'}")
+            print(f"file:    {skill_file}")
+            print(f"version: {version or 'unknown'}")
+            print(f"body:    {body_lines} lines")
+            for problem in problems:
+                print(f"  - {problem}")
+
+    if args.validate and not report["valid"]:
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

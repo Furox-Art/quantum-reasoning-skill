@@ -23,7 +23,7 @@ copyright: MIT licensed.
 
 docs_dir: docs
 # strict is left off on purpose. Several documents in docs/ link to files at the
-# repository root (SKILL.md, CONTRIBUTING.md, benchmark/README.md). Those links resolve
+# repository root (SKILL.md, CONTRIBUTING.md, quantum_reasoning_skill/benchmark/README.md). Those links resolve
 # correctly when the Markdown is read on GitHub, which is where this project is
 # published, but they point outside docs_dir and mkdocs cannot follow them.
 strict: false

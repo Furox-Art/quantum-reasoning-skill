@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import importlib.util
 from pathlib import Path
 import sys
 import unittest
@@ -14,16 +13,7 @@ import conftest  # noqa: E402  (repository root is on sys.path only after the in
 
 assert_close = conftest.assert_close
 
-
-ROOT = Path(__file__).resolve().parents[1]
-SPEC = importlib.util.spec_from_file_location(
-    "branch_controller", ROOT / "reference" / "branch_controller.py"
-)
-if SPEC is None or SPEC.loader is None:
-    raise ImportError("cannot load reference/branch_controller.py")
-bc = importlib.util.module_from_spec(SPEC)
-sys.modules[SPEC.name] = bc
-SPEC.loader.exec_module(bc)
+from quantum_reasoning_skill.reference import branch_controller as bc  # noqa: E402
 
 
 class BranchControllerTests(unittest.TestCase):

@@ -44,11 +44,16 @@ baseline wrapper is otherwise identical. An asymmetric wrapper invalidates the c
 ## 3. Controller-assisted agent
 
 A host with an explicit agent loop can map observable aggregate branch measurements to
-`BranchMetrics` and use [`../reference/branch_controller.py`](../reference/branch_controller.py)
+`BranchMetrics` and use
+[`../quantum_reasoning_skill/reference/branch_controller.py`](../quantum_reasoning_skill/reference/branch_controller.py)
 for ranking, state changes and collapse decisions:
 
 ```python
-from reference.branch_controller import Branch, BranchMetrics, collapse_decision
+from quantum_reasoning_skill.reference.branch_controller import (
+    Branch,
+    BranchMetrics,
+    collapse_decision,
+)
 
 branch = Branch(
     branch_id="candidate-a",
@@ -87,4 +92,4 @@ Use the same model and version, tools, sampling settings and budget policy for b
 conditions. Every number you publish from such a run must carry the provenance listed in
 [`../CONTRIBUTING.md`](../CONTRIBUTING.md#benchmark-provenance-requirements).
 
-See [`../benchmark/README.md`](../benchmark/README.md) for cases, schemas and the evaluator.
+See [`../quantum_reasoning_skill/benchmark/README.md`](../quantum_reasoning_skill/benchmark/README.md) for cases, schemas and the evaluator.

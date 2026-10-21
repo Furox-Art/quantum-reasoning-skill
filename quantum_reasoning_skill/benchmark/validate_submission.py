@@ -3,8 +3,9 @@
 Community bundles arrive from pull requests, so everything they contain is
 untrusted input. The validator therefore:
 
-* imports :mod:`benchmark.evaluate` through the package, so a local ``evaluate.py``
-  or an unrelated third-party distribution of the same name cannot shadow it;
+* imports :mod:`quantum_reasoning_skill.benchmark.evaluate` through the package,
+  so a local ``evaluate.py`` or an unrelated third-party distribution of the
+  same name cannot shadow it;
 * resolves every bundle member and refuses anything that escapes the bundle
   directory, including symlinks pointing outside it;
 * parses JSON with :func:`json.loads` only -- no ``eval``, ``exec``, ``pickle``,
@@ -17,24 +18,34 @@ import argparse
 import json
 from datetime import date
 from pathlib import Path
-try:  # `python -m benchmark.validate_submission`
-    from benchmark import evaluate
-    from benchmark.paths import PathBoundaryError, safe_bundle_member
-except ImportError:  # `python benchmark/validate_submission.py`
-    # Running as a script puts ``benchmark/`` on sys.path, not the repository
-    # root, so the package-qualified import above cannot resolve. Anchor the
-    # repository root and import the same package modules, rather than falling
-    # back to a bare ``import evaluate`` that any module named ``evaluate`` on
-    # sys.path could satisfy.
+try:  # `python -m quantum_reasoning_skill.benchmark.validate_submission`
+    from quantum_reasoning_skill.benchmark import evaluate
+    from quantum_reasoning_skill.benchmark.paths import (
+        PathBoundaryError,
+        safe_bundle_member,
+    )
+except ImportError:  # `python quantum_reasoning_skill/benchmark/validate_submission.py`
+    # Running as a script puts ``quantum_reasoning_skill/benchmark/`` on sys.path,
+    # not the repository root, so the package-qualified import above cannot
+    # resolve. Anchor the checkout root and import the same package modules,
+    # rather than falling back to a bare ``import evaluate`` that any module named
+    # ``evaluate`` on sys.path could satisfy.
     import sys
 
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-    from benchmark import evaluate
-    from benchmark.paths import PathBoundaryError, safe_bundle_member
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from quantum_reasoning_skill.benchmark import evaluate
+    from quantum_reasoning_skill.benchmark.paths import (
+        PathBoundaryError,
+        safe_bundle_member,
+    )
 
 REQUIRED_FILES = {"metadata.json", "cases.jsonl", "baseline.jsonl", "skill.jsonl", "comparison.json", "README.md"}
 COND_FIELDS = {"instruction_config", "sampling", "tool_availability", "context_limit", "output_limit"}
 META_FIELDS = {"provider", "model", "run_date", "skill_version", "repetitions_per_case", "baseline", "skill", "failures_recorded"}
+
+#: Community bundles sit beside the validator inside the package, so the default
+#: works from a checkout and from an installed wheel alike.
+DEFAULT_COMMUNITY_ROOT = Path(__file__).resolve().parent / "results" / "community"
 
 
 def load_json(path: Path, *, max_bytes: int = evaluate.DEFAULT_MAX_BYTES) -> object:
@@ -160,7 +171,7 @@ def load_text(path: Path, *, max_bytes: int = evaluate.DEFAULT_MAX_BYTES) -> str
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", type=Path, default=Path("benchmark/results/community"))
+    parser.add_argument("--root", type=Path, default=DEFAULT_COMMUNITY_ROOT)
     parser.add_argument("--allow-empty", action="store_true")
     args = parser.parse_args(argv)
     root = args.root

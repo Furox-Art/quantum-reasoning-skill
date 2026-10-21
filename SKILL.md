@@ -1,6 +1,8 @@
 ---
 name: quantum-reasoning
 description: Maintain multiple genuinely different candidate hypotheses or solution paths, test them against evidence and tools, suppress weak or contradictory paths, revive useful alternatives when new evidence appears, and collapse to the best-supported answer only at the end.
+metadata:
+  version: "1.2.0"
 ---
 
 # Quantum Reasoning Skill
@@ -115,7 +117,7 @@ Do not mechanically maximize branch count. The goal is better search of the poss
 
 When the host system can track aggregate branch metadata, use explicit normalized values in `[0, 1]` for evidence, verification, independence, information gain, contradiction severity, unresolved assumptions, compute cost, shared-assumption overlap, and semantic redundancy.
 
-A provider-agnostic reference controller is available in [`reference/branch_controller.py`](./reference/branch_controller.py). Its defaults make the qualitative protocol testable:
+A provider-agnostic reference controller is available at `quantum_reasoning_skill/reference/branch_controller.py` ([source on GitHub](https://github.com/Furox-Art/quantum-reasoning-skill/blob/main/quantum_reasoning_skill/reference/branch_controller.py)). Its defaults make the qualitative protocol testable:
 
 - independence is reduced when branches share critical assumptions or are near-duplicates
 - strong contradiction can reject a branch
@@ -132,7 +134,7 @@ Hosts that cannot expose these aggregate measurements should still follow the qu
 
 Do not claim that this skill improves reasoning merely because the protocol sounds plausible. Compare the same model and task configuration with and without the skill and measure at least accuracy, compute/token cost, latency, error recovery, contradiction resolution, and branch diversity when observable.
 
-The reproducible benchmark schema and evaluator live under [`benchmark/`](./benchmark/README.md).
+The reproducible benchmark schema and evaluator live under `quantum_reasoning_skill/benchmark/` ([source on GitHub](https://github.com/Furox-Art/quantum-reasoning-skill/blob/main/quantum_reasoning_skill/benchmark/README.md)).
 
 ## Non-negotiable rules
 

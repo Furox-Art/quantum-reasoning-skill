@@ -4,7 +4,7 @@ This document turns the qualitative protocol in `SKILL.md` into an auditable ref
 
 **Calibration status: nothing in this document has been calibrated.** Every weight and
 threshold below is transcribed from `DEFAULT_THRESHOLDS` and `WEIGHTS` in
-[`../reference/branch_controller.py`](../reference/branch_controller.py) and is unchanged by
+[`../quantum_reasoning_skill/reference/branch_controller.py`](../quantum_reasoning_skill/reference/branch_controller.py) and is unchanged by
 `SKILL.md`. They are specified so they can be measured and replaced, not because they have
 been tuned. [`quickstart.md`](quickstart.md) step 3 shows the practical consequence: with
 defensible inputs the controller refuses to collapse, because the leader falls short of the

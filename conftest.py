@@ -22,7 +22,7 @@ CHANGELOG_VERSION = re.compile(r"^##\s+\[([^\]]+)\]", re.MULTILINE)
 #:
 #: Why a single number instead of `assertEqual` or `assertAlmostEqual`: the
 #: metrics are floating-point arithmetic, and the committed artifacts round some
-#: of them to six decimals (``benchmark/falsification/run_suite.py`` writes
+#: of them to six decimals (``quantum_reasoning_skill/benchmark/falsification/run_suite.py`` writes
 #: ``round(value, 6)`` for `brier`, `latency_ms`, `leader_score` and
 #: `probabilities`). Measured on one machine, the stored and freshly recomputed
 #: `brier` differ by up to 4.9e-7 and the stored and fresh reliability-bin
