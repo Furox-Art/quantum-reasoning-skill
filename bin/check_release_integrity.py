@@ -47,9 +47,7 @@ KNOWN_UNATTESTED_NPM = frozenset({"1.0.0", "1.1.1", "1.1.2", "1.1.3", "1.1.4", "
 #: check, which must reason about any of these rather than only the ones whose
 #: status happens to be recorded below. CI passes the live registry set as well,
 #: so this remains the offline default.
-RELEASED_NPM_VERSIONS = frozenset(
-    {"1.0.0", "1.1.0", "1.1.1", "1.1.2", "1.1.3", "1.1.4", "1.1.5"}
-)
+RELEASED_NPM_VERSIONS = frozenset({"1.0.0", "1.1.0", "1.1.1", "1.1.2", "1.1.3", "1.1.4", "1.1.5"})
 
 #: A release-version token.
 VERSION_TOKEN = re.compile(r"\b1\.\d+\.\d+\b")
@@ -366,9 +364,7 @@ def check_pypi_oidc_is_default() -> list[str]:
     if not re.search(r"^      use_token_fallback:\s*$", text, re.MULTILINE):
         problems.append("pypi-release.yml has no use_token_fallback dispatch input")
     if "default: false" not in text:
-        problems.append(
-            "use_token_fallback must default to false so OIDC is the default path"
-        )
+        problems.append("use_token_fallback must default to false so OIDC is the default path")
     if "id-token: write" not in text:
         problems.append("pypi-release.yml does not request id-token: write")
     if "steps.mode.outputs.requested == 'trusted'" not in text:
@@ -395,13 +391,11 @@ def check_pypi_oidc_is_default() -> list[str]:
             )
         if "REQUESTED_TOKEN" not in body:
             problems.append(
-                "the PyPI publish-mode resolution step does not read the "
-                "use_token_fallback input"
+                "the PyPI publish-mode resolution step does not read the use_token_fallback input"
             )
         if "ACTIONS_ID_TOKEN_REQUEST_URL" not in body:
             problems.append(
-                "the PyPI mode resolution does not fail closed when OIDC is "
-                "unavailable"
+                "the PyPI mode resolution does not fail closed when OIDC is unavailable"
             )
     return problems
 

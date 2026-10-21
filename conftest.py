@@ -41,11 +41,23 @@ def repo_version() -> str:
 
 def pyproject_version() -> str:
     """Return the version declared in ``pyproject.toml``."""
+    text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     try:
         import tomllib
     except ModuleNotFoundError:  # pragma: no cover - Python < 3.11
-        import tomli as tomllib  # type: ignore[no-redef]
-    data = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+        try:
+            import tomli as tomllib  # type: ignore[no-redef]
+        except ModuleNotFoundError:  # pragma: no cover - bare 3.10 CI job
+            # The 3.10 behavioral job installs nothing beyond the stdlib, so
+            # neither parser is available. Read the one field this helper
+            # promises, from the [project] table only, rather than skipping
+            # the lockstep check on that interpreter.
+            project = text.split("[project]", 1)[1].split("\n[", 1)[0]
+            match = re.search(r'^version = "([^"]+)"$', project, re.MULTILINE)
+            if match is None:
+                raise ValueError("pyproject.toml has no [project] version") from None
+            return match.group(1)
+    data = tomllib.loads(text)
     return str(data["project"]["version"])
 
 
