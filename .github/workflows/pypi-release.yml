@@ -50,7 +50,35 @@ permissions:
   contents: read
 
 jobs:
+  test:
+    # A version must never reach PyPI from a commit the suite has not passed.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install coverage
+        run: python -m pip install --disable-pip-version-check "coverage==7.16.2" "pyyaml==6.0.3"
+
+      - name: Enforce 100% statement and branch coverage with zero skips
+        shell: bash
+        run: |
+          set -euo pipefail
+          coverage run -m unittest discover -s tests -v 2>&1 | tee unittest-coverage.log
+          if grep -Eq "skipped=[1-9][0-9]*" unittest-coverage.log; then
+            echo "::error::Skipped tests are not permitted"
+            exit 1
+          fi
+          coverage report --fail-under=100
+
   publish:
+    needs: test
     # Belt and braces: the `if` re-asserts the default-branch gate even if the
     # trigger is ever widened.
     if: github.event_name != 'pull_request'

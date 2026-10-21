@@ -14,7 +14,7 @@
     "README.md"
   ],
   "scripts": {
-    "test": "node index.js --validate && node -e \"const s=require('./index.js'); if(!s.loadSkill().valid){console.error('skill contract invalid');process.exit(1)}\""
+    "test": "node npm.test.js"
   },
   "engines": {
     "node": ">=20"
