@@ -148,6 +148,8 @@ Exit codes:
   2  SKILL.md could not be read
 `;
 
+const KNOWN_FLAGS = new Set(['--json', '--validate', '--path', '--help', '-h']);
+
 function main(argv) {
   const args = argv.slice(2);
   const wantsJson = args.includes('--json');
@@ -157,6 +159,12 @@ function main(argv) {
   if (args.includes('--help') || args.includes('-h')) {
     process.stdout.write(USAGE);
     return 0;
+  }
+
+  const unsupported = args.filter((arg) => arg.startsWith('-') && !KNOWN_FLAGS.has(arg));
+  if (unsupported.length > 0) {
+    process.stderr.write(`error: unsupported flag(s): ${unsupported.join(', ')}\n`);
+    return 2;
   }
 
   let report;
