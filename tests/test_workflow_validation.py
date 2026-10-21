@@ -374,6 +374,23 @@ class PublishBehaviourTests(unittest.TestCase):
         self.assertIn("NPM_TOKEN mode", body)
         self.assertEqual(step["if"], "steps.gate.outputs.skip != 'true'")
 
+    def test_publish_waits_for_required_checks(self):
+        """npm must not publish a commit whose required checks have not passed."""
+        step = self._step("Wait for required checks on this commit")
+        self.assertIn("bin/wait_for_required_checks.py", step["run"])
+        self.assertIn('--context "installed API contract"', step["run"])
+        self.assertIn('--context "repository contract"', step["run"])
+        self.assertIn("GH_TOKEN", step["env"])
+        wait_index = self.steps.index(step)
+        mode_index = self.steps.index(self._step("Resolve the requested publish mode"))
+        self.assertLess(wait_index, mode_index, "checks must pass before any publish decision")
+
+    def test_version_lockstep_covers_every_version_surface(self):
+        """The npm job must check SKILL.md and codemeta.json too, not just five."""
+        step = self._step("Resolve version and require lockstep across every version surface")
+        self.assertIn("conftest.release_version_failures()", step["run"])
+        self.assertNotIn("conftest.version_lockstep_failures()", step["run"])
+
     def test_version_existence_gate_survives(self):
         step = self._step("Check npm registry state")
         self.assertEqual(step["id"], "gate")
@@ -469,18 +486,19 @@ class PublishBehaviourTests(unittest.TestCase):
         )
         return proc.returncode, annotations or text, mode
 
-    def test_push_trigger_resolves_to_verified_token(self):
-        """Automatic version-trigger pushes use the known-good token path."""
+    def test_push_trigger_resolves_to_oidc(self):
+        """Automatic version-trigger pushes use the documented OIDC default."""
         rc, output, mode = self._run_mode_step("", "an-existing-secret", event="push")
         self.assertEqual(rc, 0, output)
-        self.assertEqual(mode, "requested=token")
-        self.assertIn("::warning::", output)
+        self.assertEqual(mode, "requested=trusted")
+        self.assertNotIn("::warning::", output)
 
-    def test_push_without_token_fails_closed(self):
+    def test_push_without_token_still_resolves_to_oidc(self):
+        """A missing token must not block the default path."""
         rc, output, mode = self._run_mode_step("", "", event="push")
-        self.assertNotEqual(rc, 0)
-        self.assertIn("::error::", output)
-        self.assertEqual(mode, "")
+        self.assertEqual(rc, 0, output)
+        self.assertEqual(mode, "requested=trusted")
+        self.assertNotIn("::error::", output)
 
     def test_dispatch_without_opt_in_resolves_to_oidc(self):
         rc, output, mode = self._run_mode_step("false", "")

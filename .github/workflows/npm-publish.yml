@@ -58,6 +58,22 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # npm must not publish a commit that failed the unprivileged
+      # validate-skill workflow. That workflow starts from the same push, so
+      # poll for its required checks instead of racing them.
+      - name: Wait for required checks on this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python bin/wait_for_required_checks.py \
+            --repo "${{ github.repository }}" \
+            --ref "${{ github.sha }}" \
+            --context "installed API contract" \
+            --context "repository contract" \
+            --timeout 300 \
+            --interval 15
+
       # npm CLI >= 11.5.1 is required for Trusted Publishing. Node 24 ships npm
       # 11.x, and the requirement is checked numerically rather than by regex:
       # a pattern like ^11\.(5[1-9]|[6-9][0-9])\. rejects legitimate versions
@@ -96,7 +112,7 @@ jobs:
             console.log(`npm ${raw} satisfies the Trusted Publishing requirement`);
           ' "$raw"
 
-      - name: Resolve version and require lockstep across all five surfaces
+      - name: Resolve version and require lockstep across every version surface
         id: meta
         shell: bash
         run: |
@@ -109,15 +125,16 @@ jobs:
             echo "::error::package.json ($version) does not match VERSION ($version_file)." >&2
             exit 1
           fi
-          # VERSION, pyproject.toml, package.json, CITATION.cff and CHANGELOG.md
-          # must all agree. Same helper the other release workflows use.
+          # Every version-bearing surface must agree, including the SKILL.md
+          # front matter that ships in the npm tarball and codemeta.json. Same
+          # helper the other release workflows use.
           python - <<'PY'
           import conftest
 
-          failures = conftest.version_lockstep_failures()
+          failures = conftest.release_version_failures()
           if failures:
               raise SystemExit("version lockstep violated: " + "; ".join(failures))
-          print("Version lockstep OK across all five surfaces:", conftest.repo_version())
+          print("Version lockstep OK across every version surface:", conftest.repo_version())
           PY
           echo "name=$name" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
@@ -254,7 +271,10 @@ jobs:
                 ;;
             esac
           else
-            requested="token"
+            # Automatic version-trigger pushes publish through OIDC Trusted
+            # Publishing, matching the documented default. The token path is
+            # reachable only through an explicit workflow_dispatch opt-in.
+            requested="trusted"
           fi
 
           echo "requested=$requested" >> "$GITHUB_OUTPUT"
@@ -264,13 +284,12 @@ jobs:
               echo "::error::use_token_fallback was requested but the NPM_TOKEN secret is not set. Refusing to publish." >&2
               exit 1
             fi
-            echo "::warning::Publishing with NPM_TOKEN. Automatic version-trigger releases use this verified path; token publishes are not provenance-signed." >&2
+            echo "::warning::Publishing with NPM_TOKEN as explicitly requested; token publishes are not provenance-signed." >&2
           else
             echo "::notice::Publishing with OIDC Trusted Publishing and --provenance."
           fi
 
-      # Trusted Publishing remains available for manual dispatches. Automatic
-      # version-trigger pushes use token mode until npm Trusted Publishing is registered.
+      # Trusted Publishing is the default for pushes and dispatches alike.
       - name: Publish with OIDC Trusted Publishing
         id: trusted
         if: steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'trusted'
