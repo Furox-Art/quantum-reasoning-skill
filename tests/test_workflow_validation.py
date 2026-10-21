@@ -404,6 +404,9 @@ class PublishBehaviourTests(unittest.TestCase):
         triggers = self.document[True] if True in self.document else self.document["on"]
         self.assertEqual(sorted(triggers), ["push", "workflow_dispatch"])
 
+    def test_publish_is_gated_on_the_default_branch(self):
+        self.assertEqual(self.job["if"], "github.ref == 'refs/heads/main'")
+
     # -- behaviour trace -----------------------------------------------------
     def _run_mode_step(
         self, requested: str, token: str, event: str = "workflow_dispatch"
@@ -508,6 +511,99 @@ class PublishBehaviourTests(unittest.TestCase):
         rc, output, _ = self._run_mode_step("maybe", "an-existing-secret")
         self.assertNotEqual(rc, 0)
         self.assertIn("must be a boolean", output)
+
+
+class PypiPublishBehaviourTests(unittest.TestCase):
+    """PyPI publishing must default to OIDC and depend on the full validation."""
+
+    def setUp(self) -> None:
+        self.path = ROOT / ".github" / "workflows" / "pypi-release.yml"
+        self.text = self.path.read_text(encoding="utf-8")
+        self.document = checker.strict_load(self.text, source="pypi-release")
+        self.jobs = self.document["jobs"]
+        self.publish = self.jobs["publish"]
+
+    def _step(self, name: str) -> dict:
+        for step in self.publish["steps"]:
+            if step.get("name") == name:
+                return step
+        raise AssertionError(f"step {name!r} is missing from pypi-release.yml")
+
+    def test_every_release_job_is_gated_on_main(self):
+        for job in ("test", "validate-skill", "publish"):
+            self.assertEqual(
+                self.jobs[job]["if"],
+                "github.ref == 'refs/heads/main'",
+                f"{job} must refuse a dispatch from a tag or another branch",
+            )
+
+    def test_publish_needs_both_tests_and_validate_skill(self):
+        self.assertEqual(self.publish["needs"], ["test", "validate-skill"])
+
+    def test_version_gate_checks_every_release_surface(self):
+        step = self._step("Validate version lockstep and check PyPI")
+        self.assertIn("conftest.release_version_failures()", step["run"])
+        self.assertIn("package.json", step["run"])
+        self.assertIn("CITATION.cff", step["run"])
+        self.assertIn("codemeta.json", step["run"])
+        self.assertIn("SKILL.md", step["run"])
+
+    def test_dispatch_defaults_to_oidc(self):
+        triggers = self.document[True] if True in self.document else self.document["on"]
+        fallback = triggers["workflow_dispatch"]["inputs"]["use_token_fallback"]
+        self.assertEqual(fallback["type"], "boolean")
+        self.assertEqual(fallback["default"], False)
+
+    def test_mode_resolution_is_fail_closed(self):
+        step = self._step("Resolve the requested publish mode")
+        self.assertIn("use_token_fallback", step["env"]["REQUESTED_TOKEN"])
+        self.assertIn("PYPI_API_TOKEN", step["env"]["PYPI_TOKEN"])
+        self.assertIn('-z "${PYPI_TOKEN:-}"', step["run"])
+        self.assertIn("ACTIONS_ID_TOKEN_REQUEST_URL", step["run"])
+
+    def test_publish_steps_are_mutually_exclusive(self):
+        trusted = self._step("Publish with PyPI Trusted Publishing")
+        token = self._step("Publish with API token")
+        self.assertEqual(
+            trusted["if"],
+            "steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'trusted'",
+        )
+        self.assertEqual(
+            token["if"],
+            "steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'token'",
+        )
+        self.assertIn("id-token: write", self.text)
+        self.assertNotIn("Detect API token fallback", self.text)
+
+    def test_selected_upload_path_must_succeed(self):
+        step = self._step("Require the selected upload path to succeed")
+        self.assertIn("TRUSTED_OUTCOME", step["env"])
+        self.assertIn("TOKEN_OUTCOME", step["env"])
+        self.assertIn("did not run or failed", step["run"])
+
+
+class PrereleaseHandlingTests(unittest.TestCase):
+    """A prerelease must not become the stable GitHub/npm release."""
+
+    def test_release_workflow_detects_and_marks_prereleases(self):
+        text = (ROOT / ".github" / "workflows" / "publish-release.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("conftest.is_prerelease", text)
+        self.assertIn('echo "prerelease=$prerelease"', text)
+        self.assertIn("--prerelease", text)
+        self.assertIn('if [ "$PRERELEASE" = "true" ]', text)
+
+    def test_npm_publish_routes_prereleases_to_the_next_tag(self):
+        text = (ROOT / ".github" / "workflows" / "npm-publish.yml").read_text(encoding="utf-8")
+        self.assertIn('echo "prerelease=$prerelease"', text)
+        self.assertEqual(text.count("args+=(--tag next)"), 2)
+        self.assertIn('if [ "$PRERELEASE" = "true" ]', text)
+        for name in (
+            "Publish with OIDC Trusted Publishing",
+            "Publish with NPM_TOKEN (deliberate opt-in, no provenance)",
+        ):
+            self.assertIn(name, text)
 
 
 if __name__ == "__main__":

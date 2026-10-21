@@ -55,6 +55,32 @@ def package_json_version() -> str:
     return str(data["version"])
 
 
+def codemeta_version() -> str | None:
+    """Return ``codemeta.json``'s version, or ``None`` when it has no field."""
+    path = ROOT / "codemeta.json"
+    if not path.is_file():
+        return None
+    data = json.loads(path.read_text(encoding="utf-8"))
+    value = data.get("version")
+    return str(value) if value else None
+
+
+def skill_front_matter_version() -> str | None:
+    """Return the version in ``SKILL.md``'s YAML front matter, if present."""
+    lines = (ROOT / "SKILL.md").read_text(encoding="utf-8").splitlines()
+    if not lines or lines[0].strip() != "---":
+        return None
+    try:
+        end = next(i for i, line in enumerate(lines[1:], start=1) if line.strip() == "---")
+    except StopIteration:
+        return None
+    for line in lines[1:end]:
+        match = re.match(r"^\s+version:\s*[\"']?([^\"'\s]+)", line)
+        if match:
+            return match.group(1)
+    return None
+
+
 def changelog_version() -> str | None:
     """Return the most recent released version recorded in ``CHANGELOG.md``."""
     text = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
@@ -140,4 +166,36 @@ def version_lockstep_failures() -> list[str]:
     canonical = versions["VERSION"]
     if not SEMVER.match(canonical):
         failures.append(f"VERSION is not a semantic version: {canonical!r}")
+    return failures
+
+
+def is_prerelease(version: str) -> bool:
+    """True when a semantic version carries a prerelease suffix.
+
+    Build metadata (``+...``) does not make a release a prerelease; only the
+    ``-`` component does.
+    """
+    return bool(re.search(r"-[0-9A-Za-z.-]+(?:\+[0-9A-Za-z.-]+)?$", version))
+
+
+def release_version_failures() -> list[str]:
+    """Return violations across every version-bearing surface in the tree.
+
+    :func:`version_lockstep_failures` covers the five surfaces every release
+    job already checked (VERSION, pyproject.toml, package.json, CITATION.cff,
+    CHANGELOG.md). The release metadata that ships beside them has two more:
+    ``codemeta.json`` and ``SKILL.md``'s front-matter version. The package
+    ``__init__.py`` deliberately carries no version, so there is nothing to
+    compare there.
+    """
+    failures = version_lockstep_failures()
+    canonical = repo_version()
+    for name, value in (
+        ("codemeta.json", codemeta_version()),
+        ("SKILL.md metadata.version", skill_front_matter_version()),
+    ):
+        if not value:
+            failures.append(f"{name} has no version field")
+        elif value != canonical:
+            failures.append(f"{name} ({value}) does not match VERSION ({canonical})")
     return failures

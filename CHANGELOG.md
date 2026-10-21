@@ -28,6 +28,13 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### npm 1.2.0 was not published
+
+PyPI serves 1.2.0; npm's `latest` remains 1.1.5. The npm publish for 1.2.0
+failed at the registry with `E404` on `PUT` (workflow run `39672649928`), a
+publisher/credential configuration issue rather than a packaging failure. No
+retry has been performed and no retry date is set.
+
 ### npm attestation status
 
 Measured against the live registry, not inferred:
@@ -38,6 +45,10 @@ Measured against the live registry, not inferred:
 | `1.1.0` | npm | **yes** — `slsa.dev/provenance/v1` + `npm/attestation/publish/v0.1` |
 | `1.1.1` | npm | **no** |
 | `1.1.1` | PyPI | **no** |
+| `1.1.2` | npm | **no** |
+| `1.1.3` | npm | **no** |
+| `1.1.4` | npm | **no** |
+| `1.1.5` | npm | **no** |
 
 `1.1.1` was published through the `NPM_TOKEN` opt-in path, so npm never
 attempted an attestation. Attestations are bound to a publish event and cannot be

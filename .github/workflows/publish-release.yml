@@ -79,12 +79,14 @@ jobs:
           test -s VERSION
           version="$(tr -d '[:space:]' < VERSION)"
           version="${version#v}"
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
             echo "Invalid release version: $version" >&2
             exit 1
           fi
+          prerelease="$(python -c 'import conftest, sys; print("true" if conftest.is_prerelease(sys.argv[1]) else "false")' "$version")"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=v${version}" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
 
       - name: Require matching changelog entry
         shell: bash
@@ -131,9 +133,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
           TARGET_SHA: ${{ github.sha }}
+          PRERELEASE: ${{ steps.version.outputs.prerelease }}
         run: |
           set -euo pipefail
-          gh release create "$TAG" \
-            --target "$TARGET_SHA" \
-            --title "$TAG" \
-            --generate-notes
+          args=(--target "$TARGET_SHA" --title "$TAG" --generate-notes)
+          if [ "$PRERELEASE" = "true" ]; then
+            args+=(--prerelease)
+          fi
+          gh release create "$TAG" "${args[@]}"

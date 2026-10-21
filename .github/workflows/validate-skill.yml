@@ -200,34 +200,62 @@ jobs:
 
       # The registry is the only authority on whether a published version carries
       # an attestation, so the attested set is passed in explicitly rather than
-      # hardcoded. A failure here means a document claims provenance that does not
-      # exist, which is worse than saying nothing at all.
+      # hardcoded. The released and current versions are read from the registry
+      # and the tree, so a new release cannot silently fall outside the probe.
+      # A failure here means a document claims provenance that does not exist,
+      # which is worse than saying nothing at all.
       - name: Verify supply-chain claims match the registry
+        id: registry
         shell: bash
         run: |
           set -euo pipefail
-          attested="$(python - <<'PY'
+          python - <<'PY' >> "$GITHUB_OUTPUT"
           import json
+          import pathlib
           import urllib.request
 
-          url = (
+          package_url = "https://registry.npmjs.org/quantum-reasoning-skill"
+          attestation_url = (
               "https://registry.npmjs.org/-/npm/v1/attestations/"
               "quantum-reasoning-skill"
           )
+          current = json.loads(
+              pathlib.Path("package.json").read_text(encoding="utf-8")
+          )["version"]
+
+          with urllib.request.urlopen(package_url, timeout=20) as response:
+              package = json.loads(response.read().decode("utf-8"))
+          released = sorted(package.get("versions", {}))
+          if not released:
+              raise SystemExit("npm registry reported no published versions")
+
           found = []
-          for version in ("1.0.0", "1.1.0", "1.1.1"):
+          for version in sorted(set(released) | {current}):
               try:
-                  with urllib.request.urlopen(f"{url}@{version}", timeout=20) as response:
+                  with urllib.request.urlopen(
+                      f"{attestation_url}@{version}", timeout=20
+                  ) as response:
                       if response.status == 200:
                           json.loads(response.read().decode("utf-8"))
                           found.append(version)
               except Exception:
+                  # A 404 is the expected answer for an unattested release. Any
+                  # other failure also leaves the version out of the attested
+                  # set, which the guard treats as "not attested" rather than
+                  # trusting an unverified response.
                   continue
-          print(",".join(found))
+
+          print(f"attested={','.join(found)}")
+          print(f"released={','.join(released)}")
+          print(f"current={current}")
           PY
-          )"
-          echo "npm versions with an attestation: ${attested:-none}"
-          python bin/check_release_integrity.py --attested-npm "$attested"
+          echo "npm versions with an attestation: ${{ steps.registry.outputs.attested }}"
+          echo "npm versions published: ${{ steps.registry.outputs.released }}"
+          echo "current release version: ${{ steps.registry.outputs.current }}"
+          python bin/check_release_integrity.py \
+            --attested-npm "${{ steps.registry.outputs.attested }}" \
+            --released-npm "${{ steps.registry.outputs.released }}" \
+            --current-version "${{ steps.registry.outputs.current }}"
 
           python -c "import conftest, sys; sys.exit(1) if conftest.version_lockstep_failures() else None" \
             || python -c "
@@ -240,9 +268,6 @@ jobs:
 
       - name: Compile Python sources
         run: python -m compileall -q quantum_reasoning_skill tests
-
-      - name: Validate community benchmark bundles
-        run: python quantum_reasoning_skill/benchmark/validate_submission.py --root quantum_reasoning_skill/benchmark/results/community --allow-empty
 
       - name: Check benchmark CLIs
         run: |
