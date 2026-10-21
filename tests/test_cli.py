@@ -14,10 +14,10 @@ import runpy
 import sys
 import tempfile
 import unittest
+import unittest.mock as mock
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
-from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 CLI_PATH = ROOT / "quantum_reasoning_skill" / "cli.py"
