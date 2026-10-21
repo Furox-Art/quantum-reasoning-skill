@@ -1,9 +1,15 @@
 name: PyPI Release
 
-# Publishing is gated on `push` to the default branch only. It is deliberately
-# NOT triggered by `workflow_run` (which lets a fork trigger privileged code)
-# and NOT by `pull_request` (which is untrusted). The caller must be able to
-# push to main, which already implies write access.
+# Publishing is gated on `push` to the default branch, or a manual dispatch made
+# from that branch. It is deliberately NOT triggered by `workflow_run` (which
+# lets a fork trigger privileged code) and NOT by `pull_request` (which is
+# untrusted). The caller must be able to push to main, which already implies
+# write access.
+#
+# OIDC Trusted Publishing is the default for every event, so every upload can
+# carry a PEP 740 attestation. The long-lived token path is available only via
+# the explicit `use_token_fallback` dispatch input, and fails closed if that
+# secret is missing; the mere presence of the secret no longer selects it.
 #
 # The `paths` list below is the complete set of files that can change what ships:
 # everything the wheel and the sdist contain (see the `only-include`/`include`
@@ -41,6 +47,16 @@ on:
       - "bin/**"
       - "tests/**"
   workflow_dispatch:
+    inputs:
+      use_token_fallback:
+        description: >-
+          Deliberately publish with the long-lived PYPI_API_TOKEN secret instead
+          of OIDC Trusted Publishing. Only set this when the PyPI trusted
+          publisher is unavailable. Token publishes carry no PEP 740
+          attestation.
+        type: boolean
+        required: false
+        default: false
 
 concurrency:
   group: pypi-release
@@ -52,7 +68,8 @@ permissions:
 jobs:
   test:
     # A version must never reach PyPI from a commit the suite has not passed.
-    if: github.event_name != 'pull_request'
+    # The same guard also refuses a manual dispatch from a tag or another branch.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -77,15 +94,42 @@ jobs:
           fi
           coverage report --fail-under=100
 
+  validate-skill:
+    # PyPI must not publish from a commit that failed the unprivileged
+    # validate-skill workflow. That workflow starts from the same push, so poll
+    # for its required checks instead of querying once and racing them.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Wait for the validate-skill checks on this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python bin/wait_for_required_checks.py \
+            --repo "${{ github.repository }}" \
+            --ref "${{ github.sha }}" \
+            --context "installed API contract" \
+            --context "repository contract" \
+            --timeout 300 \
+            --interval 15
+
   publish:
-    needs: test
+    needs: [test, validate-skill]
     # Belt and braces: the `if` re-asserts the default-branch gate even if the
     # trigger is ever widened.
-    if: github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
-      # Trusted Publishing via OIDC; no long-lived secret is used.
+      # OIDC Trusted Publishing is the default. The long-lived token fallback,
+      # when explicitly requested, still only has read access to the repository.
       id-token: write
       contents: read
     steps:
@@ -107,19 +151,27 @@ jobs:
           print(f"version={project['version']}")
           PY
 
-      - name: Validate version and check PyPI
+      - name: Validate version lockstep and check PyPI
         id: gate
         shell: bash
         run: |
           set -euo pipefail
           name="${{ steps.meta.outputs.name }}"
           version="${{ steps.meta.outputs.version }}"
-          version_file="$(tr -d '[:space:]' < VERSION)"
-          version_file="${version_file#v}"
-          if [ "$version_file" != "$version" ]; then
-            echo "::error::pyproject.toml ($version) does not match VERSION ($version_file)." >&2
-            exit 1
-          fi
+          # Every surface that carries the release version, not just pyproject
+          # versus VERSION: package.json, CITATION.cff, codemeta.json, CHANGELOG
+          # and SKILL.md's front matter all ship to consumers or cite the
+          # release. The `.github/pypi-release-trigger` file is a marker only
+          # and carries no version. The package `__init__.py` has no version
+          # attribute to compare.
+          python - <<'PY'
+          import conftest
+
+          failures = conftest.release_version_failures()
+          if failures:
+              raise SystemExit("version lockstep violated: " + "; ".join(failures))
+          print("Version lockstep OK across every version-bearing surface:", conftest.repo_version())
+          PY
           url="https://pypi.org/pypi/$name/$version/json"
           if curl --retry 3 --retry-delay 2 --retry-all-errors -sfL "$url" >/dev/null; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
@@ -127,6 +179,50 @@ jobs:
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
             echo "$name $version is not published yet."
+          fi
+
+      # Two supported modes. OIDC is the default for automatic pushes and for
+      # manual dispatches that do not opt in. Both are fail-closed: a requested
+      # mode with no usable credential exits before any upload step.
+      - name: Resolve the requested publish mode
+        id: mode
+        if: steps.gate.outputs.skip != 'true'
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REQUESTED_TOKEN: ${{ inputs.use_token_fallback }}
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            case "${REQUESTED_TOKEN:-false}" in
+              true|True|TRUE) requested="token" ;;
+              false|False|FALSE|"") requested="trusted" ;;
+              *)
+                echo "::error::use_token_fallback must be a boolean, got '${REQUESTED_TOKEN}'" >&2
+                exit 1
+                ;;
+            esac
+          else
+            requested="trusted"
+          fi
+
+          echo "requested=$requested" >> "$GITHUB_OUTPUT"
+
+          if [ "$requested" = "token" ]; then
+            if [ -z "${PYPI_TOKEN:-}" ]; then
+              echo "::error::use_token_fallback was requested but the PYPI_API_TOKEN secret is not set. Refusing to publish." >&2
+              exit 1
+            fi
+            echo "::warning::Publishing with PYPI_API_TOKEN. This path carries no PEP 740 attestation." >&2
+          else
+            if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ] || [ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]; then
+              echo "::error::OIDC publishing is the default but this job cannot mint an OIDC token." >&2
+              echo "::error::Check that the publish job still grants id-token: write, or use an explicit token-mode dispatch." >&2
+              exit 1
+            fi
+            echo "::notice::Publishing with OIDC Trusted Publishing and PEP 740 attestations."
           fi
 
       - name: Build and validate distributions
@@ -162,32 +258,43 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         run: python bin/check_release_contract.py --negative-control
 
-      - name: Detect API token fallback
-        if: steps.gate.outputs.skip != 'true'
-        id: auth
-        shell: bash
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: |
-          if [ -n "$PYPI_TOKEN" ]; then
-            echo "has_token=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_token=false" >> "$GITHUB_OUTPUT"
-          fi
-
       # Two mutually exclusive paths, each fully checked. `continue-on-error`
       # is deliberately absent so a failed upload fails the job.
       - name: Publish with PyPI Trusted Publishing
         id: trusted
-        if: steps.gate.outputs.skip != 'true' && steps.auth.outputs.has_token != 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'trusted'
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
 
       - name: Publish with API token
         id: token
-        if: steps.gate.outputs.skip != 'true' && steps.auth.outputs.has_token == 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'token'
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
+
+      # Neither publish step tolerates failure, so a skipped step here means the
+      # selected mode did not run at all.
+      - name: Require the selected upload path to succeed
+        if: steps.gate.outputs.skip != 'true'
+        shell: bash
+        env:
+          REQUESTED: ${{ steps.mode.outputs.requested }}
+          TRUSTED_OUTCOME: ${{ steps.trusted.outcome }}
+          TOKEN_OUTCOME: ${{ steps.token.outcome }}
+        run: |
+          set -euo pipefail
+          if [ "$REQUESTED" = "trusted" ]; then
+            if [ "$TRUSTED_OUTCOME" != "success" ]; then
+              echo "::error::PyPI Trusted Publishing did not run or failed." >&2
+              exit 1
+            fi
+          else
+            if [ "$TOKEN_OUTCOME" != "success" ]; then
+              echo "::error::the explicit PYPI_API_TOKEN publish did not run or failed." >&2
+              exit 1
+            fi
+          fi
+          echo "PyPI accepted the upload (mode: $REQUESTED)"
 
       - name: Verify public PyPI version
         shell: bash

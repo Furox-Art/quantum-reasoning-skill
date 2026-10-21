@@ -104,6 +104,7 @@ class TreeCase(unittest.TestCase):
         problems += local.check_every_version_status_is_documented()
         problems += local.check_unattested_is_explicitly_disclosed()
         problems += local.check_token_path_cannot_claim_provenance()
+        problems += local.check_pypi_oidc_is_default()
         return problems
 
     # -- sentence the README uses, so fixtures can be rewritten reliably ------
@@ -129,6 +130,7 @@ class RealTreeTests(TreeCase):
         self.assertEqual(local.check_every_version_status_is_documented(), [])
         self.assertEqual(local.check_unattested_is_explicitly_disclosed(), [])
         self.assertEqual(local.check_token_path_cannot_claim_provenance(), [])
+        self.assertEqual(local.check_pypi_oidc_is_default(), [])
 
 
 class FalseClaimTests(TreeCase):
@@ -277,8 +279,8 @@ class TokenPublishPathTests(TreeCase):
     def test_provenance_on_the_token_step_is_rejected(self):
         self.patch(
             ".github/workflows/npm-publish.yml",
-            "        run: npm publish --access public\n",
-            "        run: npm publish --access public --provenance\n",
+            "          args=(--access public)\n",
+            "          args=(--access public --provenance)\n",
         )
         problems = self.evaluate()
         self.assertTrue(problems, "a token publish claiming provenance must be rejected")
@@ -332,6 +334,87 @@ class TokenPublishPathTests(TreeCase):
             text,
             local and "OIDC must stay the default",
         )
+
+
+class PypiPublishPathTests(TreeCase):
+    """PyPI must default to OIDC and only use a token on explicit request."""
+
+    def test_real_tree_defaults_to_oidc(self):
+        local = self.load_guard_for(self.tree)
+        self.assertEqual(local.check_pypi_oidc_is_default(), [])
+
+    def test_missing_token_fallback_input_is_rejected(self):
+        self.patch(
+            ".github/workflows/pypi-release.yml",
+            "      use_token_fallback:",
+            "      some_other_input:",
+        )
+        local = self.load_guard_for(self.tree)
+        problems = local.check_pypi_oidc_is_default()
+        self.assertTrue(problems, "the explicit token opt-in must exist")
+        self.assertTrue(any("use_token_fallback" in problem for problem in problems), problems)
+
+    def test_token_fallback_defaulting_to_true_is_rejected(self):
+        self.patch(
+            ".github/workflows/pypi-release.yml",
+            "        default: false",
+            "        default: true",
+        )
+        local = self.load_guard_for(self.tree)
+        problems = local.check_pypi_oidc_is_default()
+        self.assertTrue(problems, "defaulting the token fallback to true must be rejected")
+        self.assertTrue(any("default to false" in problem for problem in problems), problems)
+
+    def test_secret_presence_selecting_the_mode_is_rejected(self):
+        self.patch(
+            ".github/workflows/pypi-release.yml",
+            '          if [ "$requested" = "token" ]; then',
+            '          if [ -n "${PYPI_TOKEN:-}" ]; then',
+        )
+        local = self.load_guard_for(self.tree)
+        problems = local.check_pypi_oidc_is_default()
+        self.assertTrue(
+            problems,
+            "selecting the PyPI publish mode by secret presence must be rejected",
+        )
+
+
+class CurrentReleaseAttestationTests(unittest.TestCase):
+    """The current tree version must be probed, not hardcoded."""
+
+    def test_unpublished_current_version_is_allowed(self):
+        self.assertEqual(
+            guard.check_current_release_attestation("1.2.0", frozenset({"1.1.5"}), frozenset()),
+            [],
+        )
+
+    def test_published_unattested_current_version_is_rejected(self):
+        problems = guard.check_current_release_attestation(
+            "1.3.0", frozenset({"1.1.5", "1.3.0"}), frozenset()
+        )
+        self.assertTrue(problems, "a published, unattested current release must fail")
+        self.assertTrue(any("1.3.0" in problem for problem in problems), problems)
+
+    def test_published_attested_current_version_is_accepted(self):
+        self.assertEqual(
+            guard.check_current_release_attestation(
+                "1.3.0", frozenset({"1.1.5", "1.3.0"}), frozenset({"1.3.0"})
+            ),
+            [],
+        )
+
+    def test_documented_historical_token_gap_is_allowed(self):
+        self.assertEqual(
+            guard.check_current_release_attestation(
+                "1.1.5", frozenset({"1.1.5"}), frozenset()
+            ),
+            [],
+        )
+
+    def test_1_1_2_through_1_1_5_are_known_unattested(self):
+        for version in ("1.1.2", "1.1.3", "1.1.4", "1.1.5"):
+            self.assertIn(version, guard.KNOWN_UNATTESTED_NPM)
+            self.assertIn(version, guard.RELEASED_NPM_VERSIONS)
 
 
 class RegistryDisagreementTests(TreeCase):

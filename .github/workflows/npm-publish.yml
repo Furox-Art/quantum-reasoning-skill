@@ -46,9 +46,9 @@ permissions:
 
 jobs:
   publish:
-    # Belt and braces: the privileged path is only ever reachable from a
-    # default-branch push or a manual dispatch, never from a pull request.
-    if: github.event_name != 'pull_request'
+    # Belt and braces: the privileged path is only ever reachable from the
+    # default branch, whether by push or by a manual dispatch made from it.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: npm
     permissions:
@@ -121,6 +121,8 @@ jobs:
           PY
           echo "name=$name" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          prerelease="$(python -c 'import conftest, sys; print("true" if conftest.is_prerelease(sys.argv[1]) else "false")' "$version")"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
 
       # The exact class of bug that shipped in 1.0.0: a `main` entry point that
       # throws on require, because SKILL.md was required as if it were
@@ -272,7 +274,18 @@ jobs:
       - name: Publish with OIDC Trusted Publishing
         id: trusted
         if: steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'trusted'
-        run: npm publish --access public --provenance
+        shell: bash
+        env:
+          PRERELEASE: ${{ steps.meta.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          args=(--access public --provenance)
+          # A prerelease must not move the `latest` dist-tag. `next` is the
+          # conventional prerelease channel; stable releases keep `latest`.
+          if [ "$PRERELEASE" = "true" ]; then
+            args+=(--tag next)
+          fi
+          npm publish "${args[@]}"
 
       # Deliberate token mode. `--provenance` is deliberately absent: npm
       # generates provenance from the OIDC identity in the runner environment,
@@ -282,9 +295,17 @@ jobs:
       - name: Publish with NPM_TOKEN (deliberate opt-in, no provenance)
         id: token
         if: steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'token'
-        run: npm publish --access public
+        shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PRERELEASE: ${{ steps.meta.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          args=(--access public)
+          if [ "$PRERELEASE" = "true" ]; then
+            args+=(--tag next)
+          fi
+          npm publish "${args[@]}"
 
       # Neither publish step tolerates failure, so a skipped step here means the
       # requested mode did not run at all.

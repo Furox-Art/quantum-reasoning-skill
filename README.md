@@ -18,19 +18,20 @@ computing** — "measurement" means letting evidence collapse a branch.
 
 ## Quick start
 
-`SKILL.md` is the deliverable. Three verified paths reach it:
+`SKILL.md` is the deliverable. Three channels reach it, though they are not all on
+the same version today (see [Channel versions](#channel-versions)):
 
 ```bash
-# 1. from a clone — nothing to install
+# 1. from a clone — nothing to install (current packaging: 1.2.0)
 git clone https://github.com/Furox-Art/quantum-reasoning-skill.git
 cd quantum-reasoning-skill
 python docs/quickstart.py
 
-# 2. from PyPI — SKILL.md ships inside the wheel
+# 2. from PyPI — SKILL.md ships inside the 1.2.0 wheel
 pip install quantum-reasoning-skill
 quantum-reasoning --validate
 
-# 3. from npm — also published
+# 3. from npm — currently 1.1.5; npm 1.2.0 was never published
 npm i quantum-reasoning-skill
 npx quantum-reasoning --validate
 ```
@@ -50,15 +51,34 @@ drifts.
 
 ## Distribution and the surface it exposes
 
-Three channels ship `SKILL.md`, all on one version: a `git clone` (everything); the PyPI
-wheel (1.2.0 packaging: `SKILL.md`, `VERSION`, `reference/`, `benchmark/`, `docs/` and
-`examples/` ship under the `quantum_reasoning_skill/` package namespace, plus a
-`quantum-reasoning` console script backed by `quantum_reasoning_skill.cli`); and the npm
-tarball (`SKILL.md`, `VERSION`, `index.js`, `LICENSE`, `README.md`, and a
-`quantum-reasoning` bin). Both packaged artifacts are verified against the **built**
-artifact, not a checkout. Checkouts and installed distributions use the same canonical
-paths: the reference controller and benchmark harness live under
-`quantum_reasoning_skill/`, so the wheel and the source tree expose one import layout.
+Three channels ship `SKILL.md`, but they are not all on one version today: a
+`git clone` of `main` and the PyPI wheel are at **1.2.0**, while the npm tarball
+is at **1.1.5**.
+
+### Channel versions
+
+| channel | current version |
+| --- | --- |
+| `git clone` of `main` | `1.2.0` |
+| PyPI | `1.2.0` |
+| npm | `1.1.5` |
+
+The npm 1.2.0 publish failed at the registry with an `E404` response to the
+`PUT` request (publish workflow run `39672649928`), a publisher/credential
+configuration issue rather than a packaging failure. No retry date is set and
+the npm `latest` tag therefore still resolves to 1.1.5. The npm tarball carries
+the 1.1.5 content; use PyPI 1.2.0 or a clone of `main` for the 1.2.0 packaging.
+
+The PyPI wheel (1.2.0 packaging: `SKILL.md`, `VERSION`, `reference/`,
+`benchmark/`, `docs/` and `examples/` ship under the
+`quantum_reasoning_skill/` package namespace, plus a `quantum-reasoning` console
+script backed by `quantum_reasoning_skill.cli`); and the npm tarball (1.1.5:
+`SKILL.md`, `VERSION`, `index.js`, `LICENSE`, `README.md`, and a
+`quantum-reasoning` bin). Both packaged artifacts are verified against the
+**built** artifact, not a checkout. Checkouts and installed distributions use
+the same canonical paths: the reference controller and benchmark harness live
+under `quantum_reasoning_skill/`, so the wheel and the source tree expose one
+import layout.
 
 ### Supply-chain attestations
 
@@ -72,7 +92,8 @@ Only some published versions carry a build attestation, so check before relying 
 `1.1.1` was published through the long-lived-token path, which cannot produce a Sigstore
 attestation. Attestations are bound to a publish event and cannot be added afterwards, so
 this is permanent for that version. The package itself is unchanged and passes the same
-release contract as every other version; only the provenance *record* is missing.
+release contract as every other version; only the provenance *record* is missing. The npm
+releases `1.1.2`, `1.1.3`, `1.1.4` and `1.1.5` have no attestation either.
 
 If you need to verify how a build was produced, use `1.1.0` on npm. To check an attestation
 yourself:
@@ -169,7 +190,7 @@ stay inside it, and reads are bounded by `--max-bytes`. Both
 
 ## Tests, tooling and governance
 
-About **53% of the Python here is tests** — 5,543 of 10,512 lines across **25 test modules**,
+About **53% of the Python here is tests** — 5,755 of 10,893 lines across **25 test modules**,
 run with the standard library's `unittest` on Python 3.10–3.14 (Linux) and 3.12 (Windows, macOS).
 They cover the controller, the benchmark harness, import hardening, path boundaries,
 dependency-lock drift and release-gate polling; the documented benchmark command run as a

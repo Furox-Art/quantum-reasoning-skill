@@ -36,6 +36,11 @@ npm i quantum-reasoning-skill
 npx quantum-reasoning --validate  # npm CLI
 ```
 
+The npm channel is currently at **1.1.5**, not 1.2.0: the npm 1.2.0 publish
+failed at the registry with an `E404` response to the `PUT` request (a
+publisher/credential configuration issue) and has not been retried. PyPI and a
+clone of `main` serve 1.2.0.
+
 `--validate` exits non-zero if the shipped `SKILL.md` is missing or malformed. The two CLIs
 do **not** share a flag set: `--path` prints the resolved asset path in the npm CLI only, and
 `--skill-file PATH` / `--quiet` exist in the Python one only. See

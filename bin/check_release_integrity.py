@@ -37,13 +37,17 @@ ROOT = Path(__file__).resolve().parents[1]
 #: npm versions the registry reports as carrying an attestation.
 KNOWN_ATTESTED_NPM = frozenset({"1.1.0"})
 
-#: npm versions the registry reports as having no attestation.
-KNOWN_UNATTESTED_NPM = frozenset({"1.0.0", "1.1.1"})
+#: npm versions the registry reports as having no attestation. Every release
+#: from 1.1.1 onwards was published through the token path, so none of them
+#: carries a Sigstore record. They are listed individually rather than as a
+#: range so the documentation check can require each one by name.
+KNOWN_UNATTESTED_NPM = frozenset({"1.0.0", "1.1.1", "1.1.2", "1.1.3", "1.1.4", "1.1.5"})
 
 #: Every release this package has published to npm. Used by the registry-supplied
 #: check, which must reason about any of these rather than only the ones whose
-#: status happens to be recorded below.
-RELEASED_NPM_VERSIONS = frozenset({"1.0.0", "1.1.0", "1.1.1"})
+#: status happens to be recorded below. CI passes the live registry set as well,
+#: so this remains the offline default.
+RELEASED_NPM_VERSIONS = frozenset({"1.0.0", "1.1.0", "1.1.1", "1.1.2", "1.1.3", "1.1.4", "1.1.5"})
 
 #: A release-version token.
 VERSION_TOKEN = re.compile(r"\b1\.\d+\.\d+\b")
@@ -283,14 +287,17 @@ def table_denies_attestation(chunk: str, version: str = "") -> bool:
     return any(negative.match(cell) for cell in cells)
 
 
-def check_claims_without_registry_support(attested: frozenset[str]) -> list[str]:
+def check_claims_without_registry_support(
+    attested: frozenset[str], released: frozenset[str] = RELEASED_NPM_VERSIONS
+) -> list[str]:
     """No document may claim an attestation the supplied registry set lacks.
 
     This is the live-data direction: CI passes whatever the npm attestations
     endpoint actually reports, so a document claiming provenance for a version the
-    registry does not carry fails here. Using the injected set rather than the
-    module constant is what makes this check meaningful when npm starts or stops
-    attesting a release.
+    registry does not carry fails here. Using the injected sets rather than the
+    module constants is what makes this check meaningful when npm starts or stops
+    attesting a release, and when the registry publishes versions this file has
+    not hardcoded yet.
     """
     problems: list[str] = []
     for path in doc_files():
@@ -303,7 +310,7 @@ def check_claims_without_registry_support(attested: frozenset[str]) -> list[str]
                 continue
             if TIGHT_DENIAL.search(chunk) or table_denies_attestation(chunk, ""):
                 continue
-            claimed = version_mentions(chunk) & RELEASED_NPM_VERSIONS
+            claimed = version_mentions(chunk) & released
             if not claimed:
                 continue
             if not TIGHT_CLAIM.search(chunk) and not table_row_claims_attestation(chunk, claimed):
@@ -314,6 +321,82 @@ def check_claims_without_registry_support(attested: frozenset[str]) -> list[str]
                     f"{relative}: claims an attestation the registry does not report for "
                     f"{', '.join(sorted(unsupported))}: {' '.join(chunk.split())[:150]!r}"
                 )
+    return problems
+
+
+def check_current_release_attestation(
+    current: str, released: frozenset[str], attested: frozenset[str]
+) -> list[str]:
+    """The current release must be attested once it is actually on npm.
+
+    The current version is read from the tree, not hardcoded, so the check
+    follows every version bump. A version that is not published yet has nothing
+    to attest; a version recorded as a known historical token-path gap stays
+    documented rather than failing forever. Any other published current version
+    without an attestation is a regression: the default publish path is OIDC.
+    """
+    if not current or current in KNOWN_UNATTESTED_NPM:
+        return []
+    if current not in released:
+        return []
+    if current in attested:
+        return []
+    return [
+        f"current release npm {current} is published but the registry reports no "
+        "attestation; the default publish path is OIDC Trusted Publishing, so this "
+        "must be investigated or explicitly documented as a token-path release"
+    ]
+
+
+def check_pypi_oidc_is_default() -> list[str]:
+    """PyPI must publish with OIDC unless a dispatch explicitly opts into a token.
+
+    Selecting the mode from the mere presence of ``PYPI_API_TOKEN`` silently
+    drops PEP 740 attestations. The mode must come from the dispatch input, and
+    both paths must fail closed when their credential is unavailable.
+    """
+    problems: list[str] = []
+    workflow = ROOT / ".github" / "workflows" / "pypi-release.yml"
+    if not workflow.is_file():
+        return ["pypi-release.yml is missing"]
+    text = workflow.read_text(encoding="utf-8")
+
+    if not re.search(r"^      use_token_fallback:\s*$", text, re.MULTILINE):
+        problems.append("pypi-release.yml has no use_token_fallback dispatch input")
+    if "default: false" not in text:
+        problems.append("use_token_fallback must default to false so OIDC is the default path")
+    if "id-token: write" not in text:
+        problems.append("pypi-release.yml does not request id-token: write")
+    if "steps.mode.outputs.requested == 'trusted'" not in text:
+        problems.append(
+            "the PyPI OIDC publish step is not the default; expected "
+            "steps.mode.outputs.requested == 'trusted'"
+        )
+    if "Detect API token fallback" in text:
+        problems.append(
+            "pypi-release.yml still selects the publish mode from the presence of "
+            "PYPI_API_TOKEN; OIDC must be the default and the token path an "
+            "explicit use_token_fallback opt-in"
+        )
+
+    resolution = text.split("Resolve the requested publish mode")
+    if len(resolution) < 2:
+        problems.append("pypi-release.yml has no publish-mode resolution step")
+    else:
+        body = resolution[1][:2500]
+        if re.search(r'if\s+\[\s*-n\s+"\$\{PYPI_TOKEN', body):
+            problems.append(
+                "the PyPI publish mode is selected by the presence of PYPI_API_TOKEN; "
+                "a stale secret must not be able to downgrade a publish"
+            )
+        if "REQUESTED_TOKEN" not in body:
+            problems.append(
+                "the PyPI publish-mode resolution step does not read the use_token_fallback input"
+            )
+        if "ACTIONS_ID_TOKEN_REQUEST_URL" not in body:
+            problems.append(
+                "the PyPI mode resolution does not fail closed when OIDC is unavailable"
+            )
     return problems
 
 
@@ -383,21 +466,37 @@ def main(argv: list[str] | None = None) -> int:
         default=",".join(sorted(KNOWN_ATTESTED_NPM)),
         help="comma-separated npm versions the registry reports as attested",
     )
+    parser.add_argument(
+        "--released-npm",
+        default=",".join(sorted(RELEASED_NPM_VERSIONS)),
+        help="comma-separated npm versions the registry reports as published",
+    )
+    parser.add_argument(
+        "--current-version",
+        default="",
+        help="version from the tree; once published to npm it must be attested",
+    )
     args = parser.parse_args(argv)
 
     attested = frozenset(part.strip() for part in args.attested_npm.split(",") if part.strip())
+    released = frozenset(part.strip() for part in args.released_npm.split(",") if part.strip())
+    current = args.current_version.strip()
 
     print(f"npm versions attested per registry : {', '.join(sorted(attested)) or 'none'}")
     print(f"npm versions known unattested     : {', '.join(sorted(KNOWN_UNATTESTED_NPM))}")
+    print(f"npm versions released per registry: {', '.join(sorted(released)) or 'none'}")
+    print(f"current release version           : {current or 'unknown'}")
     print(f"documents inspected               : {len(doc_files())}")
 
     problems: list[str] = []
     problems.extend(check_no_unattested_version_claimed())
     problems.extend(check_disclosures_match_the_registry(attested))
-    problems.extend(check_claims_without_registry_support(attested))
+    problems.extend(check_claims_without_registry_support(attested, released))
     problems.extend(check_every_version_status_is_documented())
     problems.extend(check_unattested_is_explicitly_disclosed())
+    problems.extend(check_current_release_attestation(current, released, attested))
     problems.extend(check_token_path_cannot_claim_provenance())
+    problems.extend(check_pypi_oidc_is_default())
 
     if problems:
         print("\nrelease integrity contract FAILED:", file=sys.stderr)
@@ -407,7 +506,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(
         "release integrity contract satisfied: documentation matches the registry, "
-        "and the token publish path cannot claim provenance."
+        "and both publish paths cannot silently claim provenance."
     )
     return 0
 

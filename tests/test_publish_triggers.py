@@ -46,6 +46,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import conftest  # noqa: E402  (repository root is on sys.path only after the insert)
+
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
 PYPROJECT = ROOT / "pyproject.toml"
 PACKAGE_JSON = ROOT / "package.json"
@@ -347,6 +349,37 @@ class NpmPublishTriggerTests(unittest.TestCase):
             sorted(p for p in npm_artifact_inputs() if not covered(p, stale)),
             [".npmignore", "LICENSE", "README.md"],
         )
+
+
+class VersionSurfaceTests(unittest.TestCase):
+    """Every version-bearing surface must agree before a release."""
+
+    def test_the_real_tree_is_in_lockstep_everywhere(self):
+        self.assertEqual(conftest.release_version_failures(), [])
+
+    def test_codemeta_and_skill_versions_are_read(self):
+        self.assertEqual(conftest.codemeta_version(), conftest.repo_version())
+        self.assertEqual(conftest.skill_front_matter_version(), conftest.repo_version())
+
+    def test_prereleases_are_recognised_but_build_metadata_is_not(self):
+        self.assertTrue(conftest.is_prerelease("1.3.0-rc.1"))
+        self.assertTrue(conftest.is_prerelease("1.3.0-beta.2+build.5"))
+        self.assertFalse(conftest.is_prerelease("1.3.0"))
+        self.assertFalse(conftest.is_prerelease("1.3.0+build.5"))
+
+
+class PrereleasePolicyTests(unittest.TestCase):
+    """The release path either handles or blocks prereleases, never half-way."""
+
+    def test_both_release_workflows_use_the_shared_detector(self):
+        for workflow in ("publish-release.yml", "npm-publish.yml"):
+            text = (WORKFLOW_DIR / workflow).read_text(encoding="utf-8")
+            self.assertIn("conftest.is_prerelease", text, workflow)
+
+    def test_npm_prereleases_do_not_move_latest(self):
+        text = (WORKFLOW_DIR / "npm-publish.yml").read_text(encoding="utf-8")
+        self.assertIn("args+=(--tag next)", text)
+        self.assertIn('PRERELEASE: ${{ steps.meta.outputs.prerelease }}', text)
 
 
 if __name__ == "__main__":
