@@ -14,10 +14,9 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-import benchmark
-import benchmark.evaluate
-from benchmark.falsification import run_suite, scenarios
-from reference import branch_controller as bc
+import quantum_reasoning_skill.benchmark as benchmark
+from quantum_reasoning_skill.benchmark.falsification import run_suite, scenarios
+from quantum_reasoning_skill.reference import branch_controller as bc
 
 
 def _snapshot(**overrides):
@@ -106,7 +105,10 @@ class RealCommandEntryPointContracts(unittest.TestCase):
             args = ["run_suite.py", "--output-dir", str(root / "results"),
                     "--cases-output", str(root / "cases.jsonl"), "--quiet"]
             with patch.object(sys, "argv", args), self.assertRaises(SystemExit) as stopped:
-                runpy.run_module("benchmark.falsification.run_suite", run_name="__main__")
+                runpy.run_module(
+                    "quantum_reasoning_skill.benchmark.falsification.run_suite",
+                    run_name="__main__",
+                )
             self.assertEqual(stopped.exception.code, 0)
             self.assertTrue((root / "results" / "results.json").is_file())
 
@@ -115,14 +117,19 @@ class RealCommandEntryPointContracts(unittest.TestCase):
             args = ["evaluate.py", "--cases", str(Path(td) / "not-created.jsonl"),
                     "--skill", str(Path(td) / "not-created-results.jsonl")]
             with patch.object(sys, "argv", args), self.assertRaises(SystemExit) as stopped:
-                runpy.run_module("benchmark.evaluate", run_name="__main__")
+                runpy.run_module(
+                    "quantum_reasoning_skill.benchmark.evaluate", run_name="__main__"
+                )
             self.assertEqual(stopped.exception.code, benchmark.evaluate.EXIT_MISSING_INPUT)
 
     def test_actual_validator_entrypoint_accepts_explicit_empty_root_only(self):
         with tempfile.TemporaryDirectory() as td:
             args = ["validate_submission.py", "--root", td, "--allow-empty"]
             with patch.object(sys, "argv", args), self.assertRaises(SystemExit) as stopped:
-                runpy.run_module("benchmark.validate_submission", run_name="__main__")
+                runpy.run_module(
+                    "quantum_reasoning_skill.benchmark.validate_submission",
+                    run_name="__main__",
+                )
             self.assertEqual(stopped.exception.code, 0)
 
     def test_complete_package_verification_rejects_missing_module(self):
@@ -135,7 +142,7 @@ class RealCommandEntryPointContracts(unittest.TestCase):
             benchmark._verify_integrity()
 
     def test_loadable_script_without_repo_sys_path_recovers_package_root(self):
-        root = Path(run_suite.__file__).resolve().parents[2]
+        root = Path(run_suite.__file__).resolve().parents[3]
         spec = importlib.util.spec_from_file_location("isolated_boundary_run_suite", run_suite.__file__)
         self.assertIsNotNone(spec)
         module = importlib.util.module_from_spec(spec)

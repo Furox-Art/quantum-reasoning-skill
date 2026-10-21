@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Furox-Art/quantum-reasoning-skill/blob/main/benchmark/schemas/metadata.schema.json",
+  "$id": "https://github.com/Furox-Art/quantum-reasoning-skill/blob/main/quantum_reasoning_skill/benchmark/schemas/metadata.schema.json",
   "title": "Quantum Reasoning community benchmark metadata",
   "type": "object",
   "additionalProperties": true,

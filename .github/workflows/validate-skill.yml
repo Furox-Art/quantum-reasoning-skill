@@ -54,11 +54,12 @@ jobs:
           for required in \
             SKILL.md README.md LICENSE CHANGELOG.md VERSION CONTRIBUTING.md SECURITY.md CITATION.cff \
             examples/usage.md examples/host-integration.md \
-            reference/branch_controller.py \
+            quantum_reasoning_skill/reference/branch_controller.py \
             docs/MEASUREMENT.md docs/COMPATIBILITY.md \
-            benchmark/README.md benchmark/cases.jsonl benchmark/evaluate.py benchmark/validate_submission.py \
-            benchmark/schemas/case.schema.json benchmark/schemas/result.schema.json \
-            benchmark/schemas/metadata.schema.json benchmark/schemas/comparison.schema.json \
+            quantum_reasoning_skill/benchmark/README.md quantum_reasoning_skill/benchmark/cases.jsonl \
+            quantum_reasoning_skill/benchmark/evaluate.py quantum_reasoning_skill/benchmark/validate_submission.py \
+            quantum_reasoning_skill/benchmark/schemas/case.schema.json quantum_reasoning_skill/benchmark/schemas/result.schema.json \
+            quantum_reasoning_skill/benchmark/schemas/metadata.schema.json quantum_reasoning_skill/benchmark/schemas/comparison.schema.json \
             tests/test_reference.py tests/test_benchmark.py tests/test_submission_validation.py \
             tests/test_readme_badges.py tests/test_release_check_polling.py \
             tests/test_release_integrity.py tests/test_workflow_validation.py \
@@ -100,8 +101,8 @@ jobs:
           readme = (root / "README.md").read_text(encoding="utf-8")
           for required in (
               "SKILL.md", "examples/usage.md", "examples/host-integration.md",
-              "reference/branch_controller.py", "docs/MEASUREMENT.md", "docs/COMPATIBILITY.md",
-              "benchmark/README.md", "CONTRIBUTING.md", "SECURITY.md", "CITATION.cff",
+              "quantum_reasoning_skill/reference/branch_controller.py", "docs/MEASUREMENT.md", "docs/COMPATIBILITY.md",
+              "quantum_reasoning_skill/benchmark/README.md", "CONTRIBUTING.md", "SECURITY.md", "CITATION.cff",
           ):
               if required not in readme:
                   raise SystemExit(f"README.md must reference {required}")
@@ -110,7 +111,7 @@ jobs:
               root / "README.md", root / "SKILL.md", root / "CONTRIBUTING.md", root / "SECURITY.md",
               root / "CHANGELOG.md",
               root / "examples/usage.md", root / "examples/host-integration.md",
-              root / "benchmark/README.md", root / "docs/MEASUREMENT.md", root / "docs/COMPATIBILITY.md",
+              root / "quantum_reasoning_skill/benchmark/README.md", root / "docs/MEASUREMENT.md", root / "docs/COMPATIBILITY.md",
               root / "docs/getting-started.md",
           ]
           link_pattern = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
@@ -130,7 +131,7 @@ jobs:
                   if not resolved.exists():
                       raise SystemExit(f"Broken relative link in {document.relative_to(root)}: {raw_target}")
 
-          case_path = root / "benchmark" / "cases.jsonl"
+          case_path = root / "quantum_reasoning_skill" / "benchmark" / "cases.jsonl"
           seen_ids = set()
           for line_number, raw in enumerate(case_path.read_text(encoding="utf-8").splitlines(), start=1):
               if not raw.strip():
@@ -138,19 +139,19 @@ jobs:
               try:
                   case = json.loads(raw)
               except json.JSONDecodeError as exc:
-                  raise SystemExit(f"benchmark/cases.jsonl:{line_number}: invalid JSON: {exc}") from exc
+                  raise SystemExit(f"quantum_reasoning_skill/benchmark/cases.jsonl:{line_number}: invalid JSON: {exc}") from exc
               required = {"id", "domain", "prompt", "accepted_answers"}
               missing = required - set(case)
               if missing:
-                  raise SystemExit(f"benchmark/cases.jsonl:{line_number}: missing {sorted(missing)}")
+                  raise SystemExit(f"quantum_reasoning_skill/benchmark/cases.jsonl:{line_number}: missing {sorted(missing)}")
               case_id = str(case["id"])
               if case_id in seen_ids:
                   raise SystemExit(f"duplicate benchmark case id: {case_id}")
               seen_ids.add(case_id)
               if not isinstance(case["accepted_answers"], list) or not case["accepted_answers"]:
-                  raise SystemExit(f"benchmark/cases.jsonl:{line_number}: accepted_answers must be non-empty")
+                  raise SystemExit(f"quantum_reasoning_skill/benchmark/cases.jsonl:{line_number}: accepted_answers must be non-empty")
 
-          schemas = sorted((root / "benchmark" / "schemas").glob("*.schema.json"))
+          schemas = sorted((root / "quantum_reasoning_skill" / "benchmark" / "schemas").glob("*.schema.json"))
           if len(schemas) < 4:
               raise SystemExit("expected case, result, metadata and comparison JSON Schemas")
           for schema_path in schemas:
@@ -238,19 +239,19 @@ jobs:
           "
 
       - name: Compile Python sources
-        run: python -m compileall -q reference benchmark tests quantum_reasoning_skill
+        run: python -m compileall -q quantum_reasoning_skill tests
 
       - name: Validate community benchmark bundles
-        run: python benchmark/validate_submission.py --root benchmark/results/community --allow-empty
+        run: python quantum_reasoning_skill/benchmark/validate_submission.py --root quantum_reasoning_skill/benchmark/results/community --allow-empty
 
       - name: Check benchmark CLIs
         run: |
-          python benchmark/evaluate.py --help > /dev/null
-          python benchmark/validate_submission.py --help > /dev/null
-          # `python -m` must work too: a bare sibling import only resolves when
-          # the script's own directory happens to be on sys.path.
-          python -m benchmark.validate_submission --help > /dev/null
-          python -m benchmark.evaluate --help > /dev/null
+          python quantum_reasoning_skill/benchmark/evaluate.py --help > /dev/null
+          python quantum_reasoning_skill/benchmark/validate_submission.py --help > /dev/null
+          # `python -m` must work too: the tooling imports through the package
+          # rather than relying on the script's own directory being on sys.path.
+          python -m quantum_reasoning_skill.benchmark.validate_submission --help > /dev/null
+          python -m quantum_reasoning_skill.benchmark.evaluate --help > /dev/null
 
   # ---------------------------------------------------------------------------
   # Behavioural tests across the declared Python support range
@@ -315,9 +316,10 @@ jobs:
         run: ruff check --output-format=github .
 
       - name: Ruff format check (advisory)
-        # `benchmark/`, `reference/` and `tests/` are owned by other
-        # maintainers and are not yet formatted. This reports drift without
-        # blocking; it becomes blocking once those areas are formatted.
+        # `quantum_reasoning_skill/` (including `benchmark/` and `reference/`) and
+        # `tests/` are owned by other maintainers and are not yet formatted. This
+        # reports drift without blocking; it becomes blocking once those areas are
+        # formatted.
         run: ruff format --check bin conftest.py
 
   # ---------------------------------------------------------------------------
@@ -407,6 +409,71 @@ jobs:
 
       - name: Twine check
         run: python -m twine check --strict dist/*
+
+      # Packaging is part of the release surface. The editable install proves
+      # the console script is generated from the package module
+      # `quantum_reasoning_skill/cli.py` and runs against the packaged SKILL.md,
+      # independently of the built wheel.
+      - name: Editable install in a clean venv and run the console script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv "$RUNNER_TEMP/venv-editable"
+          "$RUNNER_TEMP/venv-editable/bin/python" -m pip install --disable-pip-version-check --quiet -e .
+          "$RUNNER_TEMP/venv-editable/bin/quantum-reasoning" --validate
+
+      # Top-level wheel names are an API contract: only the importable package
+      # and its own dist-info may sit at the root of site-packages. Assets
+      # (SKILL.md, VERSION, reference, benchmark, docs, examples) belong inside
+      # `quantum_reasoning_skill/`, not as sibling top-level distributions that
+      # could collide with or shadow another package.
+      - name: Assert the wheel ships only the package and its dist-info
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import pathlib
+          import zipfile
+
+          wheels = sorted(pathlib.Path("dist").glob("*.whl"))
+          if len(wheels) != 1:
+              raise SystemExit(f"expected exactly one wheel, found {[w.name for w in wheels]}")
+          wheel = wheels[0]
+          with zipfile.ZipFile(wheel) as archive:
+              names = [name for name in archive.namelist() if name.strip("/")]
+          top_level = {name.split("/", 1)[0] for name in names}
+          dist_info = {name for name in top_level if name.endswith(".dist-info")}
+          if "quantum_reasoning_skill" not in top_level:
+              raise SystemExit(f"{wheel.name}: quantum_reasoning_skill package is missing")
+          if len(dist_info) != 1:
+              raise SystemExit(
+                  f"{wheel.name}: expected exactly one dist-info directory, found {sorted(dist_info)}"
+              )
+          unexpected = top_level - {"quantum_reasoning_skill"} - dist_info
+          if unexpected:
+              raise SystemExit(
+                  f"{wheel.name}: unexpected top-level entries {sorted(unexpected)}; "
+                  "only quantum_reasoning_skill and its dist-info may ship"
+              )
+          print(f"{wheel.name}: top-level entries {sorted(top_level)}")
+          PY
+
+      # The sdist is a separate build path with different file selection,
+      # force-includes and build isolation, so a working wheel does not prove
+      # it. Install the sdist itself into a fresh venv and run the script.
+      - name: Install the sdist in a fresh venv and run the console script
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          sdists=(dist/*.tar.gz)
+          if [ "${#sdists[@]}" -ne 1 ]; then
+            echo "::error::expected exactly one sdist, found ${#sdists[@]}"
+            exit 1
+          fi
+          python -m venv "$RUNNER_TEMP/venv-sdist"
+          "$RUNNER_TEMP/venv-sdist/bin/python" -m pip install --disable-pip-version-check --quiet "${sdists[0]}"
+          "$RUNNER_TEMP/venv-sdist/bin/quantum-reasoning" --validate
 
       - name: Upload distributions
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

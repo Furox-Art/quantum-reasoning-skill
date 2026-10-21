@@ -51,5 +51,5 @@ host cannot observe a measurement, it must omit that measurement rather than inv
 
 Whether any of the above improves accuracy for your model and workload. That requires an
 A/B run on your own setup, following
-[`../benchmark/README.md`](../benchmark/README.md) and the provenance rules in
+[`../quantum_reasoning_skill/benchmark/README.md`](../quantum_reasoning_skill/benchmark/README.md) and the provenance rules in
 [`../CONTRIBUTING.md`](../CONTRIBUTING.md#benchmark-provenance-requirements).

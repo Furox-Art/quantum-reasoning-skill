@@ -8,9 +8,10 @@ Results files are untrusted contributed content, so this module treats them as
 data only:
 
 * JSON is parsed with :func:`json.loads` and never passed to ``eval``/``exec``;
-* input files are read through :func:`benchmark.paths.require_within`, so a
-  symlink or ``..`` segment cannot make the evaluator read outside the anchor
-  directory (``--cases-dir``, or the current directory when it is not given);
+* input files are read through
+  :func:`quantum_reasoning_skill.benchmark.paths.require_within`, so a symlink
+  or ``..`` segment cannot make the evaluator read outside the anchor directory
+  (``--cases-dir``, or the current directory when it is not given);
 * reads are bounded by ``--max-bytes`` so an oversized submission fails fast
   instead of exhausting memory.
 
@@ -33,12 +34,12 @@ from pathlib import Path
 from typing import Any, Iterable
 
 try:  # normal package import, and the supported way to reach this module
-    from benchmark.paths import require_within
-except ImportError:  # pragma: no cover - direct `python benchmark/evaluate.py`
+    from quantum_reasoning_skill.benchmark.paths import require_within
+except ImportError:  # pragma: no cover - direct `python .../benchmark/evaluate.py`
     import sys
 
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-    from benchmark.paths import require_within
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from quantum_reasoning_skill.benchmark.paths import require_within
 
 DEFAULT_MAX_BYTES = 32 * 1024 * 1024
 
@@ -56,7 +57,7 @@ MISSING_INPUT_HINT = (
     "A results file holds one JSON object per line, e.g. "
     '{"case_id": "case-1", "answer": "42", "tokens": 120, "tool_calls": 0, '
     '"latency_ms": 950}. The evaluator never invents missing measurements; see '
-    "benchmark/README.md for the full record contract."
+    "quantum_reasoning_skill/benchmark/README.md for the full record contract."
 )
 
 
@@ -110,8 +111,8 @@ def resolve_input(path: Path, *, cases_dir: Path | None, what: str) -> Path:
     The anchor is ``cases_dir`` when given. Without it the documented default
     applies: each input is confined to its own directory. Either way the path is
     resolved against the **current working directory** first, which is what makes
-    the commands documented in the README work -- ``benchmark/cases.jsonl`` run
-    from the repository root is that file, not a directory nested inside itself.
+    the commands documented in the README work -- ``quantum_reasoning_skill/benchmark/cases.jsonl``
+    run from the repository root is that file, not a directory nested inside itself.
     """
     raw = Path(path)
     if cases_dir is not None:
@@ -328,7 +329,7 @@ def main(argv: list[str] | None = None) -> int:
         default=PACKAGED_CASES,
         help=(
             "Path to the benchmark cases JSONL file "
-            "(default: the packaged seed cases, benchmark/cases.jsonl)"
+            "(default: the packaged seed cases, quantum_reasoning_skill/benchmark/cases.jsonl)"
         ),
     )
     parser.add_argument("--skill", type=Path, required=True)

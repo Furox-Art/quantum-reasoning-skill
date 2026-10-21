@@ -2,7 +2,9 @@
 
 The README documents::
 
-    python benchmark/evaluate.py --cases benchmark/cases.jsonl --skill skill-results.jsonl
+    python quantum_reasoning_skill/benchmark/evaluate.py \
+        --cases quantum_reasoning_skill/benchmark/cases.jsonl \
+        --skill skill-results.jsonl
 
 Two defects made that command unusable from a clean checkout:
 
@@ -36,17 +38,17 @@ if str(ROOT) not in sys.path:
 
 import conftest  # noqa: E402  (repository root is on sys.path only after the insert)
 
-evaluate = importlib.import_module("benchmark.evaluate")
+evaluate = importlib.import_module("quantum_reasoning_skill.benchmark.evaluate")
 
-EVALUATOR = ROOT / "benchmark" / "evaluate.py"
-CASES = ROOT / "benchmark" / "cases.jsonl"
+EVALUATOR = ROOT / "quantum_reasoning_skill" / "benchmark" / "evaluate.py"
+CASES = ROOT / "quantum_reasoning_skill" / "benchmark" / "cases.jsonl"
 
 #: Files that are build/test residue rather than part of a checkout.
 IGNORED = shutil.ignore_patterns(
     ".git", "__pycache__", ".mypy_cache", ".ruff_cache", ".pytest_cache", ".coverage"
 )
 
-#: Must match ``benchmark.evaluate.EXIT_MISSING_INPUT``.
+#: Must match ``quantum_reasoning_skill.benchmark.evaluate.EXIT_MISSING_INPUT``.
 EXIT_MISSING_INPUT = 2
 
 
@@ -76,7 +78,11 @@ class DocumentedCommandTests(unittest.TestCase):
 
     def run_command(self, cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
-            [sys.executable, str(Path("benchmark") / "evaluate.py"), *args],
+            [
+                sys.executable,
+                str(Path("quantum_reasoning_skill") / "benchmark" / "evaluate.py"),
+                *args,
+            ],
             cwd=str(cwd),
             capture_output=True,
             text=True,
@@ -114,7 +120,7 @@ class DocumentedCommandTests(unittest.TestCase):
             result = self.run_command(
                 cwd,
                 "--cases",
-                "benchmark/cases.jsonl",
+                "quantum_reasoning_skill/benchmark/cases.jsonl",
                 "--skill",
                 "skill-results.jsonl",
             )
@@ -132,7 +138,7 @@ class DocumentedCommandTests(unittest.TestCase):
             result = self.run_command(
                 cwd,
                 "--cases",
-                "benchmark/absent-cases.jsonl",
+                "quantum_reasoning_skill/benchmark/absent-cases.jsonl",
                 "--skill",
                 "skill-results.jsonl",
             )
@@ -147,7 +153,7 @@ class DocumentedCommandTests(unittest.TestCase):
             result = self.run_command(
                 cwd,
                 "--cases",
-                "benchmark/cases.jsonl",
+                "quantum_reasoning_skill/benchmark/cases.jsonl",
                 "--skill",
                 "skill-results.jsonl",
             )
@@ -167,13 +173,13 @@ class DocumentedCommandTests(unittest.TestCase):
         self.assertEqual(payload["skill"]["cases_defined"], len(seed_case_ids()))
 
     def test_relative_paths_resolve_against_the_working_directory(self):
-        """``benchmark/cases.jsonl`` names that file, not a child of itself."""
+        """``quantum_reasoning_skill/benchmark/cases.jsonl`` names that file, not a child of itself."""
         with CleanCheckout() as cwd:
             self.write_results(cwd, "nested/skill-results.jsonl")
             result = self.run_command(
                 cwd,
                 "--cases",
-                "benchmark/cases.jsonl",
+                "quantum_reasoning_skill/benchmark/cases.jsonl",
                 "--skill",
                 "nested/skill-results.jsonl",
                 "--output",
@@ -189,7 +195,7 @@ class DocumentedCommandTests(unittest.TestCase):
             result = self.run_command(
                 cwd,
                 "--cases",
-                "benchmark/cases.jsonl",
+                "quantum_reasoning_skill/benchmark/cases.jsonl",
                 "--baseline",
                 "baseline-results.jsonl",
                 "--skill",
@@ -202,16 +208,16 @@ class DocumentedCommandTests(unittest.TestCase):
         conftest.assert_close(payload["comparison"]["accuracy_delta"], 0.0)
 
     def test_module_entry_point_behaves_the_same(self):
-        """``python -m benchmark.evaluate`` is the other documented form."""
+        """``python -m quantum_reasoning_skill.benchmark.evaluate`` is the other documented form."""
         with CleanCheckout() as cwd:
             self.write_results(cwd)
             result = subprocess.run(
                 [
                     sys.executable,
                     "-m",
-                    "benchmark.evaluate",
+                    "quantum_reasoning_skill.benchmark.evaluate",
                     "--cases",
-                    "benchmark/cases.jsonl",
+                    "quantum_reasoning_skill/benchmark/cases.jsonl",
                     "--skill",
                     "skill-results.jsonl",
                 ],

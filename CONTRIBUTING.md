@@ -14,12 +14,12 @@ Executable behavior changes should include tests.
 | --- | --- |
 | [`SKILL.md`](SKILL.md) | The normative protocol. If a doc and `SKILL.md` disagree, `SKILL.md` wins. |
 | [`docs/`](docs/index.md) | Documentation home, getting started, quickstart, measurement, compatibility |
-| [`reference/branch_controller.py`](reference/branch_controller.py) | Reference scoring, dormancy, revival and collapse logic |
-| [`bin/quantum-reasoning`](bin/quantum-reasoning) | The `quantum-reasoning` console script; installed as `quantum_reasoning_skill.cli` |
+| [`quantum_reasoning_skill/reference/branch_controller.py`](quantum_reasoning_skill/reference/branch_controller.py) | Reference scoring, dormancy, revival and collapse logic |
+| [`bin/quantum-reasoning`](bin/quantum-reasoning) | Thin checkout launcher for the `quantum-reasoning` console script; the implementation lives in `quantum_reasoning_skill/cli.py` |
 | [`bin/check_release_contract.py`](bin/check_release_contract.py) | Release gate: asserts the installed distribution's real surface, with a fail-closed negative control |
 | [`conftest.py`](conftest.py) | Version-lockstep helpers shared by CI and the standalone scripts |
 | [`examples/`](examples/usage.md) | Prompt shapes and host integration shapes |
-| [`benchmark/`](benchmark/README.md) | Cases, JSON Schemas, evaluator, submission validator |
+| [`quantum_reasoning_skill/benchmark/`](quantum_reasoning_skill/benchmark/README.md) | Cases, JSON Schemas, evaluator, submission validator |
 | [`tests/`](tests) | Behavioral tests, run with `python -m unittest discover -s tests` |
 
 ## Getting a change merged
@@ -85,12 +85,13 @@ back. Changes must preserve that.
   `bin/check_release_contract.py` enforces that it ships.
 - Do not add a Python API that does not exist. The installed surface is the
   `quantum-reasoning` console script, the shipped `SKILL.md` and `VERSION`, and
-  `reference.branch_controller`. An earlier README claimed a `ReasoningSession` class that
-  never existed; asserting it made the release gate unsatisfiable.
+  `quantum_reasoning_skill.reference.branch_controller`. An earlier README claimed a
+  `ReasoningSession` class that never existed; asserting it made the release gate
+  unsatisfiable.
 - Bump `VERSION` and let the lockstep check carry `pyproject.toml`, `package.json`,
   `CITATION.cff` and `CHANGELOG.md` with it. Do not hand-edit one version in isolation.
 - Keep `docs/MEASUREMENT.md` in sync with `WEIGHTS` and `DEFAULT_THRESHOLDS` in
-  `reference/branch_controller.py`. They are transcribed from each other.
+  `quantum_reasoning_skill/reference/branch_controller.py`. They are transcribed from each other.
 - Link only to files that exist, and prefer relative links inside this repository.
 
 ## Community-run benchmarks
@@ -110,9 +111,9 @@ The repository provides:
 Users may run controlled baseline-vs-skill experiments on models and providers they already
 have access to and submit the results for review.
 
-**No such evaluation has been published yet.** `benchmark/cases.jsonl` holds smoke-test
-cases that prove the harness runs; they are not evidence that this skill improves reasoning.
-Your run would be among the first.
+**No such evaluation has been published yet.** `quantum_reasoning_skill/benchmark/cases.jsonl`
+holds smoke-test cases that prove the harness runs; they are not evidence that this skill
+improves reasoning. Your run would be among the first.
 
 ### Required metadata
 
@@ -156,7 +157,7 @@ hand-picked example in place of the full result set — see
 Place each submitted run under:
 
 ```text
-benchmark/results/community/<provider>-<model>-<YYYY-MM-DD>/
+quantum_reasoning_skill/benchmark/results/community/<provider>-<model>-<YYYY-MM-DD>/
 ```
 
 Every bundle must include:
@@ -170,14 +171,15 @@ comparison.json
 README.md
 ```
 
-The exact contracts are in [`benchmark/schemas/`](benchmark/schemas/). `cases.jsonl` must
+The exact contracts are in [`quantum_reasoning_skill/benchmark/schemas/`](quantum_reasoning_skill/benchmark/schemas/). `cases.jsonl` must
 contain the exact evaluated cases, including custom cases when used.
 
-`comparison.json` must be produced by `benchmark/evaluate.py` from the submitted raw result
-files rather than edited manually. Before submitting, run:
+`comparison.json` must be produced by `quantum_reasoning_skill/benchmark/evaluate.py` from
+the submitted raw result files rather than edited manually. Before submitting, run:
 
 ```bash
-python benchmark/validate_submission.py --root benchmark/results/community
+python quantum_reasoning_skill/benchmark/validate_submission.py \
+  --root quantum_reasoning_skill/benchmark/results/community
 ```
 
 CI recomputes the comparison and rejects a bundle when its raw evidence and reported

@@ -28,11 +28,13 @@ import conftest  # noqa: E402  (repository root is on sys.path only after the in
 
 assert_close = conftest.assert_close
 
-evaluate = importlib.import_module("benchmark.evaluate")
-validator = importlib.import_module("benchmark.validate_submission")
+evaluate = importlib.import_module("quantum_reasoning_skill.benchmark.evaluate")
+validator = importlib.import_module(
+    "quantum_reasoning_skill.benchmark.validate_submission"
+)
 
 #: Directories whose Python sources ship to users or run in CI.
-SCANNED_DIRS = ("benchmark", "reference", "quantum_reasoning_skill")
+SCANNED_DIRS = ("quantum_reasoning_skill",)
 
 #: Bare names that must never be called in shipped code.
 FORBIDDEN_CALLS = {

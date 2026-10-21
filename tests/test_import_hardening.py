@@ -6,8 +6,8 @@ The validator used to do a bare ``import evaluate``, which resolves against
 ``evaluate`` package on PyPI) would be imported and executed instead of the
 repository's own evaluator.
 
-``benchmark`` is now a real package and the modules import it absolutely, so the
-tests below pin that behaviour down.
+``quantum_reasoning_skill.benchmark`` is now a real package and the modules
+import it absolutely, so the tests below pin that behaviour down.
 """
 
 from __future__ import annotations
@@ -24,6 +24,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+PACKAGE_DIR = ROOT / "quantum_reasoning_skill"
+BENCHMARK_DIR = PACKAGE_DIR / "benchmark"
+
 HOSTILE = "raise SystemExit('HIJACKED_BY_HOSTILE_MODULE')\n"
 
 # These tests spawn subprocesses on purpose: the only way to prove that a hostile
@@ -35,32 +38,38 @@ HOSTILE = "raise SystemExit('HIJACKED_BY_HOSTILE_MODULE')\n"
 
 class PackageBoundaryTests(unittest.TestCase):
     def test_benchmark_is_a_real_package(self):
-        self.assertTrue((ROOT / "benchmark" / "__init__.py").is_file())
+        self.assertTrue((BENCHMARK_DIR / "__init__.py").is_file())
+
+    def test_no_top_level_benchmark_directory_remains(self):
+        """The sources live under the package; nothing shadows site-packages."""
+        self.assertFalse((ROOT / "benchmark").exists())
 
     def test_evaluate_resolves_to_the_repository_copy(self):
-        module = importlib.import_module("benchmark.evaluate")
+        module = importlib.import_module("quantum_reasoning_skill.benchmark.evaluate")
         self.assertEqual(
             Path(module.__file__).resolve(),
-            (ROOT / "benchmark" / "evaluate.py").resolve(),
+            (BENCHMARK_DIR / "evaluate.py").resolve(),
         )
-        self.assertEqual(module.__package__, "benchmark")
+        self.assertEqual(module.__package__, "quantum_reasoning_skill.benchmark")
 
     def test_find_spec_reports_the_package_location(self):
-        spec = importlib.util.find_spec("benchmark.evaluate")
+        spec = importlib.util.find_spec("quantum_reasoning_skill.benchmark.evaluate")
         self.assertIsNotNone(spec)
         origin = Path(spec.origin).resolve()
-        self.assertEqual(origin, (ROOT / "benchmark" / "evaluate.py").resolve())
+        self.assertEqual(origin, (BENCHMARK_DIR / "evaluate.py").resolve())
 
     def test_validate_submission_uses_the_package_module(self):
-        module = importlib.import_module("benchmark.validate_submission")
+        module = importlib.import_module(
+            "quantum_reasoning_skill.benchmark.validate_submission"
+        )
         self.assertEqual(
             Path(module.evaluate.__file__).resolve(),
-            (ROOT / "benchmark" / "evaluate.py").resolve(),
+            (BENCHMARK_DIR / "evaluate.py").resolve(),
         )
 
     def test_no_module_imports_a_bare_evaluate(self):
         for name in ("evaluate.py", "validate_submission.py"):
-            source = (ROOT / "benchmark" / name).read_text(encoding="utf-8")
+            source = (BENCHMARK_DIR / name).read_text(encoding="utf-8")
             for line in source.splitlines():
                 stripped = line.strip()
                 self.assertFalse(
@@ -78,7 +87,7 @@ class HostileSysPathTests(unittest.TestCase):
         (hostile_dir / "evaluate.py").write_text(HOSTILE, encoding="utf-8")
 
         env = dict(os.environ)
-        pythonpath = [str(hostile_dir)]
+        pythonpath = [str(hostile_dir), str(ROOT)]
         if hostile is not None:
             pythonpath.insert(0, str(hostile))
         env["PYTHONPATH"] = os.pathsep.join(pythonpath)
@@ -87,9 +96,9 @@ class HostileSysPathTests(unittest.TestCase):
             [
                 sys.executable,
                 "-m",
-                "benchmark.validate_submission",
+                "quantum_reasoning_skill.benchmark.validate_submission",
                 "--root",
-                "benchmark/results/community",
+                "quantum_reasoning_skill/benchmark/results/community",
                 "--allow-empty",
             ],
             cwd=str(cwd),
@@ -119,30 +128,36 @@ class HostileSysPathTests(unittest.TestCase):
             (cwd / "evaluate.py").write_text(HOSTILE, encoding="utf-8")
             result = self.run_isolated(tmp, cwd, cwd)
             self.assertNotIn("HIJACKED_BY_HOSTILE_MODULE", result.stdout + result.stderr)
+            self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_integrity_marker_rejects_an_incomplete_package(self):
         """A ``benchmark`` package missing its modules must refuse to initialise.
 
-        A *complete* hostile substitution of the whole ``benchmark`` package is a
-        property of Python's ``sys.path`` ordering (the working directory is
-        searched before any repository code runs) and cannot be prevented from
-        inside the package. What is testable, and what this asserts, is the
-        integrity marker: a partial substitution raises rather than silently
-        serving code the caller believes is the repository's own.
+        A *complete* hostile substitution of the whole package is a property of
+        Python's ``sys.path`` ordering (the working directory is searched before
+        any repository code runs) and cannot be prevented from inside the
+        package. What is testable, and what this asserts, is the integrity
+        marker: a partial substitution raises rather than silently serving code
+        the caller believes is the repository's own.
         """
         import tempfile
 
         with tempfile.TemporaryDirectory() as tmpdir:
             cwd = Path(tmpdir) / "attacker"
-            (cwd / "benchmark").mkdir(parents=True)
-            (cwd / "benchmark" / "__init__.py").write_text(
-                (ROOT / "benchmark" / "__init__.py").read_text(encoding="utf-8"),
+            planted = cwd / "quantum_reasoning_skill" / "benchmark"
+            planted.mkdir(parents=True)
+            (cwd / "quantum_reasoning_skill" / "__init__.py").write_text(
+                (PACKAGE_DIR / "__init__.py").read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
+            (planted / "__init__.py").write_text(
+                (BENCHMARK_DIR / "__init__.py").read_text(encoding="utf-8"),
                 encoding="utf-8",
             )
             env = dict(os.environ)
             env["PYTHONPATH"] = str(ROOT)
             result = subprocess.run(  # nosec B603 - fixed argv, shell=False by default
-                [sys.executable, "-c", "import benchmark"],
+                [sys.executable, "-c", "import quantum_reasoning_skill.benchmark"],
                 cwd=str(cwd),
                 env=env,
                 capture_output=True,
@@ -155,9 +170,9 @@ class HostileSysPathTests(unittest.TestCase):
         result = subprocess.run(  # nosec B603 - fixed argv, shell=False by default
             [
                 sys.executable,
-                str(ROOT / "benchmark" / "validate_submission.py"),
+                str(BENCHMARK_DIR / "validate_submission.py"),
                 "--root",
-                "benchmark/results/community",
+                "quantum_reasoning_skill/benchmark/results/community",
                 "--allow-empty",
             ],
             cwd=str(ROOT),

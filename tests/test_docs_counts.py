@@ -27,8 +27,15 @@ ROOT = Path(__file__).resolve().parents[1]
 README = ROOT / "README.md"
 CONTRIBUTING = ROOT / "CONTRIBUTING.md"
 QUICKSTART = ROOT / "docs" / "quickstart.md"
-METHODOLOGY = ROOT / "benchmark" / "falsification" / "METHODOLOGY.md"
-RESULTS_JSON = ROOT / "benchmark" / "falsification" / "results" / "results.json"
+METHODOLOGY = ROOT / "quantum_reasoning_skill" / "benchmark" / "falsification" / "METHODOLOGY.md"
+RESULTS_JSON = (
+    ROOT
+    / "quantum_reasoning_skill"
+    / "benchmark"
+    / "falsification"
+    / "results"
+    / "results.json"
+)
 VERSION_FILE = ROOT / "VERSION"
 CONSTRAINTS = ROOT / "constraints.txt"
 

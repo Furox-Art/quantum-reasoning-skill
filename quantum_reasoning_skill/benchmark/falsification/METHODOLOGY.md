@@ -1,9 +1,9 @@
 # Falsification benchmark methodology
 
 This document describes the falsification-scenario comparative benchmark in
-`benchmark/falsification/`: what it measures, how the numbers are produced, and
+`quantum_reasoning_skill/benchmark/falsification/`: what it measures, how the numbers are produced, and
 the exact commands needed to reproduce them. Every number in
-`benchmark/falsification/results/` comes from running the suite in this
+`quantum_reasoning_skill/benchmark/falsification/results/` comes from running the suite in this
 repository. Nothing in this document is hand-computed.
 
 ## What this benchmark is (and is not)
@@ -14,7 +14,7 @@ policies over identical, hand-crafted evidence streams:
 - **single-hypothesis**: commits to the strongest branch at the first evidence
   step and never revisits it.
 - **multi-hypothesis**: the reference branch controller in
-  `reference/branch_controller.py`, which scores branches from explicit metric
+  `quantum_reasoning_skill/reference/branch_controller.py`, which scores branches from explicit metric
   snapshots, prunes contradicted branches, revives dormant branches on material
   evidence change, and answers with the surviving leader.
 
@@ -46,7 +46,7 @@ branch-metric snapshot (`evidence`, `verification`, `independence`,
 `shared_assumption_ratio`, `semantic_similarity_to_leader`) plus whether the
 ground-truth answer is knowable from that step.
 
-Scenario definitions live in `benchmark/falsification/scenarios.py`. They are
+Scenario definitions live in `quantum_reasoning_skill/benchmark/falsification/scenarios.py`. They are
 literal Python data (no randomness, no fixed-seed generation, no external
 files), so a scenario always produces the same run. `tests/test_falsification_suite.py`
 asserts every metric stays in `[0, 1]` and that falsification scenarios really do
@@ -85,7 +85,7 @@ interpretable only where the scenario actually contains a falsification event.
 
 ## Metric definitions
 
-All metrics are computed by `benchmark/falsification/run_suite.py`.
+All metrics are computed by `quantum_reasoning_skill/benchmark/falsification/run_suite.py`.
 
 **Final accuracy.** Fraction of scenarios whose final answer (the leader at the
 last evidence step) equals the ground-truth branch. Reported overall and
@@ -140,7 +140,7 @@ From the repository root, with Python 3.10 or newer and no extra dependencies:
 
 ```bash
 # run the suite; regenerates results.json, RESULTS.md and scenarios.jsonl
-python benchmark/falsification/run_suite.py
+python quantum_reasoning_skill/benchmark/falsification/run_suite.py
 
 # run the full test suite (includes the falsification tests)
 python -m unittest discover -s tests
@@ -156,7 +156,7 @@ context only, and the test suite deliberately does not assert on it.
 
 ## Results
 
-Headline numbers from the committed run (`benchmark/falsification/results/`):
+Headline numbers from the committed run (`quantum_reasoning_skill/benchmark/falsification/results/`):
 
 | metric | single-hypothesis | multi-hypothesis |
 |---|---:|---:|
@@ -219,25 +219,25 @@ Reading of these numbers:
 
 ## Relationship to the existing benchmark
 
-This suite extends `benchmark/`; it does not replace it.
+This suite extends `quantum_reasoning_skill/benchmark/`; it does not replace it.
 
-- `benchmark/evaluate.py` compares real model runs recorded as JSONL. This
+- `quantum_reasoning_skill/benchmark/evaluate.py` compares real model runs recorded as JSONL. This
   falsification suite needs no model and compares decision policies directly.
-- `benchmark/falsification/scenarios.jsonl` is emitted in the same case-record
-  format as `benchmark/cases.jsonl`, so these scenarios can be fed to
-  `benchmark/evaluate.py` unchanged when real model runs become available.
-- The community-result submission policy in `benchmark/README.md` is unchanged;
+- `quantum_reasoning_skill/benchmark/falsification/scenarios.jsonl` is emitted in the same case-record
+  format as `quantum_reasoning_skill/benchmark/cases.jsonl`, so these scenarios can be fed to
+  `quantum_reasoning_skill/benchmark/evaluate.py` unchanged when real model runs become available.
+- The community-result submission policy in `quantum_reasoning_skill/benchmark/README.md` is unchanged;
   this suite's artifacts are maintained in-repo, not submitted as a community
   result.
 
 ## Files
 
 ```
-benchmark/falsification/scenarios.py        # deterministic scenario definitions
-benchmark/falsification/run_suite.py        # policies, metrics, aggregator, CLI
-benchmark/falsification/scenarios.jsonl     # generated case records (committed)
-benchmark/falsification/results/results.json # full machine-readable results
-benchmark/falsification/results/RESULTS.md   # human-readable results table
-benchmark/falsification/METHODOLOGY.md      # this file
+quantum_reasoning_skill/benchmark/falsification/scenarios.py        # deterministic scenario definitions
+quantum_reasoning_skill/benchmark/falsification/run_suite.py        # policies, metrics, aggregator, CLI
+quantum_reasoning_skill/benchmark/falsification/scenarios.jsonl     # generated case records (committed)
+quantum_reasoning_skill/benchmark/falsification/results/results.json # full machine-readable results
+quantum_reasoning_skill/benchmark/falsification/results/RESULTS.md   # human-readable results table
+quantum_reasoning_skill/benchmark/falsification/METHODOLOGY.md      # this file
 tests/test_falsification_suite.py           # unit tests for the suite
 ```

@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from benchmark import validate_submission as subject
+from quantum_reasoning_skill.benchmark import validate_submission as subject
 
 
 def metadata():

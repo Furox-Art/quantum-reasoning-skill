@@ -1,7 +1,7 @@
 """Filesystem helpers for the benchmark tooling.
 
 Community benchmark bundles are untrusted contributed content: a pull request
-can add arbitrary files under ``benchmark/results/community``. Everything here
+can add arbitrary files under ``quantum_reasoning_skill/benchmark/results/community``. Everything here
 therefore works on fully resolved paths and refuses to read or write anything
 that escapes the directory it was anchored to.
 

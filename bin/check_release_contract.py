@@ -42,7 +42,7 @@ from pathlib import Path
 DISTRIBUTION = "quantum-reasoning-skill"
 DISTRIBUTION_NORMALIZED = "quantum_reasoning_skill"
 SKILL_MODULE = f"{DISTRIBUTION_NORMALIZED}.cli"
-CONTROLLER_MODULE = "reference.branch_controller"
+CONTROLLER_MODULE = "quantum_reasoning_skill.reference.branch_controller"
 CONSOLE_SCRIPT = "quantum-reasoning"
 SEMVER = re.compile(r"^\d+\.\d+\.\d+(?:[.-][0-9A-Za-z.-]+)?$")
 

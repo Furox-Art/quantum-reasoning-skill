@@ -36,8 +36,6 @@ on:
       - "index.js"
       - "package.json"
       - "quantum_reasoning_skill/**"
-      - "reference/**"
-      - "benchmark/**"
       - "docs/**"
       - "examples/**"
       - "bin/**"

@@ -18,7 +18,7 @@ Start here, then pick the depth you need.
 | [Skill contract](../SKILL.md) | What the model must do, when, and what it must never claim |
 | [Measurement methodology](MEASUREMENT.md) | The exact formulas, weights and thresholds behind the reference controller |
 | [Host compatibility](COMPATIBILITY.md) | Which host capabilities are required, expressed as capabilities rather than vendors |
-| [Branch controller](../reference/branch_controller.py) | The reference implementation of scoring, dormancy, revival and collapse |
+| [Branch controller](../quantum_reasoning_skill/reference/branch_controller.py) | The reference implementation of scoring, dormancy, revival and collapse |
 | [Release contract gate](../bin/check_release_contract.py) | What CI asserts about the built distribution, and how the gate proves it is fail-closed |
 | [`quantum-reasoning` CLI](../bin/quantum-reasoning) | The console script that validates the installed skill asset |
 
@@ -33,8 +33,8 @@ Start here, then pick the depth you need.
 
 | Document | What it shows |
 | --- | --- |
-| [Benchmark protocol](../benchmark/README.md) | Cases, schemas, evaluator, controls, submission rules |
-| [Seed cases](../benchmark/cases.jsonl) | Six deterministic smoke-test cases |
+| [Benchmark protocol](../quantum_reasoning_skill/benchmark/README.md) | Cases, schemas, evaluator, controls, submission rules |
+| [Seed cases](../quantum_reasoning_skill/benchmark/cases.jsonl) | Six deterministic smoke-test cases |
 
 **No baseline-versus-skill model evaluation has been published.** The seed cases prove the
 harness runs; they are not evidence that this skill improves reasoning. Every contributed

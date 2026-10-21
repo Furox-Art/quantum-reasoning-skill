@@ -13,8 +13,10 @@ if str(ROOT) not in sys.path:
 # Resolved through the package so these tests exercise the same import path the
 # tooling uses, and so nothing is registered in sys.modules under a bare name
 # that could shadow (or be shadowed by) the repository's own modules.
-evaluate = importlib.import_module("benchmark.evaluate")
-validator = importlib.import_module("benchmark.validate_submission")
+evaluate = importlib.import_module("quantum_reasoning_skill.benchmark.evaluate")
+validator = importlib.import_module(
+    "quantum_reasoning_skill.benchmark.validate_submission"
+)
 
 
 class SubmissionValidationTests(unittest.TestCase):

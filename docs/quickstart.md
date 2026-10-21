@@ -21,7 +21,7 @@ language-model calls. Exit code `0` means every structural check passed.
 | 1. Checkout identity | The clone is complete and reports a commit, version and `SKILL.md` digest | Anything about skill quality |
 | 2. Agent Skill contract | `SKILL.md` opens with parseable YAML front matter, declares `name: quantum-reasoning`, and has a description inside the 1024-character host limit | That any host has loaded it |
 | 3. Reference controller | Scoring, rejection, dormancy, uncertainty-driven width, collapse gating and revival all execute on real inputs | That the weights or thresholds are correct — they are uncalibrated defaults |
-| 4. Benchmark harness | `benchmark/evaluate.py` reads the seed cases and emits a comparison document | That the skill helps. The rows are **synthetic placeholders** |
+| 4. Benchmark harness | `quantum_reasoning_skill/benchmark/evaluate.py` reads the seed cases and emits a comparison document | That the skill helps. The rows are **synthetic placeholders** |
 
 Step 4 writes byte-identical placeholder rows into both the baseline and the skill
 condition. A `+0.0000` accuracy delta is therefore the *expected* output. It is a harness
@@ -35,13 +35,18 @@ Captured on Windows 11 / AMD64, CPython 3.12.10, on an **LF checkout** (no
 (`dc0a5930aa0098238adb3a0ab0e2fca01e30b1d4`), so the commit is obtainable by anyone
 reading this repository.
 
+The version lines below follow the current `VERSION` (1.2.0). The commit, digest and
+line counts were captured at 1.1.5; re-run `python docs/quickstart.py` on a 1.2.0
+checkout to refresh the whole block.
+
 **Provenance for the block below:**
 
 - Script: `docs/quickstart.py`
-- Skill version: `1.1.5` (from `VERSION`)
+- Skill version: `1.2.0` (from `VERSION`)
 - Skill commit: `9a78b15485c47f78a6274ec4e60470bc150532fd`
-- Controller: `reference/branch_controller.py`, `DEFAULT_THRESHOLDS`
-- Benchmark inputs: `benchmark/cases.jsonl`, evaluated by `benchmark/evaluate.py`
+- Controller: `quantum_reasoning_skill/reference/branch_controller.py`, `DEFAULT_THRESHOLDS`
+- Benchmark inputs: `quantum_reasoning_skill/benchmark/cases.jsonl`, evaluated by
+  `quantum_reasoning_skill/benchmark/evaluate.py`
 - Platform: Windows 11 (AMD64), CPython 3.12.10
 - `SKILL.md` digest: **7145 bytes, `sha256:bd70f42ce11d1713`** — the git blob
 
@@ -62,7 +67,7 @@ Quantum Reasoning Skill - quickstart verification
 
 [1/4] Checkout identity
     commit      : 9a78b15485c47f78a6274ec4e60470bc150532fd
-    VERSION     : 1.1.5
+    VERSION     : 1.2.0
     SKILL.md    : 7145 bytes  sha256:bd70f42ce11d1713
     branch      : docs/readme-truthfulness
 
@@ -72,7 +77,7 @@ Quantum Reasoning Skill - quickstart verification
     body        : 142 lines
     status      : front matter parses and is host-ready
 
-[3/4] Reference controller (reference/branch_controller.py)
+[3/4] Reference controller (quantum_reasoning_skill/reference/branch_controller.py)
     scenario: 'should we migrate our monolith to microservices?'
       strangler-fig-incremental  active
       big-bang-rewrite           rejected
@@ -99,12 +104,12 @@ Quantum Reasoning Skill - quickstart verification
 Provenance for every number printed above
 --------------------------------------------------------------
     script      : docs/quickstart.py
-    skill ver   : 1.1.5   (VERSION)
+    skill ver   : 1.2.0   (VERSION)
     commit      : 9a78b15485c47f78a6274ec4e60470bc150532fd
     platform    : Windows 11 (AMD64)
     python      : 3.12.10 (CPython)
-    controller  : reference/branch_controller.py DEFAULT_THRESHOLDS
-    benchmark   : benchmark/cases.jsonl + benchmark/evaluate.py
+    controller  : quantum_reasoning_skill/reference/branch_controller.py DEFAULT_THRESHOLDS
+    benchmark   : quantum_reasoning_skill/benchmark/cases.jsonl + quantum_reasoning_skill/benchmark/evaluate.py
 
 RESULT: PASS (structure verified; no performance claim implied)
 ```
@@ -130,5 +135,5 @@ rather than trusted.
 
 - Install the skill in a host: [Getting started](getting-started.md)
 - Understand the host requirements: [Compatibility](COMPATIBILITY.md)
-- Run a real evaluation: [Benchmark protocol](../benchmark/README.md) and
+- Run a real evaluation: [Benchmark protocol](../quantum_reasoning_skill/benchmark/README.md) and
   [CONTRIBUTING.md](../CONTRIBUTING.md#benchmark-provenance-requirements)

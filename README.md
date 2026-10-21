@@ -51,10 +51,14 @@ drifts.
 ## Distribution and the surface it exposes
 
 Three channels ship `SKILL.md`, all on one version: a `git clone` (everything); the PyPI
-wheel (`SKILL.md` + `VERSION` as package data, plus `reference/`, `benchmark/`, `docs/`,
-`examples/`, and a `quantum-reasoning` console script); and the npm tarball (`SKILL.md`,
-`VERSION`, `index.js`, `LICENSE`, `README.md`, and a `quantum-reasoning` bin). Both packaged
-artifacts are verified against the **built** artifact, not a checkout.
+wheel (1.2.0 packaging: `SKILL.md`, `VERSION`, `reference/`, `benchmark/`, `docs/` and
+`examples/` ship under the `quantum_reasoning_skill/` package namespace, plus a
+`quantum-reasoning` console script backed by `quantum_reasoning_skill.cli`); and the npm
+tarball (`SKILL.md`, `VERSION`, `index.js`, `LICENSE`, `README.md`, and a
+`quantum-reasoning` bin). Both packaged artifacts are verified against the **built**
+artifact, not a checkout. Checkouts and installed distributions use the same canonical
+paths: the reference controller and benchmark harness live under
+`quantum_reasoning_skill/`, so the wheel and the source tree expose one import layout.
 
 ### Supply-chain attestations
 
@@ -90,9 +94,9 @@ CLIs plus a library:
 
 | Surface | Flags it actually accepts |
 | --- | --- |
-| `quantum-reasoning` — **Python** console script ([`bin/quantum-reasoning`](bin/quantum-reasoning)) | `--skill-file PATH`, `--validate`, `--json`, `--quiet`, `--help` |
+| `quantum-reasoning` — **Python** console script; implementation `quantum_reasoning_skill.cli` (checkout launcher: [`bin/quantum-reasoning`](bin/quantum-reasoning)) | `--skill-file PATH`, `--validate`, `--json`, `--quiet`, `--help` |
 | `npx quantum-reasoning` — **npm** CLI ([`index.js`](index.js)) | `--validate`, `--json`, `--path`, `--help` |
-| `reference.branch_controller` — Python library | importable; see [Reference controller](#reference-controller) |
+| `quantum_reasoning_skill.reference.branch_controller` — Python library | importable; see [Reference controller](#reference-controller) |
 | `quantum_reasoning_skill.SKILL.md`, `.VERSION` | the shipped asset, as package data |
 
 `--path` is npm-only; `--skill-file` and `--quiet` are Python-only. An unsupported flag exits
@@ -103,10 +107,10 @@ CLIs plus a library:
 [`bin/check_release_contract.py`](bin/check_release_contract.py) is the gate CI runs before
 any release. It asserts that `SKILL.md` resolves inside the installed wheel, that the
 `quantum-reasoning` entry point is installed and succeeds against the installed asset, that
-`reference.branch_controller` imports with a callable API, and that the version agrees
+`quantum_reasoning_skill.reference.branch_controller` imports with a callable API, and that the version agrees
 everywhere.
 
-**Twelve public names in `reference/branch_controller.py` are frozen** — `DEFAULT_THRESHOLDS`,
+**Twelve public names in `quantum_reasoning_skill/reference/branch_controller.py` are frozen** — `DEFAULT_THRESHOLDS`,
 `Branch`, `BranchMetrics`, `BranchState`, `Thresholds`, `branch_score`, `classify_branch`,
 `collapse_decision`, `diversity_ratio`, `recommended_width`, `uncertainty_from_branches`,
 `update_branch_state`. Renaming or removing any one **halts the release**. `WEIGHTS` is
@@ -140,14 +144,18 @@ must be calibrated first.
 
 ## Benchmark harness
 
-[`benchmark/`](benchmark/README.md) measures whether the skill helps rather than merely
-producing more text: `benchmark/evaluate.py` (evaluator), `benchmark/validate_submission.py`
-(machine-validates a reproducible bundle), `benchmark/paths.py` (path confinement that rejects
-`..` traversal and symlink escapes), `benchmark/cases.jsonl`, and four JSON Schemas — `case`,
+[`quantum_reasoning_skill/benchmark/`](quantum_reasoning_skill/benchmark/README.md) measures whether the skill helps rather than merely
+producing more text: `quantum_reasoning_skill/benchmark/evaluate.py` (evaluator),
+`quantum_reasoning_skill/benchmark/validate_submission.py`
+(machine-validates a reproducible bundle), `quantum_reasoning_skill/benchmark/paths.py`
+(path confinement that rejects `..` traversal and symlink escapes),
+`quantum_reasoning_skill/benchmark/cases.jsonl`, and four JSON Schemas — `case`,
 `result`, `metadata`, `comparison`.
 
 ```bash
-python benchmark/evaluate.py --cases benchmark/cases.jsonl --skill skill-results.jsonl
+python quantum_reasoning_skill/benchmark/evaluate.py \
+  --cases quantum_reasoning_skill/benchmark/cases.jsonl \
+  --skill skill-results.jsonl
 ```
 
 `--cases` is optional: it defaults to the packaged seed cases. Paths are resolved against the
@@ -155,12 +163,13 @@ current working directory, so the command above runs unchanged from a fresh clon
 file does not exist the evaluator prints a typed error, names the flag, and exits 2 — it never
 substitutes placeholder rows, because a fabricated measurement is worse than a missing one.
 Inputs are confined to `--cases-dir` (default: each input's own directory), `--output` must
-stay inside it, and reads are bounded by `--max-bytes`. Both `python benchmark/evaluate.py`
-and `python -m benchmark.evaluate` work.
+stay inside it, and reads are bounded by `--max-bytes`. Both
+`python quantum_reasoning_skill/benchmark/evaluate.py` and
+`python -m quantum_reasoning_skill.benchmark.evaluate` work.
 
 ## Tests, tooling and governance
 
-About **51% of the Python here is tests** — 4,995 of 9,765 lines across **23 test modules**,
+About **53% of the Python here is tests** — 5,543 of 10,512 lines across **25 test modules**,
 run with the standard library's `unittest` on Python 3.10–3.14 (Linux) and 3.12 (Windows, macOS).
 They cover the controller, the benchmark harness, import hardening, path boundaries,
 dependency-lock drift and release-gate polling; the documented benchmark command run as a
@@ -202,10 +211,10 @@ abandoned the falsified hypothesis at the same evidence step the falsification a
 revived a rejected-then-supported alternative in 3/3 revival scenarios. Confidence calibration
 showed **no difference** (Brier score 0.033 vs 0.033), and the accuracy gain cost **109.6%
 more tokens** per scenario. Methodology and reproduction:
-[`benchmark/falsification/METHODOLOGY.md`](benchmark/falsification/METHODOLOGY.md).
+[`quantum_reasoning_skill/benchmark/falsification/METHODOLOGY.md`](quantum_reasoning_skill/benchmark/falsification/METHODOLOGY.md).
 
 These results measure the reference decision controller on **synthetic evidence streams**, not
-any language model. `benchmark/cases.jsonl` holds six deterministic smoke-test cases that
+any language model. `quantum_reasoning_skill/benchmark/cases.jsonl` holds six deterministic smoke-test cases that
 prove the harness runs; they are explicitly **not sufficient evidence of reasoning
 improvement**. A baseline-vs-skill **model** evaluation has not been published, so this
 project makes **no claim that it improves any language model's accuracy or costs less

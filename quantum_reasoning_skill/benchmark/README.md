@@ -57,14 +57,15 @@ Skill-aware runners may additionally record observable aggregate telemetry such 
 ## Evaluate one run
 
 ```bash
-python benchmark/evaluate.py \
-  --cases benchmark/cases.jsonl \
+python quantum_reasoning_skill/benchmark/evaluate.py \
+  --cases quantum_reasoning_skill/benchmark/cases.jsonl \
   --skill path/to/skill-results.jsonl
 ```
 
 Run it from the repository root: relative paths resolve against the current working directory,
 and `--cases` defaults to the seed cases that ship beside it. Both
-`python benchmark/evaluate.py` and `python -m benchmark.evaluate` work.
+`python quantum_reasoning_skill/benchmark/evaluate.py` and
+`python -m quantum_reasoning_skill.benchmark.evaluate` work.
 
 `path/to/skill-results.jsonl` is a file **you** create by recording real runs. If it is not
 there yet the evaluator exits 2 with a typed error that names the flag and the path instead of
@@ -77,8 +78,8 @@ a traceback; it does not invent rows. One row per case:
 ## Compare baseline vs skill
 
 ```bash
-python benchmark/evaluate.py \
-  --cases benchmark/cases.jsonl \
+python quantum_reasoning_skill/benchmark/evaluate.py \
+  --cases quantum_reasoning_skill/benchmark/cases.jsonl \
   --baseline path/to/baseline-results.jsonl \
   --skill path/to/skill-results.jsonl \
   --output comparison.json
@@ -86,7 +87,7 @@ python benchmark/evaluate.py \
 
 ```bash
 # the same run through the module entry point, from a clean checkout
-python -m benchmark.evaluate --skill skill-results.jsonl
+python -m quantum_reasoning_skill.benchmark.evaluate --skill skill-results.jsonl
 ```
 
 The evaluator reports exact-answer accuracy, mean token use, tool calls, latency, branch diversity, revival/error recovery, contradiction resolution, and baseline-to-skill deltas.
@@ -116,7 +117,7 @@ Results can be submitted in either of two ways:
 2. Open a pull request containing a reproducible result bundle under:
 
 ```text
-benchmark/results/community/<provider>-<model>-<YYYY-MM-DD>/
+quantum_reasoning_skill/benchmark/results/community/<provider>-<model>-<YYYY-MM-DD>/
 ```
 
 Every benchmark-result PR bundle must contain:
@@ -132,20 +133,22 @@ README.md
 
 Including `cases.jsonl` inside the bundle makes the exact evaluated case set immutable and reviewable even when custom cases are used.
 
-Generate `comparison.json` with `benchmark/evaluate.py`; do not hand-edit it. Before opening a PR, validate the bundle:
+Generate `comparison.json` with `quantum_reasoning_skill/benchmark/evaluate.py`; do not
+hand-edit it. Before opening a PR, validate the bundle:
 
 ```bash
-python benchmark/validate_submission.py --root benchmark/results/community
+python quantum_reasoning_skill/benchmark/validate_submission.py \
+  --root quantum_reasoning_skill/benchmark/results/community
 ```
 
 CI runs the same validator. It rejects missing artifacts, incomplete metadata, duplicate/missing case results, and a `comparison.json` that differs from a fresh evaluator recomputation.
 
-See [`../CONTRIBUTING.md`](../CONTRIBUTING.md) for the complete submission and integrity policy.
+See [`../../CONTRIBUTING.md`](../../CONTRIBUTING.md) for the complete submission and integrity policy.
 
 ## Interpretation
 
 A useful result is not simply "skill accuracy is higher". Report the trade-off between accuracy and compute. A skill that gains 1 percentage point while using 5x tokens may be undesirable for many workloads.
 
-The reference thresholds in `reference/branch_controller.py` are defaults to test, not validated constants. Benchmark evidence should drive later calibration.
+The reference thresholds in `quantum_reasoning_skill/reference/branch_controller.py` are defaults to test, not validated constants. Benchmark evidence should drive later calibration.
 
 The project makes no universal performance claim from a single model, provider, benchmark or contributor submission. Independent replication is preferred.

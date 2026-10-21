@@ -4,7 +4,8 @@ This suite is provider-agnostic and uses only the Python standard library. It
 drives two reasoning policies over identical, fully deterministic scenarios:
 
 - ``single``: commit to the currently strongest hypothesis and never revisit it.
-- ``multi``: the reference branch controller from ``reference/branch_controller.py``,
+- ``multi``: the reference branch controller from
+  ``quantum_reasoning_skill/reference/branch_controller.py``,
   which keeps alternatives alive, prunes contradicted branches, revives dormant
   branches when evidence materially improves, and collapses only when one
   verified leader clearly dominates.
@@ -737,7 +738,7 @@ def build_all_scenarios() -> list[Scenario]:
 
 
 def scenario_as_case_record(scenario: Scenario) -> dict[str, Any]:
-    """Convert a scenario into a `benchmark/cases.jsonl`-compatible record."""
+    """Convert a scenario into a `quantum_reasoning_skill/benchmark/cases.jsonl`-compatible record."""
     return {
         "id": scenario.id,
         "domain": scenario.domain,

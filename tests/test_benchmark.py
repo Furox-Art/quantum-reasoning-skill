@@ -12,9 +12,10 @@ if str(ROOT) not in sys.path:
 
 import conftest  # noqa: E402  (repository root is on sys.path only after the insert)
 
-# Resolved through the package so the evaluator is always benchmark.evaluate,
-# never a bare top-level module name that a local file could shadow.
-evaluate = importlib.import_module("benchmark.evaluate")
+# Resolved through the package so the evaluator is always
+# quantum_reasoning_skill.benchmark.evaluate, never a bare module name that a
+# local file could shadow.
+evaluate = importlib.import_module("quantum_reasoning_skill.benchmark.evaluate")
 
 # One documented tolerance for every numeric comparison, instead of a mix of
 # exact equality and `assertAlmostEqual`'s undocumented seven decimal places.

@@ -2,6 +2,30 @@
 
 All notable changes to this project are documented here.
 
+## [1.2.0] - 2026-10-21
+
+### Packaging
+
+- The wheel keeps every shipped asset under the `quantum_reasoning_skill/` package
+  namespace: `SKILL.md`, `VERSION`, `reference/`, `benchmark/`, `docs/` and `examples/`
+  no longer appear as wheel-root directories that can shadow unrelated imports.
+- `reference/` and `benchmark/` also live at their canonical in-package locations in the
+  source tree. Their wheel force-includes are gone, so checkouts and installations expose
+  one import layout (`quantum_reasoning_skill.reference`, `quantum_reasoning_skill.benchmark`);
+  every command, import and documented path was updated, and no top-level compatibility
+  package is installed.
+- The console-script entry point is `quantum-reasoning = quantum_reasoning_skill.cli:main`.
+  The CLI module is part of the package, so importing `quantum_reasoning_skill.cli` works
+  from a checkout as well as from an installed wheel.
+
+### CLI
+
+- `quantum_reasoning_skill.cli` exposes `main`. Flags are unchanged: `--skill-file PATH`,
+  `--validate`, `--json`, `--quiet` and `--help`.
+- The module still reads the shipped `SKILL.md`; no new runtime dependency is added.
+- `tests/test_cli.py` covers the CLI's contract, output modes and exit codes at 100%
+  statement and branch coverage.
+
 ## [Unreleased]
 
 ### npm attestation status

@@ -12,8 +12,10 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-from benchmark.falsification import run_suite as subject
-from benchmark.falsification.scenarios import build_all_scenarios
+from quantum_reasoning_skill.benchmark.falsification import run_suite as subject
+from quantum_reasoning_skill.benchmark.falsification.scenarios import (
+    build_all_scenarios,
+)
 
 
 class FalsificationArtifactTests(unittest.TestCase):
