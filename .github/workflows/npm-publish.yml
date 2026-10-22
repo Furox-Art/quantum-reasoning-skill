@@ -372,6 +372,12 @@ jobs:
       # publish without one. 1.1.1 shipped exactly that way, so this is checked
       # rather than assumed. Attestations can take a moment to appear, hence the
       # bounded retry loop.
+      #
+      # The budget is 10 minutes, not the 2.5 minutes it used to be. On
+      # 2026-10-22 npm accepted 1.2.0 at 11:50:48Z (`+ name@1.2.0`) but kept the
+      # version and its attestation invisible until 11:55:33Z during a
+      # "Degraded Publish, Install, and View Package" incident, so the old loop
+      # failed a publish that had actually succeeded.
       - name: Verify the default publish is attested
         if: steps.gate.outputs.skip != 'true' && steps.trusted.outcome == 'success'
         shell: bash
@@ -380,7 +386,7 @@ jobs:
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
           set -euo pipefail
-          for attempt in $(seq 1 10); do
+          for attempt in $(seq 1 20); do
             code="$(curl -sS -o /dev/null -w '%{http_code}' \
               "https://registry.npmjs.org/-/npm/v1/attestations/${NAME}@${VERSION}")"
             if [ "$code" = "200" ]; then
@@ -388,12 +394,14 @@ jobs:
               exit 0
             fi
             echo "attempt $attempt: attestations endpoint returned HTTP $code"
-            sleep 15
+            sleep 30
           done
           echo "::error::$NAME@$VERSION was published via OIDC Trusted Publishing but the registry reports no attestation (HTTP $code)." >&2
           echo "::error::A release without provenance cannot be verified by consumers. Check the trusted publisher on npmjs.com matches owner 'Furox-Art', repository 'quantum-reasoning-skill', workflow 'npm-publish.yml', environment 'npm'." >&2
           exit 1
 
+      # Same 10-minute budget as the attestation check, for the same reason: a
+      # version can stay invisible for minutes after a successful upload.
       - name: Verify the published version
         shell: bash
         env:
@@ -406,7 +414,7 @@ jobs:
               echo "npm reports $NAME@$VERSION"
               exit 0
             fi
-            sleep 15
+            sleep 30
           done
           echo "::error::Upload succeeded but $NAME@$VERSION is not visible on the registry yet." >&2
           exit 1
