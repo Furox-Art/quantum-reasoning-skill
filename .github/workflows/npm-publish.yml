@@ -60,7 +60,9 @@ jobs:
 
       # npm must not publish a commit that failed the unprivileged
       # validate-skill workflow. That workflow starts from the same push, so
-      # poll for its required checks instead of racing them.
+      # poll for its required checks instead of racing them. The budget is 900s,
+      # not 300s: run 39700228441 gave up after 300s while "installed API
+      # contract" was still queued behind the runner queue.
       - name: Wait for required checks on this commit
         env:
           GH_TOKEN: ${{ github.token }}
@@ -71,11 +73,12 @@ jobs:
             --ref "${{ github.sha }}" \
             --context "installed API contract" \
             --context "repository contract" \
-            --timeout 300 \
+            --timeout 900 \
             --interval 15
 
-      # npm CLI >= 11.5.1 is required for Trusted Publishing. Node 24 ships npm
-      # 11.x, and the requirement is checked numerically rather than by regex:
+      # npm CLI >= 11.21.0 is required for OIDC trusted publishing with an
+      # explicit dist-tag (`--tag` below); the npm bundled with Node 24 can be
+      # older. The requirement is checked numerically rather than by regex:
       # a pattern like ^11\.(5[1-9]|[6-9][0-9])\. rejects legitimate versions
       # such as 11.9.0 and 11.19.0, because 5[1-9] does not match 19.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -83,7 +86,10 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Require npm 11.5.1 or newer for Trusted Publishing
+      - name: Install an OIDC-capable npm
+        run: npm install --global "npm@^11.21.0"
+
+      - name: Require npm 11.21.0 or newer for OIDC dist-tags
         shell: bash
         run: |
           set -euo pipefail
@@ -99,17 +105,17 @@ jobs:
               process.exit(1);
             }
             const [major, minor, patch] = [Number(m[1]), Number(m[2]), Number(m[3])];
-            // Numeric comparison: >= 11.5.1
+            // Numeric comparison: >= 11.21.0
             const ok =
               major > 11 ||
-              (major === 11 && (minor > 5 || (minor === 5 && patch >= 1)));
+              (major === 11 && (minor > 21 || (minor === 21 && patch >= 0)));
             if (!ok) {
               console.error(
-                `npm ${raw} is too old; Trusted Publishing requires 11.5.1 or newer.`
+                `npm ${raw} is too old; OIDC trusted publishing with an explicit dist-tag requires 11.21.0 or newer.`
               );
               process.exit(1);
             }
-            console.log(`npm ${raw} satisfies the Trusted Publishing requirement`);
+            console.log(`npm ${raw} satisfies the OIDC dist-tag requirement`);
           ' "$raw"
 
       - name: Resolve version and require lockstep across every version surface
@@ -300,9 +306,12 @@ jobs:
           set -euo pipefail
           args=(--access public --provenance)
           # A prerelease must not move the `latest` dist-tag. `next` is the
-          # conventional prerelease channel; stable releases keep `latest`.
+          # conventional prerelease channel; stable releases claim `latest`
+          # explicitly instead of relying on npm's implicit default.
           if [ "$PRERELEASE" = "true" ]; then
             args+=(--tag next)
+          else
+            args+=(--tag latest)
           fi
           npm publish "${args[@]}"
 
@@ -323,6 +332,8 @@ jobs:
           args=(--access public)
           if [ "$PRERELEASE" = "true" ]; then
             args+=(--tag next)
+          else
+            args+=(--tag latest)
           fi
           npm publish "${args[@]}"
 

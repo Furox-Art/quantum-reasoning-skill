@@ -379,6 +379,7 @@ class PrereleasePolicyTests(unittest.TestCase):
     def test_npm_prereleases_do_not_move_latest(self):
         text = (WORKFLOW_DIR / "npm-publish.yml").read_text(encoding="utf-8")
         self.assertIn("args+=(--tag next)", text)
+        self.assertIn("args+=(--tag latest)", text)
         self.assertIn('PRERELEASE: ${{ steps.meta.outputs.prerelease }}', text)
 
 
