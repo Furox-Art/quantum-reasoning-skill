@@ -51,7 +51,7 @@ jobs:
             --ref "${{ github.sha }}" \
             --context "installed API contract" \
             --context "repository contract" \
-            --timeout 300 \
+            --timeout 900 \
             --interval 15
           echo "ready=yes" >> "$GITHUB_OUTPUT"
 

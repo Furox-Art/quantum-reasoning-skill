@@ -616,6 +616,7 @@ class PrereleaseHandlingTests(unittest.TestCase):
         text = (ROOT / ".github" / "workflows" / "npm-publish.yml").read_text(encoding="utf-8")
         self.assertIn('echo "prerelease=$prerelease"', text)
         self.assertEqual(text.count("args+=(--tag next)"), 2)
+        self.assertEqual(text.count("args+=(--tag latest)"), 2)
         self.assertIn('if [ "$PRERELEASE" = "true" ]', text)
         for name in (
             "Publish with OIDC Trusted Publishing",

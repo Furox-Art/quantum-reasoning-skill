@@ -17,7 +17,9 @@ permissions:
 
 concurrency:
   group: validate-skill-${{ github.ref }}
-  cancel-in-progress: true
+  # A push to main must never cancel a check the release workflows are waiting
+  # on for the same commit. Only superseded pull-request runs are cancelled.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # ---------------------------------------------------------------------------

@@ -287,7 +287,7 @@ class WorkflowShapeTests(unittest.TestCase):
         self.assertNotIn('else "pending"', self.text)
 
     def test_timeout_is_bounded(self):
-        self.assertIn("--timeout 300", self.text)
+        self.assertIn("--timeout 900", self.text)
 
     def test_privileged_job_still_gated_on_the_wait(self):
         self.assertIn("needs.verify.outputs.ready == 'yes'", self.text)
