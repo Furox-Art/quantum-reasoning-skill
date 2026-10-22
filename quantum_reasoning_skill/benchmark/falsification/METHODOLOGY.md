@@ -91,16 +91,27 @@ All metrics are computed by `quantum_reasoning_skill/benchmark/falsification/run
 last evidence step) equals the ground-truth branch. Reported overall and
 per-scenario-family.
 
-**Decision-switch success rate.** Over falsification scenarios only. A switch is
-counted as successful when the leader stopped being the falsified decoy within
-`SWITCH_WINDOW = 1` evidence steps after the decoy first crossed the rejection
-threshold (`contradiction >= 0.85`). The switch delay is the number of evidence
-steps between the falsification step and the first step whose leader is the
-correct branch.
+**Decision-switch success rate.** Over falsification scenarios only. The clock
+starts at the first step where the decoy's contradiction reaches the rejection
+threshold (`contradiction >= 0.85`); a scenario may declare that step when its
+metric stream never crosses, and the declaration is never used to backdate or
+postpone an observed crossing. A switch succeeds when, within
+`SWITCH_WINDOW = 1` evidence steps of the clock start, the leader is non-empty
+and is no longer the decoy. This measures abandonment only: final accuracy
+separately records whether the new leader is correct. The switch delay is the
+number of evidence steps between the falsification step and that first
+non-decoy leader. A policy that never selected the decoy has its head start
+clamped to zero, so the delay is never negative. Failed switches report no
+delay, so the reported mean covers successful switches only.
 
 **Revival success rate.** Over revival scenarios only. Counted as successful
-when the designated revival branch is non-rejected at or after the scenario's
-revival step.
+when the designated revival branch actually transitions from dormant to active
+at or after the scenario's revival step. Merely being non-rejected is not a
+revival. `revival-003` exercises the rejected-branch path: the runner first
+explicitly reopens the branch because its rejection premise was retracted, and
+the controller then performs the dormant-to-active transition. The controller
+never resurrects a rejected branch automatically, and the benchmark does not
+claim that it does.
 
 **Confidence calibration — Brier score.** The multiclass Brier score over every
 step at which an answer is committed (`answer_known_from` is true). For each such
@@ -167,11 +178,11 @@ Headline numbers from the committed run (`quantum_reasoning_skill/benchmark/fals
 | revival success rate | 0.000 | 1.000 |
 | control-scenario accuracy | 1.000 | 1.000 |
 | Brier score (lower is better) | 0.033 | 0.033 |
-| mean tokens per scenario | 115.6 | 242.2 |
+| mean tokens per scenario | 115.6 | 240.9 |
 
 Latency is omitted from the table above because it is wall-clock and
 machine-dependent; `results.json` records the value from the committed run
-(0.013 ms and 0.052 ms per decision on the author's machine) and any
+(0.012 ms and 0.064 ms per decision on the author's machine) and any
 reproduction will legitimately differ. Only the deterministic metrics above
 are stable across machines.
 
@@ -191,8 +202,10 @@ Reading of these numbers:
   expected directional separation but are too few to move the aggregate. This
   benchmark does not demonstrate better confidence calibration, and the README
   claim does not include calibration.
-- The cost is real: +109.6% tokens per scenario (115.6 -> 242.2). The
-  accuracy gain is not free.
+- The cost is real: +108.5% tokens per scenario (115.6 -> 240.9). The
+  accuracy gain is not free. The multi policy pays fewer verification tokens
+  while a branch is dormant, which is why the corrected revival streams cost
+  slightly less than the first reported run.
 
 ## Limitations
 

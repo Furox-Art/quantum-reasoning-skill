@@ -28,6 +28,33 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Benchmark correctness
+
+- Rejected branches are terminal in the reference controller. `classify_branch`
+  and `update_branch_state` no longer return a rejected branch to active; only
+  an explicit caller reopen can do that, matching `docs/MEASUREMENT.md`. The
+  benchmark's explicit reopen in `revival-003` still exercises that path.
+- Decision-switch delay now starts at the falsification step and is never
+  negative. The clock is not credited for a truth leader that appeared before
+  the decoy was falsified, failed switches report no delay, and the mean covers
+  successful switches only.
+- Revival success now requires an actual dormant-to-active transition at or
+  after the revival step. The `revival-001` and `revival-002` evidence streams
+  previously stayed above the dormant threshold, so the earlier revival credit
+  came from a branch that was never dormant. Their step-2 metrics now cross
+  below the 0.35 threshold as their notes already claimed, and the committed
+  results were regenerated. Headline accuracy, switch, and revival rates are
+  unchanged; the corrected cost is 240.9 multi-hypothesis tokens per scenario
+  (+108.5%, previously reported as 242.2 and +109.6%).
+- Per-step results now include `branch_states`, so every transition behind a
+  metric can be audited from the committed artifact.
+
+### CI
+
+- The live npm registry attestation check runs on pushes to `main` only. It
+  cannot change a PR's outcome and is not a dependency of PR validation.
+- Added SHA-pinned OpenSSF Scorecard and dependency-review workflows.
+
 ### npm 1.2.0 was not published
 
 PyPI serves 1.2.0; npm's `latest` remains 1.1.5. The npm publish for 1.2.0

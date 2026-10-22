@@ -134,6 +134,36 @@ class PolicyTests(unittest.TestCase):
             result = runner._run_multi_policy(scenario)
             self.assertTrue(result.revival_success, scenario.id)
             self.assertTrue(result.correct, scenario.id)
+            target = scenario.revived_branch
+            before = next(
+                step for step in result.steps if step.step == scenario.revival_step - 1
+            )
+            at_revival = next(
+                step for step in result.steps if step.step == scenario.revival_step
+            )
+            # A revival requires a real prior state and a real transition, not
+            # merely a branch that was never rejected.
+            self.assertIn(target, before.branch_states, scenario.id)
+            self.assertIn(
+                before.branch_states[target], {"dormant", "rejected"}, scenario.id
+            )
+            self.assertIn(target, at_revival.revived_this_step, scenario.id)
+            self.assertEqual(at_revival.branch_states[target], "active", scenario.id)
+
+    def test_switch_delays_start_at_the_falsification_step(self):
+        for scenario in ALL_SCENARIOS:
+            if scenario.scenario_type != "falsification":
+                continue
+            result = runner._run_multi_policy(scenario)
+            self.assertIsNotNone(result.switch_delay_steps, scenario.id)
+            self.assertGreaterEqual(result.switch_delay_steps, 0, scenario.id)
+            self.assertLessEqual(result.switch_delay_steps, runner.SWITCH_WINDOW)
+            before = next(
+                step
+                for step in result.steps
+                if step.step == scenario.falsified_at_step - 1
+            )
+            self.assertEqual(before.leader, scenario.decoy_branch, scenario.id)
 
     def test_both_policies_solve_control_scenarios(self):
         for scenario in ALL_SCENARIOS:

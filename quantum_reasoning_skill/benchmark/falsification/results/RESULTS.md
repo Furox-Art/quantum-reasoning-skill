@@ -11,8 +11,8 @@
 | revival success rate | 0.000 | 1.000 |
 | control-scenario accuracy | 1.000 | 1.000 |
 | Brier score (lower is better) | 0.033 | 0.033 |
-| mean tokens per scenario | 115.6 | 242.2 |
-| mean latency per decision (ms) | 0.013 | 0.052 |
+| mean tokens per scenario | 115.6 | 240.9 |
+| mean latency per decision (ms) | 0.012 | 0.064 |
 
 ## Per-scenario results
 
@@ -27,9 +27,9 @@
 | falsification-004 | falsification | single | H_A | no | no | n/a | 130 |
 | falsification-004 | falsification | multi | H_B | yes | yes (+0) | n/a | 268 |
 | revival-001 | revival | single | H_A | no | n/a | no | 130 |
-| revival-001 | revival | multi | H_B | yes | n/a | yes | 280 |
+| revival-001 | revival | multi | H_B | yes | n/a | yes | 274 |
 | revival-002 | revival | single | H_A | no | n/a | no | 130 |
-| revival-002 | revival | multi | H_C | yes | n/a | yes | 310 |
+| revival-002 | revival | multi | H_C | yes | n/a | yes | 304 |
 | revival-003 | revival | single | H_A | no | n/a | no | 130 |
 | revival-003 | revival | multi | H_C | yes | n/a | yes | 292 |
 | control-001 | control | single | H_A | yes | n/a | n/a | 104 |

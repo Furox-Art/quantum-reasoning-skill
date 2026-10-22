@@ -4,7 +4,7 @@
       "brier": 0.00435,
       "correct": false,
       "final_answer": "H_A",
-      "mean_latency_ms": 0.01766,
+      "mean_latency_ms": 0.01512,
       "policy": "single",
       "revival_success": null,
       "scenario_id": "falsification-001",
@@ -13,12 +13,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0302,
+          "latency_ms": 0.0242,
           "leader": "H_A",
           "leader_score": 0.5875,
           "probabilities": {
@@ -34,12 +37,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0171,
+          "latency_ms": 0.0147,
           "leader": "H_A",
           "leader_score": 0.6285,
           "probabilities": {
@@ -55,12 +61,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0143,
+          "latency_ms": 0.0128,
           "leader": "H_A",
           "leader_score": 0.2775,
           "probabilities": {
@@ -76,12 +85,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": false,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0141,
+          "latency_ms": 0.0128,
           "leader": "H_A",
           "leader_score": 0.1925,
           "probabilities": {
@@ -97,12 +109,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": false,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0126,
+          "latency_ms": 0.0111,
           "leader": "H_A",
           "leader_score": 0.1775,
           "probabilities": {
@@ -118,7 +133,7 @@
       ],
       "switch_delay_steps": null,
       "switch_success": false,
-      "total_latency_ms": 0.0883,
+      "total_latency_ms": 0.0756,
       "total_tokens": 130,
       "truth": "H_B",
       "wrong_leader_steps": 0
@@ -127,7 +142,7 @@
       "brier": 0.004421,
       "correct": true,
       "final_answer": "H_B",
-      "mean_latency_ms": 0.05748,
+      "mean_latency_ms": 0.04522,
       "policy": "multi",
       "revival_success": null,
       "scenario_id": "falsification-001",
@@ -136,12 +151,17 @@
         {
           "active_branches": 2,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0849,
+          "latency_ms": 0.0647,
           "leader": "H_A",
           "leader_score": 0.5875,
           "probabilities": {
@@ -157,12 +177,17 @@
         {
           "active_branches": 3,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0638,
+          "latency_ms": 0.0522,
           "leader": "H_A",
           "leader_score": 0.6285,
           "probabilities": {
@@ -180,6 +205,11 @@
         {
           "active_branches": 2,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "rejected",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
@@ -187,7 +217,7 @@
           "falsified_this_step": [
             "H_A"
           ],
-          "latency_ms": 0.0468,
+          "latency_ms": 0.0397,
           "leader": "H_B",
           "leader_score": 0.6465,
           "probabilities": {
@@ -202,12 +232,17 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "rejected",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.046,
+          "latency_ms": 0.0337,
           "leader": "H_B",
           "leader_score": 0.72,
           "probabilities": {
@@ -222,12 +257,17 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "rejected",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0459,
+          "latency_ms": 0.0358,
           "leader": "H_B",
           "leader_score": 0.72,
           "probabilities": {
@@ -242,7 +282,7 @@
       ],
       "switch_delay_steps": 0,
       "switch_success": true,
-      "total_latency_ms": 0.2874,
+      "total_latency_ms": 0.2261,
       "total_tokens": 238,
       "truth": "H_B",
       "wrong_leader_steps": 2
@@ -251,7 +291,7 @@
       "brier": 0.002931,
       "correct": false,
       "final_answer": "H_A",
-      "mean_latency_ms": 0.013,
+      "mean_latency_ms": 0.015875,
       "policy": "single",
       "revival_success": null,
       "scenario_id": "falsification-002",
@@ -260,12 +300,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0133,
+          "latency_ms": 0.0114,
           "leader": "H_A",
           "leader_score": 0.6035,
           "probabilities": {
@@ -281,12 +324,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0135,
+          "latency_ms": 0.0109,
           "leader": "H_A",
           "leader_score": 0.6545,
           "probabilities": {
@@ -302,12 +348,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0129,
+          "latency_ms": 0.0293,
           "leader": "H_A",
           "leader_score": 0.2425,
           "probabilities": {
@@ -323,12 +372,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": false,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0123,
+          "latency_ms": 0.0119,
           "leader": "H_A",
           "leader_score": 0.176,
           "probabilities": {
@@ -344,7 +396,7 @@
       ],
       "switch_delay_steps": null,
       "switch_success": false,
-      "total_latency_ms": 0.052,
+      "total_latency_ms": 0.0635,
       "total_tokens": 104,
       "truth": "H_B",
       "wrong_leader_steps": 0
@@ -353,7 +405,7 @@
       "brier": 0.002772,
       "correct": true,
       "final_answer": "H_B",
-      "mean_latency_ms": 0.048475,
+      "mean_latency_ms": 0.237475,
       "policy": "multi",
       "revival_success": null,
       "scenario_id": "falsification-002",
@@ -362,12 +414,17 @@
         {
           "active_branches": 2,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0523,
+          "latency_ms": 0.8214,
           "leader": "H_A",
           "leader_score": 0.6035,
           "probabilities": {
@@ -383,12 +440,17 @@
         {
           "active_branches": 2,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0536,
+          "latency_ms": 0.0528,
           "leader": "H_A",
           "leader_score": 0.6545,
           "probabilities": {
@@ -404,6 +466,11 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "rejected",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
@@ -411,7 +478,7 @@
           "falsified_this_step": [
             "H_A"
           ],
-          "latency_ms": 0.0442,
+          "latency_ms": 0.0398,
           "leader": "H_B",
           "leader_score": 0.67,
           "probabilities": {
@@ -426,12 +493,17 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "rejected",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0438,
+          "latency_ms": 0.0359,
           "leader": "H_B",
           "leader_score": 0.7275,
           "probabilities": {
@@ -446,7 +518,7 @@
       ],
       "switch_delay_steps": 0,
       "switch_success": true,
-      "total_latency_ms": 0.1939,
+      "total_latency_ms": 0.9499,
       "total_tokens": 188,
       "truth": "H_B",
       "wrong_leader_steps": 2
@@ -455,7 +527,7 @@
       "brier": 0.003512,
       "correct": false,
       "final_answer": "H_A",
-      "mean_latency_ms": 0.01275,
+      "mean_latency_ms": 0.011125,
       "policy": "single",
       "revival_success": null,
       "scenario_id": "falsification-003",
@@ -464,12 +536,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.013,
+          "latency_ms": 0.0113,
           "leader": "H_A",
           "leader_score": 0.613,
           "probabilities": {
@@ -485,12 +560,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0121,
+          "latency_ms": 0.0111,
           "leader": "H_A",
           "leader_score": 0.659,
           "probabilities": {
@@ -506,12 +584,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0133,
+          "latency_ms": 0.0107,
           "leader": "H_A",
           "leader_score": 0.226,
           "probabilities": {
@@ -527,12 +608,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": false,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0126,
+          "latency_ms": 0.0114,
           "leader": "H_A",
           "leader_score": 0.1675,
           "probabilities": {
@@ -548,7 +632,7 @@
       ],
       "switch_delay_steps": null,
       "switch_success": false,
-      "total_latency_ms": 0.051,
+      "total_latency_ms": 0.0445,
       "total_tokens": 104,
       "truth": "H_B",
       "wrong_leader_steps": 0
@@ -557,7 +641,7 @@
       "brier": 0.003633,
       "correct": true,
       "final_answer": "H_B",
-      "mean_latency_ms": 0.04705,
+      "mean_latency_ms": 0.039775,
       "policy": "multi",
       "revival_success": null,
       "scenario_id": "falsification-003",
@@ -566,12 +650,17 @@
         {
           "active_branches": 2,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0513,
+          "latency_ms": 0.0438,
           "leader": "H_A",
           "leader_score": 0.613,
           "probabilities": {
@@ -587,12 +676,17 @@
         {
           "active_branches": 2,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0507,
+          "latency_ms": 0.0451,
           "leader": "H_A",
           "leader_score": 0.659,
           "probabilities": {
@@ -608,6 +702,11 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "rejected",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
@@ -615,7 +714,7 @@
           "falsified_this_step": [
             "H_A"
           ],
-          "latency_ms": 0.0439,
+          "latency_ms": 0.0369,
           "leader": "H_B",
           "leader_score": 0.6865,
           "probabilities": {
@@ -630,12 +729,17 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "rejected",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0423,
+          "latency_ms": 0.0333,
           "leader": "H_B",
           "leader_score": 0.7265,
           "probabilities": {
@@ -650,7 +754,7 @@
       ],
       "switch_delay_steps": 0,
       "switch_success": true,
-      "total_latency_ms": 0.1882,
+      "total_latency_ms": 0.1591,
       "total_tokens": 188,
       "truth": "H_B",
       "wrong_leader_steps": 2
@@ -659,7 +763,7 @@
       "brier": 0.007389,
       "correct": false,
       "final_answer": "H_A",
-      "mean_latency_ms": 0.01286,
+      "mean_latency_ms": 0.01114,
       "policy": "single",
       "revival_success": null,
       "scenario_id": "falsification-004",
@@ -668,12 +772,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0131,
+          "latency_ms": 0.0112,
           "leader": "H_A",
           "leader_score": 0.574,
           "probabilities": {
@@ -689,12 +796,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0125,
+          "latency_ms": 0.011,
           "leader": "H_A",
           "leader_score": 0.6435,
           "probabilities": {
@@ -710,12 +820,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0124,
+          "latency_ms": 0.0108,
           "leader": "H_A",
           "leader_score": 0.6715,
           "probabilities": {
@@ -731,12 +844,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": false,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0125,
+          "latency_ms": 0.0114,
           "leader": "H_A",
           "leader_score": 0.2035,
           "probabilities": {
@@ -752,12 +868,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": false,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0138,
+          "latency_ms": 0.0113,
           "leader": "H_A",
           "leader_score": 0.1665,
           "probabilities": {
@@ -773,7 +892,7 @@
       ],
       "switch_delay_steps": null,
       "switch_success": false,
-      "total_latency_ms": 0.0643,
+      "total_latency_ms": 0.0557,
       "total_tokens": 130,
       "truth": "H_B",
       "wrong_leader_steps": 0
@@ -782,7 +901,7 @@
       "brier": 0.00835,
       "correct": true,
       "final_answer": "H_B",
-      "mean_latency_ms": 0.04578,
+      "mean_latency_ms": 0.03848,
       "policy": "multi",
       "revival_success": null,
       "scenario_id": "falsification-004",
@@ -791,12 +910,17 @@
         {
           "active_branches": 3,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0508,
+          "latency_ms": 0.0425,
           "leader": "H_A",
           "leader_score": 0.574,
           "probabilities": {
@@ -812,12 +936,17 @@
         {
           "active_branches": 3,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0488,
+          "latency_ms": 0.0408,
           "leader": "H_A",
           "leader_score": 0.6435,
           "probabilities": {
@@ -833,12 +962,17 @@
         {
           "active_branches": 3,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0478,
+          "latency_ms": 0.0401,
           "leader": "H_A",
           "leader_score": 0.6715,
           "probabilities": {
@@ -854,6 +988,11 @@
         {
           "active_branches": 2,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "rejected",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
@@ -861,7 +1000,7 @@
           "falsified_this_step": [
             "H_A"
           ],
-          "latency_ms": 0.0419,
+          "latency_ms": 0.0357,
           "leader": "H_B",
           "leader_score": 0.7005,
           "probabilities": {
@@ -876,12 +1015,17 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "rejected",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0396,
+          "latency_ms": 0.0333,
           "leader": "H_B",
           "leader_score": 0.7185,
           "probabilities": {
@@ -896,7 +1040,7 @@
       ],
       "switch_delay_steps": 0,
       "switch_success": true,
-      "total_latency_ms": 0.2289,
+      "total_latency_ms": 0.1924,
       "total_tokens": 268,
       "truth": "H_B",
       "wrong_leader_steps": 3
@@ -905,7 +1049,7 @@
       "brier": 0.029398,
       "correct": false,
       "final_answer": "H_A",
-      "mean_latency_ms": 0.01234,
+      "mean_latency_ms": 0.01096,
       "policy": "single",
       "revival_success": false,
       "scenario_id": "revival-001",
@@ -914,12 +1058,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0121,
+          "latency_ms": 0.011,
           "leader": "H_A",
           "leader_score": 0.5815,
           "probabilities": {
@@ -935,18 +1082,21 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0132,
+          "latency_ms": 0.0106,
           "leader": "H_A",
           "leader_score": 0.628,
           "probabilities": {
-            "H_A": 0.745298,
-            "H_B": 0.139833,
-            "H_C": 0.114868
+            "H_A": 0.785814,
+            "H_B": 0.093073,
+            "H_C": 0.121113
           },
           "rejected_branches": 0,
           "revived_this_step": [],
@@ -956,12 +1106,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0127,
+          "latency_ms": 0.0104,
           "leader": "H_A",
           "leader_score": 0.603,
           "probabilities": {
@@ -977,12 +1130,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": false,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0118,
+          "latency_ms": 0.0116,
           "leader": "H_A",
           "leader_score": 0.498,
           "probabilities": {
@@ -998,12 +1154,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": false,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0119,
+          "latency_ms": 0.0112,
           "leader": "H_A",
           "leader_score": 0.4005,
           "probabilities": {
@@ -1019,7 +1178,7 @@
       ],
       "switch_delay_steps": null,
       "switch_success": null,
-      "total_latency_ms": 0.0617,
+      "total_latency_ms": 0.0548,
       "total_tokens": 130,
       "truth": "H_B",
       "wrong_leader_steps": 0
@@ -1028,7 +1187,7 @@
       "brier": 0.029398,
       "correct": true,
       "final_answer": "H_B",
-      "mean_latency_ms": 0.08586,
+      "mean_latency_ms": 0.04292,
       "policy": "multi",
       "revival_success": true,
       "scenario_id": "revival-001",
@@ -1037,12 +1196,17 @@
         {
           "active_branches": 2,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0485,
+          "latency_ms": 0.0428,
           "leader": "H_A",
           "leader_score": 0.5815,
           "probabilities": {
@@ -1056,35 +1220,45 @@
           "tokens": 56
         },
         {
-          "active_branches": 2,
+          "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "dormant",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
-          "dormant_branches": 1,
+          "dormant_branches": 2,
           "falsified_this_step": [],
-          "latency_ms": 0.0487,
+          "latency_ms": 0.0441,
           "leader": "H_A",
           "leader_score": 0.628,
           "probabilities": {
-            "H_A": 0.745298,
-            "H_B": 0.139833,
-            "H_C": 0.114868
+            "H_A": 0.785814,
+            "H_B": 0.093073,
+            "H_C": 0.121113
           },
           "rejected_branches": 0,
           "revived_this_step": [],
           "step": 2,
-          "tokens": 56
+          "tokens": 50
         },
         {
           "active_branches": 2,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0507,
+          "latency_ms": 0.0413,
           "leader": "H_A",
           "leader_score": 0.603,
           "probabilities": {
@@ -1093,19 +1267,26 @@
             "H_C": 0.101534
           },
           "rejected_branches": 0,
-          "revived_this_step": [],
+          "revived_this_step": [
+            "H_B"
+          ],
           "step": 3,
           "tokens": 56
         },
         {
           "active_branches": 2,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.2299,
+          "latency_ms": 0.0427,
           "leader": "H_B",
           "leader_score": 0.675,
           "probabilities": {
@@ -1121,12 +1302,17 @@
         {
           "active_branches": 2,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0515,
+          "latency_ms": 0.0437,
           "leader": "H_B",
           "leader_score": 0.7155,
           "probabilities": {
@@ -1142,8 +1328,8 @@
       ],
       "switch_delay_steps": null,
       "switch_success": null,
-      "total_latency_ms": 0.4293,
-      "total_tokens": 280,
+      "total_latency_ms": 0.2146,
+      "total_tokens": 274,
       "truth": "H_B",
       "wrong_leader_steps": 0
     },
@@ -1151,7 +1337,7 @@
       "brier": 0.048527,
       "correct": false,
       "final_answer": "H_A",
-      "mean_latency_ms": 0.01242,
+      "mean_latency_ms": 0.01088,
       "policy": "single",
       "revival_success": false,
       "scenario_id": "revival-002",
@@ -1160,12 +1346,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0128,
+          "latency_ms": 0.0108,
           "leader": "H_A",
           "leader_score": 0.5975,
           "probabilities": {
@@ -1181,18 +1370,21 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0132,
+          "latency_ms": 0.0105,
           "leader": "H_A",
           "leader_score": 0.6385,
           "probabilities": {
-            "H_A": 0.58429,
-            "H_B": 0.301991,
-            "H_C": 0.113719
+            "H_A": 0.607049,
+            "H_B": 0.313754,
+            "H_C": 0.079197
           },
           "rejected_branches": 0,
           "revived_this_step": [],
@@ -1202,12 +1394,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0122,
+          "latency_ms": 0.0109,
           "leader": "H_A",
           "leader_score": 0.6215,
           "probabilities": {
@@ -1223,12 +1418,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": false,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0121,
+          "latency_ms": 0.0113,
           "leader": "H_A",
           "leader_score": 0.5165,
           "probabilities": {
@@ -1244,12 +1442,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": false,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0118,
+          "latency_ms": 0.0109,
           "leader": "H_A",
           "leader_score": 0.437,
           "probabilities": {
@@ -1265,7 +1466,7 @@
       ],
       "switch_delay_steps": null,
       "switch_success": null,
-      "total_latency_ms": 0.0621,
+      "total_latency_ms": 0.0544,
       "total_tokens": 130,
       "truth": "H_C",
       "wrong_leader_steps": 0
@@ -1274,7 +1475,7 @@
       "brier": 0.048527,
       "correct": true,
       "final_answer": "H_C",
-      "mean_latency_ms": 0.04686,
+      "mean_latency_ms": 0.04156,
       "policy": "multi",
       "revival_success": true,
       "scenario_id": "revival-002",
@@ -1283,12 +1484,17 @@
         {
           "active_branches": 3,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0481,
+          "latency_ms": 0.0436,
           "leader": "H_A",
           "leader_score": 0.5975,
           "probabilities": {
@@ -1302,35 +1508,45 @@
           "tokens": 62
         },
         {
-          "active_branches": 3,
+          "active_branches": 2,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
-          "dormant_branches": 0,
+          "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0461,
+          "latency_ms": 0.0422,
           "leader": "H_A",
           "leader_score": 0.6385,
           "probabilities": {
-            "H_A": 0.58429,
-            "H_B": 0.301991,
-            "H_C": 0.113719
+            "H_A": 0.607049,
+            "H_B": 0.313754,
+            "H_C": 0.079197
           },
           "rejected_branches": 0,
           "revived_this_step": [],
           "step": 2,
-          "tokens": 62
+          "tokens": 56
         },
         {
           "active_branches": 3,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0459,
+          "latency_ms": 0.0406,
           "leader": "H_A",
           "leader_score": 0.6215,
           "probabilities": {
@@ -1339,19 +1555,26 @@
             "H_C": 0.283849
           },
           "rejected_branches": 0,
-          "revived_this_step": [],
+          "revived_this_step": [
+            "H_C"
+          ],
           "step": 3,
           "tokens": 62
         },
         {
           "active_branches": 3,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0491,
+          "latency_ms": 0.0407,
           "leader": "H_C",
           "leader_score": 0.6895,
           "probabilities": {
@@ -1367,12 +1590,17 @@
         {
           "active_branches": 3,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0451,
+          "latency_ms": 0.0407,
           "leader": "H_C",
           "leader_score": 0.722,
           "probabilities": {
@@ -1388,8 +1616,8 @@
       ],
       "switch_delay_steps": null,
       "switch_success": null,
-      "total_latency_ms": 0.2343,
-      "total_tokens": 310,
+      "total_latency_ms": 0.2078,
+      "total_tokens": 304,
       "truth": "H_C",
       "wrong_leader_steps": 0
     },
@@ -1397,7 +1625,7 @@
       "brier": 0.049406,
       "correct": false,
       "final_answer": "H_A",
-      "mean_latency_ms": 0.01254,
+      "mean_latency_ms": 0.0106,
       "policy": "single",
       "revival_success": false,
       "scenario_id": "revival-003",
@@ -1406,12 +1634,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0117,
+          "latency_ms": 0.0109,
           "leader": "H_A",
           "leader_score": 0.5965,
           "probabilities": {
@@ -1427,12 +1658,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0129,
+          "latency_ms": 0.0112,
           "leader": "H_A",
           "leader_score": 0.6315,
           "probabilities": {
@@ -1448,12 +1682,15 @@
         {
           "active_branches": 1,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0126,
+          "latency_ms": 0.0103,
           "leader": "H_A",
           "leader_score": 0.6145,
           "probabilities": {
@@ -1469,12 +1706,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": false,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0125,
+          "latency_ms": 0.0102,
           "leader": "H_A",
           "leader_score": 0.524,
           "probabilities": {
@@ -1490,12 +1730,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": false,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.013,
+          "latency_ms": 0.0104,
           "leader": "H_A",
           "leader_score": 0.448,
           "probabilities": {
@@ -1511,7 +1754,7 @@
       ],
       "switch_delay_steps": null,
       "switch_success": null,
-      "total_latency_ms": 0.0627,
+      "total_latency_ms": 0.053,
       "total_tokens": 130,
       "truth": "H_C",
       "wrong_leader_steps": 0
@@ -1520,7 +1763,7 @@
       "brier": 0.049406,
       "correct": true,
       "final_answer": "H_C",
-      "mean_latency_ms": 0.04544,
+      "mean_latency_ms": 0.0415,
       "policy": "multi",
       "revival_success": true,
       "scenario_id": "revival-003",
@@ -1529,12 +1772,17 @@
         {
           "active_branches": 3,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0471,
+          "latency_ms": 0.0426,
           "leader": "H_A",
           "leader_score": 0.5965,
           "probabilities": {
@@ -1550,6 +1798,11 @@
         {
           "active_branches": 2,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "rejected"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
@@ -1557,7 +1810,7 @@
           "falsified_this_step": [
             "H_C"
           ],
-          "latency_ms": 0.0421,
+          "latency_ms": 0.0412,
           "leader": "H_A",
           "leader_score": 0.6315,
           "probabilities": {
@@ -1572,12 +1825,17 @@
         {
           "active_branches": 3,
           "answer_committed": false,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": null,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0486,
+          "latency_ms": 0.0423,
           "leader": "H_A",
           "leader_score": 0.6145,
           "probabilities": {
@@ -1595,12 +1853,17 @@
         {
           "active_branches": 3,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0457,
+          "latency_ms": 0.0409,
           "leader": "H_C",
           "leader_score": 0.697,
           "probabilities": {
@@ -1616,12 +1879,17 @@
         {
           "active_branches": 3,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0437,
+          "latency_ms": 0.0405,
           "leader": "H_C",
           "leader_score": 0.722,
           "probabilities": {
@@ -1637,7 +1905,7 @@
       ],
       "switch_delay_steps": null,
       "switch_success": null,
-      "total_latency_ms": 0.2272,
+      "total_latency_ms": 0.2075,
       "total_tokens": 292,
       "truth": "H_C",
       "wrong_leader_steps": 0
@@ -1646,7 +1914,7 @@
       "brier": 0.047674,
       "correct": true,
       "final_answer": "H_A",
-      "mean_latency_ms": 0.011975,
+      "mean_latency_ms": 0.0112,
       "policy": "single",
       "revival_success": null,
       "scenario_id": "control-001",
@@ -1655,12 +1923,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0119,
+          "latency_ms": 0.011,
           "leader": "H_A",
           "leader_score": 0.583,
           "probabilities": {
@@ -1676,12 +1947,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.012,
+          "latency_ms": 0.0112,
           "leader": "H_A",
           "leader_score": 0.6455,
           "probabilities": {
@@ -1697,12 +1971,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0117,
+          "latency_ms": 0.0109,
           "leader": "H_A",
           "leader_score": 0.6745,
           "probabilities": {
@@ -1718,12 +1995,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0123,
+          "latency_ms": 0.0117,
           "leader": "H_A",
           "leader_score": 0.707,
           "probabilities": {
@@ -1739,7 +2019,7 @@
       ],
       "switch_delay_steps": null,
       "switch_success": null,
-      "total_latency_ms": 0.0479,
+      "total_latency_ms": 0.0448,
       "total_tokens": 104,
       "truth": "H_A",
       "wrong_leader_steps": 0
@@ -1748,7 +2028,7 @@
       "brier": 0.047674,
       "correct": true,
       "final_answer": "H_A",
-      "mean_latency_ms": 0.04655,
+      "mean_latency_ms": 0.043075,
       "policy": "multi",
       "revival_success": null,
       "scenario_id": "control-001",
@@ -1757,12 +2037,17 @@
         {
           "active_branches": 2,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0486,
+          "latency_ms": 0.0452,
           "leader": "H_A",
           "leader_score": 0.583,
           "probabilities": {
@@ -1778,12 +2063,17 @@
         {
           "active_branches": 3,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0481,
+          "latency_ms": 0.0438,
           "leader": "H_A",
           "leader_score": 0.6455,
           "probabilities": {
@@ -1801,12 +2091,17 @@
         {
           "active_branches": 2,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0449,
+          "latency_ms": 0.0414,
           "leader": "H_A",
           "leader_score": 0.6745,
           "probabilities": {
@@ -1822,12 +2117,17 @@
         {
           "active_branches": 2,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "dormant"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 1,
           "falsified_this_step": [],
-          "latency_ms": 0.0446,
+          "latency_ms": 0.0419,
           "leader": "H_A",
           "leader_score": 0.707,
           "probabilities": {
@@ -1843,7 +2143,7 @@
       ],
       "switch_delay_steps": null,
       "switch_success": null,
-      "total_latency_ms": 0.1862,
+      "total_latency_ms": 0.1723,
       "total_tokens": 230,
       "truth": "H_A",
       "wrong_leader_steps": 0
@@ -1852,7 +2152,7 @@
       "brier": 0.100621,
       "correct": true,
       "final_answer": "H_A",
-      "mean_latency_ms": 0.011933,
+      "mean_latency_ms": 0.011333,
       "policy": "single",
       "revival_success": null,
       "scenario_id": "control-002",
@@ -1861,12 +2161,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0112,
+          "latency_ms": 0.0126,
           "leader": "H_A",
           "leader_score": 0.565,
           "probabilities": {
@@ -1882,12 +2185,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0134,
+          "latency_ms": 0.0111,
           "leader": "H_A",
           "leader_score": 0.6325,
           "probabilities": {
@@ -1903,12 +2209,15 @@
         {
           "active_branches": 1,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active"
+          },
           "collapse_reason": "single-hypothesis policy never reconsiders",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0112,
+          "latency_ms": 0.0103,
           "leader": "H_A",
           "leader_score": 0.6615,
           "probabilities": {
@@ -1924,7 +2233,7 @@
       ],
       "switch_delay_steps": null,
       "switch_success": null,
-      "total_latency_ms": 0.0358,
+      "total_latency_ms": 0.034,
       "total_tokens": 78,
       "truth": "H_A",
       "wrong_leader_steps": 0
@@ -1933,7 +2242,7 @@
       "brier": 0.100621,
       "correct": true,
       "final_answer": "H_A",
-      "mean_latency_ms": 0.0452,
+      "mean_latency_ms": 0.041767,
       "policy": "multi",
       "revival_success": null,
       "scenario_id": "control-002",
@@ -1942,12 +2251,17 @@
         {
           "active_branches": 3,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0471,
+          "latency_ms": 0.0417,
           "leader": "H_A",
           "leader_score": 0.565,
           "probabilities": {
@@ -1963,12 +2277,17 @@
         {
           "active_branches": 3,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0444,
+          "latency_ms": 0.0408,
           "leader": "H_A",
           "leader_score": 0.6325,
           "probabilities": {
@@ -1984,12 +2303,17 @@
         {
           "active_branches": 3,
           "answer_committed": true,
+          "branch_states": {
+            "H_A": "active",
+            "H_B": "active",
+            "H_C": "active"
+          },
           "collapse_reason": "leader score below collapse threshold",
           "collapsed": false,
           "correct": true,
           "dormant_branches": 0,
           "falsified_this_step": [],
-          "latency_ms": 0.0441,
+          "latency_ms": 0.0428,
           "leader": "H_A",
           "leader_score": 0.6615,
           "probabilities": {
@@ -2005,7 +2329,7 @@
       ],
       "switch_delay_steps": null,
       "switch_success": null,
-      "total_latency_ms": 0.1356,
+      "total_latency_ms": 0.1253,
       "total_tokens": 186,
       "truth": "H_A",
       "wrong_leader_steps": 0
@@ -2292,7 +2616,7 @@
       "decision_switch_success_delta": 1.0,
       "falsification_accuracy_delta": 1.0,
       "revival_success_delta": 1.0,
-      "token_percent_change": 109.61538461538463
+      "token_percent_change": 108.46153846153845
     },
     "multi": {
       "accuracy": 1.0,
@@ -2308,15 +2632,15 @@
         "scenarios": 4,
         "switch_events": 4
       },
-      "mean_latency_ms_per_decision": 0.052077222601467466,
-      "mean_tokens_per_scenario": 242.22222222222223,
+      "mean_latency_ms_per_decision": 0.06353018524923418,
+      "mean_tokens_per_scenario": 240.88888888888889,
       "revival": {
         "accuracy": 1.0,
         "revival_success_rate": 1.0,
         "scenarios": 3
       },
       "scenarios": 9,
-      "total_latency_ms": 2.111000008881092
+      "total_latency_ms": 2.4550000016461127
     },
     "single": {
       "accuracy": 0.2222222222222222,
@@ -2332,7 +2656,7 @@
         "scenarios": 4,
         "switch_events": 4
       },
-      "mean_latency_ms_per_decision": 0.013053149181090433,
+      "mean_latency_ms_per_decision": 0.01202592602904015,
       "mean_tokens_per_scenario": 115.55555555555556,
       "revival": {
         "accuracy": 0.0,
@@ -2340,7 +2664,7 @@
         "scenarios": 3
       },
       "scenarios": 9,
-      "total_latency_ms": 0.5258000455796719
+      "total_latency_ms": 0.4803000047104433
     }
   },
   "switch_window_steps": 1,
