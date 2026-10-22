@@ -126,7 +126,15 @@ def classify_branch(
     branch: Branch,
     thresholds: Thresholds = DEFAULT_THRESHOLDS,
 ) -> Branch:
-    """Move an active branch to dormant/rejected when evidence warrants it."""
+    """Move an active branch to dormant/rejected when evidence warrants it.
+
+    Rejection is terminal for this function: a rejected branch stays rejected
+    until a caller explicitly reopens it (for example after the premise behind
+    its contradiction is retracted). Otherwise a later metric snapshot could
+    silently resurrect a branch that was already ruled out.
+    """
+    if branch.state == BranchState.REJECTED:
+        return branch
     score = branch_score(branch.metrics)
     if branch.metrics.contradiction >= thresholds.reject_contradiction:
         return replace(branch, state=BranchState.REJECTED)

@@ -29,7 +29,8 @@ Metrics (all computed by this file, all deterministic)
 - latency: measured wall-clock milliseconds per decision
 - cost: deterministic token estimate per evidence step per surviving branch
 - revival success: fraction of revival scenarios where the required branch was
-  correctly re-evaluated after being dormant or rejected
+  actually re-activated after being dormant (for a rejected branch, only after
+  the runner explicitly reopened it)
 """
 
 from __future__ import annotations
@@ -86,6 +87,7 @@ class StepRecord:
     collapse_reason: str = ""
     tokens: int = 0
     latency_ms: float = 0.0
+    branch_states: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -135,14 +137,56 @@ def _metrics_from_snapshot(snapshot: dict[str, dict[str, float]]) -> dict[str, A
     return {branch_id: BC.BranchMetrics(**values) for branch_id, values in snapshot.items()}
 
 
+def _falsification_step(scenario: Scenario) -> int | None:
+    """Return the step that starts the decision-switch clock.
+
+    The clock starts when the decoy's contradiction first reaches the rejection
+    threshold. A scenario may also declare the step explicitly; the declaration
+    is used only when the metric stream never crosses the threshold (for example
+    a hand-built edge case), so it cannot backdate or postpone an observed
+    crossing.
+    """
+    if scenario.decoy_branch is None:
+        return None
+    for step in scenario.steps:
+        metrics = step.metrics.get(scenario.decoy_branch)
+        if (
+            metrics is not None
+            and metrics["contradiction"] >= BC.DEFAULT_THRESHOLDS.reject_contradiction
+        ):
+            return step.step
+    return scenario.falsified_at_step
+
+
+def _switch_outcome(
+    scenario: Scenario,
+    switched_step: int | None,
+) -> tuple[bool | None, int | None]:
+    """Return ``(switch_success, switch_delay)`` for one policy run.
+
+    A policy that never selected the decoy is already off it, so its switch
+    delay clamps to zero rather than going negative. A failed switch reports no
+    delay, keeping the aggregate mean restricted to actual switches.
+    """
+    falsified_step = _falsification_step(scenario)
+    if falsified_step is None:
+        return None, None
+    if switched_step is None:
+        return False, None
+    delay = max(0, switched_step - falsified_step)
+    if delay > SWITCH_WINDOW:
+        return False, None
+    return True, delay
+
+
 def _run_multi_policy(scenario: Scenario) -> ScenarioResult:
     """Drive the reference branch controller over the scenario evidence stream."""
     branches: dict[str, Any] = {}
     step_records: list[StepRecord] = []
     probability_rows: list[dict[str, Any]] = []
     revived_target_seen = False
-    falsified_step: int | None = None
-    abandoned_step: int | None = None
+    falsified_step = _falsification_step(scenario)
+    switched_step: int | None = None
     wrong_leader_steps = 0
     total_tokens = 0
     total_latency_ms = 0.0
@@ -153,15 +197,6 @@ def _run_multi_policy(scenario: Scenario) -> ScenarioResult:
     for step in scenario.steps:
         step_start = time.perf_counter()
         metrics = _metrics_from_snapshot(step.metrics)
-
-        # Track falsification of the decoy branch: the step at which its
-        # contradiction first reaches the rejection threshold.
-        if scenario.decoy_branch is not None and falsified_step is None:
-            decoy_metrics = metrics.get(scenario.decoy_branch)
-            if decoy_metrics is not None and (
-                decoy_metrics.contradiction >= BC.DEFAULT_THRESHOLDS.reject_contradiction
-            ):
-                falsified_step = step.step
 
         for branch_id, current in metrics.items():
             if branch_id in branches:
@@ -201,24 +236,23 @@ def _run_multi_policy(scenario: Scenario) -> ScenarioResult:
             after = BC.update_branch_state(before)
             branches[branch_id] = after
             if (
-                before.state == BC.BranchState.REJECTED
-                and after.state != BC.BranchState.REJECTED
-                or before.state in (BC.BranchState.DORMANT, BC.BranchState.REJECTED)
-                and (after.state == BC.BranchState.ACTIVE)
+                before.state in (BC.BranchState.DORMANT, BC.BranchState.REJECTED)
+                and after.state == BC.BranchState.ACTIVE
             ):
                 revived_this_step.append(branch_id)
             if after.state == BC.BranchState.REJECTED and before.state != BC.BranchState.REJECTED:
                 falsified_this_step.append(branch_id)
 
-        # Revival bookkeeping for the scenario's designated revival branch.
+        # Revival succeeds only on an actual dormant/rejected to active
+        # transition at or after the scenario's revival step. Merely being
+        # non-rejected (for example still dormant) is not a revival.
         if (
             scenario.revived_branch is not None
             and scenario.revival_step is not None
             and step.step >= scenario.revival_step
+            and scenario.revived_branch in revived_this_step
         ):
-            target = branches.get(scenario.revived_branch)
-            if target is not None and target.state != BC.BranchState.REJECTED:
-                revived_target_seen = True
+            revived_target_seen = True
         if scenario.revived_branch in falsified_this_step:
             reopen_candidates.add(scenario.revived_branch)
 
@@ -228,8 +262,18 @@ def _run_multi_policy(scenario: Scenario) -> ScenarioResult:
         leader_id = ranked[0].branch_id if ranked else ""
         leader_score = scores.get(leader_id, 0.0)
 
-        if leader_id == scenario.truth_branch:
-            abandoned_step = abandoned_step or step.step
+        # The switch clock only starts once the decoy is falsified. A leader at
+        # or before that point cannot count as a reaction to the falsification,
+        # and an empty leader is not a decision.
+        if (
+            scenario.decoy_branch is not None
+            and falsified_step is not None
+            and step.step >= falsified_step
+            and switched_step is None
+            and leader_id
+            and leader_id != scenario.decoy_branch
+        ):
+            switched_step = step.step
 
         if scenario.decoy_branch is not None and leader_id == scenario.decoy_branch:
             wrong_leader_steps += 1
@@ -272,6 +316,9 @@ def _run_multi_policy(scenario: Scenario) -> ScenarioResult:
                 collapse_reason=collapse_reason,
                 tokens=tokens,
                 latency_ms=round(step_latency, 6),
+                branch_states={
+                    branch_id: branch.state.value for branch_id, branch in branches.items()
+                },
             )
         )
         if step.answer_known_from:
@@ -287,15 +334,7 @@ def _run_multi_policy(scenario: Scenario) -> ScenarioResult:
         previous_metrics = {branch_id: branch.metrics for branch_id, branch in branches.items()}
 
     final_answer = step_records[-1].leader if step_records else ""
-    switch_success: bool | None = None
-    switch_delay: int | None = None
-    if scenario.decoy_branch is not None and falsified_step is not None:
-        if abandoned_step is not None and abandoned_step <= falsified_step + SWITCH_WINDOW:
-            switch_success = True
-            switch_delay = abandoned_step - falsified_step
-        else:
-            switch_success = False
-            switch_delay = None if abandoned_step is None else abandoned_step - falsified_step
+    switch_success, switch_delay = _switch_outcome(scenario, switched_step)
 
     revival_success: bool | None = None
     if scenario.revived_branch is not None:
@@ -400,6 +439,7 @@ def _run_single_policy(scenario: Scenario) -> ScenarioResult:
                 collapse_reason="single-hypothesis policy never reconsiders",
                 tokens=tokens,
                 latency_ms=round(step_latency, 6),
+                branch_states={committed: BC.BranchState.ACTIVE.value},
             )
         )
         if step.answer_known_from:
@@ -412,15 +452,15 @@ def _run_single_policy(scenario: Scenario) -> ScenarioResult:
                 }
             )
 
-    switch_success: bool | None = None
-    switch_delay: int | None = None
-    if scenario.decoy_branch is not None:
-        if committed != scenario.decoy_branch:
-            switch_success = True
-            switch_delay = 0
-        else:
-            switch_success = False
-            switch_delay = None
+    # This policy never reconsiders, so it is "off the decoy" from step 1 when
+    # it did not commit to it. The clock still starts at the falsification step,
+    # which clamps that head start to a zero delay.
+    switched_step = (
+        1
+        if scenario.decoy_branch is not None and committed != scenario.decoy_branch
+        else None
+    )
+    switch_success, switch_delay = _switch_outcome(scenario, switched_step)
 
     revival_success: bool | None = None
     if scenario.revived_branch is not None:
@@ -478,7 +518,7 @@ def aggregate(results: list[ScenarioResult]) -> dict[str, Any]:
         by_policy.setdefault(result.policy, []).append(result)
 
     def policy_block(policy: str) -> dict[str, Any]:
-        rows = by_policy[policy]
+        rows = by_policy.get(policy, [])
         falsification = [r for r in rows if r.scenario_type == "falsification"]
         revival = [r for r in rows if r.scenario_type == "revival"]
         control = [r for r in rows if r.scenario_type == "control"]
@@ -629,6 +669,7 @@ def results_to_dicts(results: list[ScenarioResult]) -> list[dict[str, Any]]:
                     "collapse_reason": step.collapse_reason,
                     "tokens": step.tokens,
                     "latency_ms": step.latency_ms,
+                    "branch_states": step.branch_states,
                 }
             )
         payload.append(

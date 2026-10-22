@@ -206,8 +206,14 @@ jobs:
       # and the tree, so a new release cannot silently fall outside the probe.
       # A failure here means a document claims provenance that does not exist,
       # which is worse than saying nothing at all.
+      #
+      # This step needs the live registry, so it is limited to trusted pushes.
+      # Running it on pull_request would make every PR, including forks, depend
+      # on third-party availability without being able to change the published
+      # result. The local contract checks above still run on every PR.
       - name: Verify supply-chain claims match the registry
         id: registry
+        if: github.event_name == 'push'
         shell: bash
         run: |
           set -euo pipefail

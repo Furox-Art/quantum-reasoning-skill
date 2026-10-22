@@ -395,7 +395,8 @@ def build_revival_scenarios() -> list[Scenario]:
             2,
             {
                 "H_A": _branch(0.80, 0.55, 0.78, 0.50, 0.05, 0.22, 0.16),
-                "H_B": _branch(0.25, 0.18, 0.82, 0.78, 0.25, 0.78, 0.10),
+                # Low enough to fall below dormant_score (0.35), not merely dip.
+                "H_B": _branch(0.18, 0.10, 0.74, 0.70, 0.30, 0.84, 0.12),
                 "H_C": _branch(0.26, 0.15, 0.72, 0.46, 0.12, 0.76, 0.06),
             },
             note="H_B drifts below the dormant score threshold",
@@ -469,7 +470,8 @@ def build_revival_scenarios() -> list[Scenario]:
             {
                 "H_A": _branch(0.82, 0.58, 0.76, 0.50, 0.05, 0.20, 0.16),
                 "H_B": _branch(0.58, 0.38, 0.80, 0.68, 0.08, 0.42, 0.11),
-                "H_C": _branch(0.24, 0.14, 0.85, 0.82, 0.12, 0.80, 0.07),
+                # Low enough to fall below dormant_score (0.35), not merely dip.
+                "H_C": _branch(0.17, 0.08, 0.80, 0.70, 0.15, 0.84, 0.10),
             },
             note="H_C falls dormant",
         ),

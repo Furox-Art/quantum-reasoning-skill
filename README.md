@@ -190,7 +190,7 @@ stay inside it, and reads are bounded by `--max-bytes`. Both
 
 ## Tests, tooling and governance
 
-About **53% of the Python here is tests** — 5,775 of 10,913 lines across **25 test modules**,
+About **54% of the Python here is tests** — 6,098 of 11,287 lines across **26 test modules**,
 run with the standard library's `unittest` on Python 3.10–3.14 (Linux) and 3.12 (Windows, macOS).
 They cover the controller, the benchmark harness, import hardening, path boundaries,
 dependency-lock drift and release-gate polling; the documented benchmark command run as a
@@ -229,9 +229,9 @@ scenarios, the multi-hypothesis branch controller achieved **100% final accuracy
 for a single-hypothesis policy that commits to its first leader (0/4 on falsification
 scenarios, 0/3 on revival scenarios; both policies scored 2/2 on the control scenarios). It
 abandoned the falsified hypothesis at the same evidence step the falsification arrived, and
-revived a rejected-then-supported alternative in 3/3 revival scenarios. Confidence calibration
-showed **no difference** (Brier score 0.033 vs 0.033), and the accuracy gain cost **109.6%
-more tokens** per scenario. Methodology and reproduction:
+revived a dormant alternative (or an explicitly reopened rejected one) in 3/3 revival
+scenarios. Confidence calibration showed **no difference** (Brier score 0.033 vs 0.033), and
+the accuracy gain cost **108.5% more tokens** per scenario. Methodology and reproduction:
 [`quantum_reasoning_skill/benchmark/falsification/METHODOLOGY.md`](quantum_reasoning_skill/benchmark/falsification/METHODOLOGY.md).
 
 These results measure the reference decision controller on **synthetic evidence streams**, not

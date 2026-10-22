@@ -76,11 +76,34 @@ class StrictControllerBoundaryTests(unittest.TestCase):
         self.assertEqual(result.switch_delay_steps, 0)
 
     def test_multi_policy_keeps_failed_switch_visible(self):
-        original = scenarios.build_falsification_scenarios()[0]
-        changed = dataclasses.replace(original, truth_branch="unattested_truth")
+        step = scenarios.EvidenceStep(
+            step=1,
+            metrics={"H_A": _snapshot(contradiction=1.0)},
+            answer_known_from=True,
+        )
+        changed = _scenario(
+            step,
+            truth_branch="H_A",
+            decoy_branch="H_A",
+            falsified_at_step=1,
+        )
         result = run_suite._run_multi_policy(changed)
         self.assertFalse(result.switch_success)
         self.assertIsNone(result.switch_delay_steps)
+        self.assertFalse(result.correct)
+
+    def test_switch_metric_tracks_decoy_abandonment_not_truth_recovery(self):
+        """The switch metric and accuracy answer different questions.
+
+        An unreachable truth still leaves the decoy abandoned on schedule, so
+        the switch succeeds while final accuracy fails. Conflating the two
+        would hide the abandonment behind the accuracy result.
+        """
+        original = scenarios.build_falsification_scenarios()[0]
+        changed = dataclasses.replace(original, truth_branch="unattested_truth")
+        result = run_suite._run_multi_policy(changed)
+        self.assertTrue(result.switch_success)
+        self.assertEqual(result.switch_delay_steps, 0)
         self.assertFalse(result.correct)
 
     def test_zero_confidence_exponential_fallback_is_normalized_not_nan(self):
