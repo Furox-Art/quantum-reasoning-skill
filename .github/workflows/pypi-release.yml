@@ -263,12 +263,12 @@ jobs:
       - name: Publish with PyPI Trusted Publishing
         id: trusted
         if: steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'trusted'
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086
 
       - name: Publish with API token
         id: token
         if: steps.gate.outputs.skip != 'true' && steps.mode.outputs.requested == 'token'
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
 
