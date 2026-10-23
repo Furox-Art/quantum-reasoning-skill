@@ -5,12 +5,11 @@
 
 # Build the site you would publish to GitHub Pages:
 #
-#   python -m pip install mkdocs
+#   python -m pip install mkdocs-material
 #   mkdocs build
 #
-# Deploying is intentionally not configured here. Publishing a hosted site needs a
-# GitHub Pages workflow, which this repository does not ship; until that exists there is
-# no documentation URL to point at, and pointing at one would be a broken link.
+# .github/workflows/docs.yml builds this site on every push to main and deploys it
+# to GitHub Pages once Pages is enabled for the repository.
 
 site_name: Quantum Reasoning Skill
 site_description: >-
