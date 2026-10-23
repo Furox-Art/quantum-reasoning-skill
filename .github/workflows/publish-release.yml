@@ -65,6 +65,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -141,3 +143,18 @@ jobs:
             args+=(--prerelease)
           fi
           gh release create "$TAG" "${args[@]}"
+
+  # ---------------------------------------------------------------------------
+  # Sign the release that was just created (idempotent when it is already
+  # signed). The reusable workflow checks out `github.sha`, so it can only sign
+  # the commit this run released; the repository contract forbids workflow_run.
+  # ---------------------------------------------------------------------------
+  sign:
+    needs: [publish]
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      id-token: write
+    uses: ./.github/workflows/sign-release.yml
+    with:
+      tag: v${{ needs.publish.outputs.version }}

@@ -5,14 +5,17 @@ name: Sign release
 # Signed-Releases check looks for a release asset whose name ends in
 # `.sigstore`, and this workflow is the only producer of one.
 #
-# Security: the workflow_run payload is untrusted input. The run is re-read from
-# the Actions API, validated against this repository, the allowed event types
-# and the exact release workflow paths, and only then is its head_sha checked
-# out. The checkout never consumes a raw event expression.
+# Security: this is a reusable workflow, called only by `publish-release.yml` on
+# the default branch, or dispatched by a maintainer. It never consumes a
+# caller-supplied commit: the checkout uses `github.sha`, the commit of the
+# workflow that invoked it. The repository contract forbids `workflow_run`.
 on:
-  workflow_run:
-    workflows: ["PyPI Release", "publish-release"]
-    types: [completed]
+  workflow_call:
+    inputs:
+      tag:
+        description: "Release tag to sign (e.g. v1.2.3)"
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       tag:
@@ -23,67 +26,32 @@ permissions:
   contents: read
 
 concurrency:
-  group: sign-release-${{ github.event.workflow_run.head_sha || github.ref }}
+  group: sign-release-${{ inputs.tag || github.ref }}
   cancel-in-progress: false
 
 jobs:
   sign:
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_repository.full_name == github.repository)
     permissions:
       contents: write
       id-token: write
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Resolve the trusted release commit
-        id: resolve
-        shell: bash
-        env:
-          RUN_ID: ${{ github.event.workflow_run.id }}
-        run: |
-          set -euo pipefail
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          data="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}" \
-            --jq '[.head_sha, .event, .conclusion, .repository.full_name, .path] | @tsv')"
-          IFS=$'\t' read -r sha event conclusion repo path <<<"${data}"
-          case "${event}" in
-            push|release|workflow_dispatch) ;;
-            *) echo "::error::Run ${RUN_ID} has unsupported event ${event}."; exit 1 ;;
-          esac
-          case "${path}" in
-            .github/workflows/pypi-release.yml) ;;
-            .github/workflows/publish-release.yml) ;;
-            *) echo "::error::Run ${RUN_ID} is not a release workflow (${path})."; exit 1 ;;
-          esac
-          if [[ "${conclusion}" != "success" || "${repo}" != "${GITHUB_REPOSITORY}" ]]; then
-            echo "::error::Run ${RUN_ID} is not a successful release run on ${GITHUB_REPOSITORY}."
-            exit 1
-          fi
-          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
-
       - name: Check out the released commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
-          ref: ${{ steps.resolve.outputs.sha }}
 
       - name: Resolve the release tag
         id: tag
         shell: bash
         env:
-          EVENT_NAME: ${{ github.event_name }}
           INPUT_TAG: ${{ inputs.tag }}
-          HEAD_SHA: ${{ steps.resolve.outputs.sha }}
+          HEAD_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$INPUT_TAG" ]]; then
+          if [[ -n "$INPUT_TAG" ]]; then
             TAG="$INPUT_TAG"
           else
             git fetch --tags --force origin
