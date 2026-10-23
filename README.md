@@ -190,7 +190,7 @@ stay inside it, and reads are bounded by `--max-bytes`. Both
 
 ## Tests, tooling and governance
 
-About **54% of the Python here is tests** — 6,098 of 11,287 lines across **26 test modules**,
+About **54% of the Python here is tests** — 6,119 of 11,308 lines across **27 test modules**,
 run with the standard library's `unittest` on Python 3.10–3.14 (Linux) and 3.12 (Windows, macOS).
 They cover the controller, the benchmark harness, import hardening, path boundaries,
 dependency-lock drift and release-gate polling; the documented benchmark command run as a
