@@ -9,7 +9,7 @@ from quantum_reasoning_skill.benchmark.validate_submission import validate_metad
 
 
 def TestOneInput(data: bytes) -> None:
-    fdp = atheris.FuzzDataProvider(data)
+    fdp = atheris.FuzzedDataProvider(data)
     document = fdp.ConsumeUnicodeNoSurrogates(4096)
     try:
         validate_metadata(json.loads(document))
