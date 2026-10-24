@@ -45,6 +45,7 @@ on:
       - "docs/**"
       - "examples/**"
       - "bin/**"
+      - "scripts/**"
       - "tests/**"
   workflow_dispatch:
     inputs:
