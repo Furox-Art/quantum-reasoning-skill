@@ -26,19 +26,25 @@ HASH_RE = re.compile(r"^--hash=sha256:([0-9a-f]{64})\s*\\?$")
 #: this lock. A missing entry means the lock has drifted from the declared pins.
 REQUIRED_TOOLS = ("build", "coverage", "mypy", "ruff", "twine", "hatchling", "pip-audit")
 
-#: Versions pyproject.toml pins directly. These must match exactly, otherwise the
-#: lock and the build configuration disagree about what CI will run.
-PYPROJECT_PINS = {
-    "build": "1.6.1",
-    "coverage": "7.16.2",
-    "mypy": "2.4.0",
-    "ruff": "0.17.0",
-    "twine": "7.0.0",
-    "hatchling": "1.32.4",
-}
+#: One ``name==version`` pair written into pyproject.toml.
+PYPROJECT_PIN_RE = re.compile(r'"([A-Za-z0-9][A-Za-z0-9._-]*)==([^"]+)"')
 
 #: Markers that would mean the lock accepts floating versions.
 FLOATING_MARKERS = (">=", "<=", "~=", "==*", " @ ", "latest")
+
+
+def pyproject_pins() -> dict[str, str]:
+    """Return ``{normalised_name: version}`` for every pin pyproject.toml declares.
+
+    Read from the file rather than copied into a table here: the copied table
+    went stale the first time a dev tool was bumped, which made this guard fail
+    even though the lock and pyproject.toml agreed with each other.
+    """
+    text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    return {
+        name.lower().replace("_", "-"): version
+        for name, version in PYPROJECT_PIN_RE.findall(text)
+    }
 
 
 def parse_constraints(text: str) -> dict[str, dict]:
@@ -122,29 +128,21 @@ class ConstraintsLockTests(unittest.TestCase):
                 self.assertIn(tool, present, f"{tool} is missing from the lock")
 
     def test_lock_agrees_with_the_pins_in_pyproject(self):
-        """The lock must match the versions pyproject.toml pins directly."""
-        for tool, expected in PYPROJECT_PINS.items():
+        """Every pin in pyproject.toml must be locked at exactly that version."""
+        pins = pyproject_pins()
+        # A regex that silently stopped matching would make the loop below vacuous.
+        for tool in ("build", "ruff", "twine", "hatchling"):
+            self.assertIn(tool, pins, f"{tool} is pinned in pyproject.toml but not parsed")
+        for tool, expected in sorted(pins.items()):
             with self.subTest(tool=tool):
                 entry = self.entries.get(tool)
-                self.assertIsNotNone(entry, f"{tool} missing from the lock")
+                self.assertIsNotNone(entry, f"pyproject pins {tool} but the lock omits it")
                 self.assertEqual(
                     entry["version"],
                     expected,
                     f"constraints.txt pins {tool}=={entry['version']} but "
                     f"pyproject.toml pins {tool}=={expected}",
                 )
-
-    def test_pyproject_dev_group_is_fully_covered(self):
-        """Every ``name==version`` in pyproject's dev group must appear in the lock."""
-        pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-        declared = set(re.findall(r'"([A-Za-z0-9][A-Za-z0-9._-]*)==([^"]+)"', pyproject))
-        self.assertTrue(declared, "no pinned requirement found in pyproject.toml")
-        for name, version in sorted(declared):
-            key = name.lower().replace("_", "-")
-            with self.subTest(requirement=name):
-                entry = self.entries.get(key)
-                self.assertIsNotNone(entry, f"pyproject pins {name} but the lock omits it")
-                self.assertEqual(entry["version"], version)
 
     def test_no_top_level_install_requires_other_than_the_pin(self):
         """Nothing may smuggle in an unpinned install alongside the pins."""
