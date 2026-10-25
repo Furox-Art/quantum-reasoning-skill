@@ -1,9 +1,10 @@
-"""Cross-process determinism of the falsification benchmark.
+"""Cross-process determinism of the falsification benchmark and evaluator.
 
 The full suite runs in two fresh interpreters whose only difference is
 ``PYTHONHASHSEED``. Wall-clock latency is legitimately different every run and
 is stripped; every other field -- branch states, switches, revivals, answers,
 probabilities, token counts and aggregate metrics -- must be byte-identical.
+The evaluator sample measures the same property for ``summarize``/``compare``.
 """
 
 from __future__ import annotations
@@ -36,17 +37,6 @@ def load(name, path):
     return module
 
 
-runner = load("cross_process_falsification_run_suite", suite_dir / "run_suite.py")
-scenarios = load("cross_process_falsification_scenarios", suite_dir / "scenarios.py")
-
-results = runner.run_suite(scenarios.build_all_scenarios())
-payload = {
-    "summary": runner.aggregate(results),
-    "per_scenario": runner.results_to_dicts(results),
-    "reliability": runner.reliability_rows(results),
-}
-
-
 def strip_latency(value):
     if isinstance(value, dict):
         return {key: strip_latency(item) for key, item in value.items() if "latency" not in key}
@@ -55,7 +45,43 @@ def strip_latency(value):
     return value
 
 
-print(json.dumps(strip_latency(payload), ensure_ascii=False))
+runner = load("cross_process_falsification_run_suite", suite_dir / "run_suite.py")
+scenarios = load("cross_process_falsification_scenarios", suite_dir / "scenarios.py")
+evaluator = load(
+    "cross_process_benchmark_evaluate",
+    repo_root / "quantum_reasoning_skill" / "benchmark" / "evaluate.py",
+)
+
+results = runner.run_suite(scenarios.build_all_scenarios())
+eval_cases = [
+    {"id": "eval-1", "domain": "optics", "prompt": "p", "accepted_answers": ["Yes"]},
+    {"id": "eval-2", "domain": "arithmetic", "prompt": "p", "accepted_answers": ["42"]},
+]
+eval_skill = [
+    {"case_id": "eval-2", "answer": " 42 ", "tokens": 10, "tool_calls": 0, "latency_ms": 5}
+]
+eval_baseline = [
+    {"case_id": "eval-1", "answer": "no", "tokens": 20, "tool_calls": 1, "latency_ms": 9},
+    {"case_id": "eval-2", "answer": "42", "tokens": 30, "tool_calls": 2, "latency_ms": 7},
+]
+eval_skill_summary = evaluator.summarize(eval_cases, eval_skill)
+eval_baseline_summary = evaluator.summarize(eval_cases, eval_baseline)
+payload = strip_latency(
+    {
+        "summary": runner.aggregate(results),
+        "per_scenario": runner.results_to_dicts(results),
+        "reliability": runner.reliability_rows(results),
+    }
+)
+# Evaluator latency fields come from the measured input rows, not a wall clock,
+# so they stay in the compared payload.
+payload["evaluation"] = {
+    "skill": eval_skill_summary,
+    "baseline": eval_baseline_summary,
+    "comparison": evaluator.compare(eval_baseline_summary, eval_skill_summary),
+}
+
+print(json.dumps(payload, ensure_ascii=False))
 '''
 
 
@@ -101,6 +127,13 @@ class CrossProcessDeterminismTests(unittest.TestCase):
             self.assertNotIn("total_latency_ms", row)
             for step in row["steps"]:
                 self.assertNotIn("latency_ms", step)
+        evaluation = payload["evaluation"]
+        self.assertEqual(evaluation["skill"]["cases_evaluated"], 1)
+        self.assertEqual(evaluation["skill"]["missing_case_ids"], ["eval-1"])
+        self.assertEqual(evaluation["skill"]["accuracy"], 1.0)
+        self.assertEqual(evaluation["baseline"]["accuracy"], 0.5)
+        self.assertEqual(evaluation["comparison"]["accuracy_delta"], 0.5)
+        self.assertEqual(evaluation["skill"]["mean_latency_ms"], 5.0)
 
 
 if __name__ == "__main__":
