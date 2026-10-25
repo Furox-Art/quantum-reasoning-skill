@@ -1,8 +1,8 @@
-"""End-to-end checks for the determinism matrix engine and its falsification workload."""
-
 from __future__ import annotations
 
+import importlib.util
 import json
+import platform
 import subprocess
 import sys
 import tempfile
@@ -29,6 +29,14 @@ def run_engine(*args: object) -> subprocess.CompletedProcess[str]:
 def load_manifest(path: Path) -> dict[str, Any]:
     data: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
     return data
+
+
+def _engine() -> Any:
+    spec = importlib.util.spec_from_file_location("determinism_matrix_under_test", ENGINE)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 class DeterminismMatrixTests(unittest.TestCase):
@@ -84,7 +92,12 @@ class DeterminismMatrixTests(unittest.TestCase):
             self.assertEqual(data["summary"]["run_count"], 4)
             self.assertEqual(
                 data["gate"],
-                {"mode": "within-host", "passed": True, "probe_failures": []},
+                {
+                    "mode": "within-host",
+                    "passed": True,
+                    "probe_failures": [],
+                    "inert_axes": [],
+                },
             )
             self.assertTrue(all(run["exit_code"] == 0 for run in data["runs"]))
             self.assertEqual(
@@ -226,6 +239,147 @@ class DeterminismMatrixTests(unittest.TestCase):
             self.assertEqual(report["requested_timezone"], "UTC")
             self.assertEqual(report["environment"]["LC_ALL"], "C")
             self.assertEqual(report["environment"]["TZ"], "UTC")
+
+    def test_axis_effectiveness_separates_inert_and_applied_axes(self) -> None:
+        def probe(locale: str, tzname: list[str], offset: int, altzone: int) -> dict[str, Any]:
+            return {
+                "locale": locale,
+                "tzname": tzname,
+                "timezone": offset,
+                "altzone": altzone,
+            }
+
+        probes = {
+            "locale=inherit|tz=UTC": probe("C.UTF-8", ["UTC", "UTC"], 0, 0),
+            "locale=C|tz=UTC": probe("C", ["UTC", "UTC"], 0, 0),
+            "locale=inherit|tz=Europe/Istanbul": probe(
+                "C.UTF-8", ["+03", "+03"], -10800, -14400
+            ),
+            "locale=C|tz=Europe/Istanbul": probe(
+                "C", ["+03", "+03"], -10800, -14400
+            ),
+        }
+        engine = _engine()
+        axes = engine.axis_effectiveness(
+            probes, ["inherit", "C"], ["UTC", "Europe/Istanbul"]
+        )
+        self.assertEqual(
+            axes["locale"], {"requested": ["inherit", "C"], "applied": True}
+        )
+        self.assertEqual(
+            axes["timezone"],
+            {"requested": ["UTC", "Europe/Istanbul"], "applied": True},
+        )
+
+        inert_locale = {
+            key: {**value, "locale": "C"} for key, value in probes.items()
+        }
+        axes = engine.axis_effectiveness(
+            inert_locale, ["inherit", "C"], ["UTC", "Europe/Istanbul"]
+        )
+        self.assertIs(axes["locale"]["applied"], False)
+        self.assertIn("note", axes["locale"])
+        self.assertIs(axes["timezone"]["applied"], True)
+
+        inert_timezone = {
+            key: {**value, "tzname": ["UTC", "UTC"], "timezone": 0, "altzone": 0}
+            for key, value in probes.items()
+        }
+        axes = engine.axis_effectiveness(
+            inert_timezone, ["inherit", "C"], ["UTC", "Europe/Istanbul"]
+        )
+        self.assertIs(axes["timezone"]["applied"], False)
+        self.assertIn("note", axes["timezone"])
+        self.assertIs(axes["locale"]["applied"], True)
+
+        single = engine.axis_effectiveness(probes, ["inherit"], ["UTC"])
+        self.assertIs(single["locale"]["applied"], True)
+        self.assertIs(single["timezone"]["applied"], True)
+
+    def test_axes_reflect_the_effective_host_state(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            workload = root / "axis_workload.py"
+            workload.write_text("print('constant')\n", encoding="utf-8")
+            completed = run_engine(
+                "run",
+                "--workload",
+                workload,
+                "--out",
+                root / "axes.json",
+                "--seeds",
+                "0",
+                "--threads",
+                1,
+                "--locales",
+                "inherit",
+                "C",
+                "--timezones",
+                "UTC",
+                "Europe/Istanbul",
+                "--gate",
+                "within-host",
+            )
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            data = load_manifest(root / "axes.json")
+            supported = platform.system() != "Windows"
+            self.assertIs(data["axes"]["locale"]["applied"], supported)
+            self.assertIs(data["axes"]["timezone"]["applied"], supported)
+            self.assertEqual(
+                data["gate"]["inert_axes"],
+                [] if supported else ["locale", "timezone"],
+            )
+            self.assertIs(data["gate"]["passed"], True)
+
+    def test_gate_fails_when_a_supported_axis_is_inert(self) -> None:
+        engine = _engine()
+        engine.axis_support = lambda: {"locale": True, "timezone": True}
+        engine.probe_environment = lambda locale, timezone, timeout: {
+            "requested_locale": locale,
+            "requested_timezone": timezone,
+            "environment_matches_request": True,
+            "environment": {
+                "LC_ALL": None,
+                "LANG": None,
+                "LANGUAGE": None,
+                "TZ": None,
+            },
+            "locale": "C",
+            "tzname": ["UTC", "UTC"],
+            "timezone": 0,
+            "altzone": 0,
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            workload = root / "constant.py"
+            workload.write_text("print('constant')\n", encoding="utf-8")
+            exit_code = engine.main(
+                [
+                    "run",
+                    "--workload",
+                    str(workload),
+                    "--out",
+                    str(root / "axes.json"),
+                    "--seeds",
+                    "0",
+                    "--threads",
+                    "1",
+                    "--locales",
+                    "inherit",
+                    "C",
+                    "--timezones",
+                    "UTC",
+                    "Europe/Istanbul",
+                    "--gate",
+                    "within-host",
+                ]
+            )
+            self.assertEqual(exit_code, 4)
+            data = load_manifest(root / "axes.json")
+            self.assertIs(data["gate"]["passed"], False)
+            self.assertEqual(
+                data["gate"]["inert_axes"], ["locale", "timezone"]
+            )
 
     def test_compare_gate_detects_stdout_mismatch(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
