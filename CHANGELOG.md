@@ -51,6 +51,9 @@ All notable changes to this project are documented here.
 
 ### CI
 
+- The determinism workload now also samples the LLM-free evaluator
+  (`summarize`/`compare`), and the cross-process test pins its hash-seed
+  stability, so an ordering leak in scoring output fails the matrix.
 - The live npm registry attestation check runs on pushes to `main` only. It
   cannot change a PR's outcome and is not a dependency of PR validation.
 - Added SHA-pinned OpenSSF Scorecard and dependency-review workflows.
