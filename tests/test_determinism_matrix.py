@@ -1,3 +1,5 @@
+"""End-to-end checks for the determinism matrix engine and its falsification workload."""
+
 from __future__ import annotations
 
 import importlib.util
