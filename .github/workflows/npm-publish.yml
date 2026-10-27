@@ -57,6 +57,10 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The publish guard below walks back to the commit that introduced
+          # the version being published; a depth-1 clone has no such history.
+          fetch-depth: 0
 
       # npm must not publish a commit that failed the unprivileged
       # validate-skill workflow. That workflow starts from the same push, so
@@ -146,6 +150,77 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           prerelease="$(python -c 'import conftest, sys; print("true" if conftest.is_prerelease(sys.argv[1]) else "false")' "$version")"
           echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+
+      # npm 1.2.0 shipped a tarball built from a later commit than the release:
+      # the unknown-flag validation from #60 rode along under an already-released
+      # version number, so npm and PyPI served different code as "1.2.0" and the
+      # tarball's own README said 1.2.0 was never published. npm versions are
+      # immutable, so the check has to run before packing: every packed file must
+      # still be the one from the commit that introduced this version. The tag is
+      # not usable here because publish-release only creates it after its own
+      # 900-second check gate, so a push-triggered run would race it.
+      - name: Refuse to publish content newer than the version bump
+        shell: bash
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+
+          version = os.environ["VERSION"]
+
+          def run(*args):
+              return subprocess.run(args, capture_output=True)
+
+          def version_at(rev):
+              raw = run("git", "show", f"{rev}:package.json")
+              if raw.returncode != 0:
+                  return None
+              try:
+                  return json.loads(raw.stdout.decode("utf-8"))["version"]
+              except (UnicodeDecodeError, ValueError, KeyError, TypeError):
+                  return None
+
+          head = run("git", "rev-parse", "HEAD").stdout.decode().strip()
+          if version_at(head) != version:
+              raise SystemExit(f"HEAD does not declare package.json version {version}")
+
+          release = None
+          for rev in run("git", "rev-list", "--first-parent", "HEAD").stdout.decode().split():
+              if version_at(rev) != version:
+                  break
+              release = rev
+          if release is None:
+              raise SystemExit(f"cannot find the commit that introduced version {version}")
+          if release == head:
+              print(f"PASS: publishing {version} from its own version-bump commit {head[:9]}")
+              raise SystemExit(0)
+
+          packed = json.loads(
+              run("npm", "pack", "--dry-run", "--json").stdout.decode("utf-8")
+          )[0]["files"]
+          differing = []
+          for item in packed:
+              path = item["path"]
+              expected = run("git", "show", f"{release}:{path}")
+              actual = run("git", "show", f"HEAD:{path}")
+              if (
+                  expected.returncode != 0
+                  or actual.returncode != 0
+                  or expected.stdout != actual.stdout
+              ):
+                  differing.append(path)
+          if differing:
+              raise SystemExit(
+                  f"refusing to publish {version} from {head[:9]}: packed files differ from "
+                  f"the version-bump commit {release[:9]} ({', '.join(differing)}). "
+                  f"Bump the version and release the new content instead."
+              )
+          print(f"PASS: packed content matches the version-bump commit {release[:9]}")
+          PY
 
       # The exact class of bug that shipped in 1.0.0: a `main` entry point that
       # throws on require, because SKILL.md was required as if it were
