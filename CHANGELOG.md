@@ -30,6 +30,10 @@ All notable changes to this project are documented here.
 
 ### Benchmark correctness
 
+- `validate_submission` reports bundles in raw-name order. Sorting `Path`
+  objects is case-insensitive on Windows and by code point on POSIX, so a
+  mixed-case results tree printed a different report on each host and named a
+  different first failure.
 - Rejected branches are terminal in the reference controller. `classify_branch`
   and `update_branch_state` no longer return a rejected branch to active; only
   an explicit caller reopen can do that, matching `docs/MEASUREMENT.md`. The
@@ -51,6 +55,8 @@ All notable changes to this project are documented here.
 
 ### CI
 
+- The determinism workload now validates a two-bundle fixture with mixed-case
+  names, so the cross-OS gate covers the community validator's report order.
 - The determinism workload now also samples the LLM-free evaluator
   (`summarize`/`compare`), and the cross-process test pins its hash-seed
   stability, so an ordering leak in scoring output fails the matrix.

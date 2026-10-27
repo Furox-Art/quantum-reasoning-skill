@@ -180,7 +180,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         raise SystemExit(f"community benchmark root not found: {root}")
     try:
-        bundles = sorted(p for p in root.iterdir() if p.is_dir())
+        bundles = sorted(
+            (p for p in root.iterdir() if p.is_dir()),
+            key=lambda p: p.name,
+        )
     except OSError as exc:
         raise SystemExit(
             f"community benchmark root not readable: {root}: {exc}"
