@@ -8,11 +8,12 @@ README embedded in that tarball even still claimed "npm 1.2.0 was never
 published". PyPI 1.2.0 was built from the tag, so the two registries served
 different bytes for the same version.
 
-npm versions are immutable, so guarding after the upload is worthless. The
-publish job therefore compares every packed file against the commit that
-introduced the version and refuses to continue when they differ. The tag is
-deliberately not the reference: ``publish-release`` creates it only after its
-own gate, so a push-triggered run would race tag creation.
+npm versions are immutable, so guarding after the upload is worthless. Once the
+already-published gate has decided there is something to upload, the publish job
+compares every packed file against the commit that introduced the version and
+refuses to continue when they differ. The tag is deliberately not the reference:
+``publish-release`` creates it only after its own gate, so a push-triggered run
+would race tag creation.
 """
 
 from __future__ import annotations
@@ -27,9 +28,14 @@ class NpmPublishGuardTest(unittest.TestCase):
     def setUp(self) -> None:
         self.text = WORKFLOW.read_text(encoding="utf-8")
 
-    def test_guard_is_checked_before_packing_and_publishing(self) -> None:
+    def test_guard_runs_only_for_unpublished_versions(self) -> None:
+        gate = self.text.index("Check npm registry state")
         guard = self.text.index("Refuse to publish content newer than the version bump")
-        self.assertLess(guard, self.text.index("Enforce the tarball content allowlist"))
+        self.assertLess(gate, guard)
+        self.assertIn("if: steps.gate.outputs.skip != 'true'\n", self.text[guard:])
+
+    def test_guard_is_checked_before_publishing(self) -> None:
+        guard = self.text.index("Refuse to publish content newer than the version bump")
         self.assertLess(guard, self.text.index('npm publish "${args[@]}"'))
 
     def test_guard_compares_packed_files_against_the_version_bump(self) -> None:
