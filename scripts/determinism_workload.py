@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
 import os
 import sys
+import tempfile
+from contextlib import redirect_stdout
 from pathlib import Path
 from types import ModuleType
 
@@ -115,8 +118,76 @@ def evaluation_sample(evaluator: ModuleType) -> dict[str, object]:
     }
 
 
+def build_bundle(root: Path, name: str, evaluate: ModuleType) -> Path:
+    bundle = root / name
+    bundle.mkdir()
+    cases = [{"id": "c1", "domain": "math", "prompt": "1+1?", "accepted_answers": ["2"]}]
+    baseline = [{"case_id": "c1", "answer": "2", "tokens": 10, "tool_calls": 0, "latency_ms": 100}]
+    skill = [{"case_id": "c1", "answer": "2", "tokens": 12, "tool_calls": 0, "latency_ms": 110}]
+    for filename, rows in (
+        ("cases.jsonl", cases),
+        ("baseline.jsonl", baseline),
+        ("skill.jsonl", skill),
+    ):
+        (bundle / filename).write_text(
+            "".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8"
+        )
+    conditions = {
+        "instruction_config": "reference",
+        "sampling": {},
+        "tool_availability": [],
+        "context_limit": None,
+        "output_limit": None,
+    }
+    metadata = {
+        "provider": "determinism-matrix",
+        "model": "fixed-fixture",
+        "run_date": "2026-10-27",
+        "skill_version": "1.2.0",
+        "repetitions_per_case": 1,
+        "failures_recorded": True,
+        "baseline": conditions,
+        "skill": conditions,
+    }
+    (bundle / "metadata.json").write_text(json.dumps(metadata), encoding="utf-8")
+    summary = {
+        "baseline": evaluate.summarize(cases, baseline),
+        "skill": evaluate.summarize(cases, skill),
+    }
+    summary["comparison"] = evaluate.compare(summary["baseline"], summary["skill"])
+    (bundle / "comparison.json").write_text(
+        json.dumps(summary, sort_keys=True), encoding="utf-8"
+    )
+    (bundle / "README.md").write_text(
+        "Determinism matrix fixture bundle.\n", encoding="utf-8"
+    )
+    return bundle
+
+
+def validation_sample(validator: ModuleType, evaluate: ModuleType) -> dict[str, object]:
+    """Validate two mixed-case bundles and keep the reported order only.
+
+    The temp root and the bundle paths differ on every run, so the payload must
+    not carry them. The order is the deterministic surface: raw-name ordering is
+    host-independent, while sorting ``Path`` objects is not.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        for name in ("Zulu", "alpha"):
+            build_bundle(root, name, evaluate)
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            code = validator.main(["--root", str(root)])
+        order = [
+            Path(line.removeprefix("validated ")).name
+            for line in buffer.getvalue().splitlines()
+        ]
+    return {"exit": code, "order": order}
+
+
 def main() -> None:
     repo_root = Path(__file__).resolve().parents[1]
+    sys.path.insert(0, str(repo_root))
     suite_dir = repo_root / "quantum_reasoning_skill" / "benchmark" / "falsification"
     runner = load("determinism_falsification_run_suite", suite_dir / "run_suite.py")
     scenarios = load("determinism_falsification_scenarios", suite_dir / "scenarios.py")
@@ -124,6 +195,8 @@ def main() -> None:
         "determinism_benchmark_evaluate",
         repo_root / "quantum_reasoning_skill" / "benchmark" / "evaluate.py",
     )
+    from quantum_reasoning_skill.benchmark import evaluate as package_evaluate
+    from quantum_reasoning_skill.benchmark import validate_submission as validator
 
     results = runner.run_suite(scenarios.build_all_scenarios())
     payload = strip_latency(
@@ -134,12 +207,20 @@ def main() -> None:
         }
     )
     payload["evaluation"] = evaluation_sample(evaluator)
+    payload["validation"] = validation_sample(validator, package_evaluate)
     if (
         not payload["summary"]
         or not payload["per_scenario"]
         or not payload["evaluation"]["skill"]["cases_evaluated"]
     ):
         raise SystemExit("workload produced empty results; it is vacuous")
+    if payload["validation"]["exit"] != 0 or payload["validation"]["order"] != [
+        "Zulu",
+        "alpha",
+    ]:
+        raise SystemExit(
+            "bundle validation did not report the fixtures in raw-name order"
+        )
     artifact_dir = os.environ.get("DETERMINISM_ARTIFACT_DIR")
     if artifact_dir:
         Path(artifact_dir, "payload.json").write_text(

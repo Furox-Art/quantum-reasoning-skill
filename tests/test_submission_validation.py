@@ -1,9 +1,11 @@
 from __future__ import annotations
 import importlib
+import io
 import json
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,8 +22,8 @@ validator = importlib.import_module(
 
 
 class SubmissionValidationTests(unittest.TestCase):
-    def make_bundle(self, root: Path) -> Path:
-        bundle = root / "provider-model-2026-09-07"
+    def make_bundle(self, root: Path, name: str = "provider-model-2026-09-07") -> Path:
+        bundle = root / name
         bundle.mkdir()
         cases = [{"id": "c1", "domain": "math", "prompt": "1+1?", "accepted_answers": ["2"]}]
         baseline = [{"case_id": "c1", "answer": "2", "tokens": 10, "tool_calls": 0, "latency_ms": 100}]
@@ -74,6 +76,24 @@ class SubmissionValidationTests(unittest.TestCase):
             (bundle / "metadata.json").write_text(json.dumps(meta), encoding="utf-8")
             with self.assertRaises(ValueError):
                 validator.validate_bundle(bundle)
+
+    def test_bundles_are_reported_in_raw_name_order(self):
+        # Sorting Path objects is case-insensitive on Windows and by code point
+        # on POSIX, so a mixed-case tree printed its report in a different
+        # order on each host (and named a different first failure).
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for name in ("Zulu", "alpha"):
+                self.make_bundle(root, name)
+            buffer = io.StringIO()
+            with redirect_stdout(buffer):
+                code = validator.main(["--root", str(root)])
+        names = [
+            Path(line.removeprefix("validated ")).name
+            for line in buffer.getvalue().splitlines()
+        ]
+        self.assertEqual(code, 0)
+        self.assertEqual(names, ["Zulu", "alpha"])
 
 
 if __name__ == "__main__":
