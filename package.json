@@ -26,7 +26,11 @@
     "multi-branch",
     "agent-skills",
     "mcp",
-    "claude-skill"
+    "claude-skill",
+    "llm",
+    "planning",
+    "tree-of-thought",
+    "benchmark"
   ],
   "author": "Furox-Art",
   "license": "MIT",
