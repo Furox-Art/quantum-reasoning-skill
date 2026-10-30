@@ -3,9 +3,10 @@
 Background
 ----------
 ``1.1.1`` was published to npm through the ``NPM_TOKEN`` opt-in path, so it
-carries no Sigstore provenance attestation; PyPI 1.1.1 carries no PEP 740
-attestation either. Attestations are bound to a publish event and cannot be
-backfilled, so the gap is permanent for that version.
+carries no Sigstore provenance attestation. The PyPI upload followed a separate
+Trusted Publishing path and carries PEP 740 per-file provenance. npm
+attestations are bound to a publish event and cannot be backfilled, so the npm
+gap is permanent for that version.
 
 That created a documentation risk rather than a code risk: nothing stopped a
 future edit from claiming ``1.1.1`` is attested, which would be false. This
@@ -164,7 +165,7 @@ class FalseClaimTests(TreeCase):
     def test_changelog_claiming_1_1_1_is_attested_is_rejected(self):
         changelog = self.tree / "CHANGELOG.md"
         text = changelog.read_text(encoding="utf-8")
-        anchor = "**This release was published with the token path and carries no attestation.**"
+        anchor = "**This release was published to npm with the token path and carries no npm attestation.**"
         self.assertIn(anchor, text, "CHANGELOG.md disclosure sentence moved")
         # The replacement must name the version, otherwise there is nothing for
         # the guard to attribute the claim to.
@@ -191,8 +192,8 @@ class TrueClaimTests(TreeCase):
     def test_claiming_1_1_0_is_attested_is_accepted(self):
         self.patch(
             "README.md",
-            "| `1.1.0` (npm) | yes — SLSA provenance and npm publish attestation, Sigstore | n/a |",
-            "| `1.1.0` (npm) | yes — SLSA provenance and npm publish attestation, Sigstore | n/a |\n\n"
+            "| `1.1.0` (npm and PyPI) | yes — SLSA provenance and npm publish attestation, Sigstore | yes — PEP 740 per-file provenance |",
+            "| `1.1.0` (npm and PyPI) | yes — SLSA provenance and npm publish attestation, Sigstore | yes — PEP 740 per-file provenance |\n\n"
             "Release `1.1.0` on npm carries a Sigstore provenance attestation.",
         )
         self.assertEqual(self.evaluate(), [], "a true claim must not be rejected")
@@ -499,7 +500,7 @@ class GuardUnitTests(unittest.TestCase):
         )
 
     def test_1_1_1_is_knowingly_unattested(self):
-        """The reason this module exists: 1.1.1 has no attestation."""
+        """The reason this module exists: 1.1.1 has no npm attestation."""
         self.assertIn("1.1.1", guard.KNOWN_UNATTESTED_NPM)
         self.assertNotIn("1.1.1", guard.KNOWN_ATTESTED_NPM)
 

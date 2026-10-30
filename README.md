@@ -86,18 +86,21 @@ Only some published versions carry a build attestation, so check before relying 
 
 | release | npm attestation | PyPI PEP 740 attestation |
 | --- | --- | --- |
-| `1.1.0` (npm) | yes — SLSA provenance and npm publish attestation, Sigstore | n/a |
-| `1.1.1` (npm and PyPI) | **no** | **no** |
-| `1.2.0` (npm and PyPI) | yes — SLSA provenance and npm publish attestation, Sigstore | yes |
+| `1.1.0` (npm and PyPI) | yes — SLSA provenance and npm publish attestation, Sigstore | yes — PEP 740 per-file provenance |
+| `1.1.1` (npm and PyPI) | **no** — token publish path | yes — PEP 740 per-file provenance |
+| `1.1.2`–`1.1.5` (npm and PyPI) | **no** — token publish path | yes — PEP 740 per-file provenance |
+| `1.2.0` (npm and PyPI) | yes — SLSA provenance and npm publish attestation, Sigstore | yes — PEP 740 per-file provenance |
 
-`1.1.1` was published through the long-lived-token path, which cannot produce a Sigstore
-attestation. Attestations are bound to a publish event and cannot be added afterwards, so
-this is permanent for that version. The package itself is unchanged and passes the same
-release contract as every other version; only the provenance *record* is missing. The npm
-releases `1.1.2`, `1.1.3`, `1.1.4` and `1.1.5` have no attestation either.
+Version `1.1.1` was published through the long-lived-token path on npm and has no attestation.
+That path cannot produce a Sigstore record. npm attestations are bound to a publish
+event and cannot be added afterwards, so
+this is permanent for that version. The npm package itself is unchanged and passes the same
+release contract as every other version; only the npm provenance *record* is missing. The npm
+releases `1.1.2`, `1.1.3`, `1.1.4` and `1.1.5` have no attestation either. Every PyPI release
+from `1.1.0` through `1.2.0` carries PEP 740 per-file provenance.
 
 If you need to verify how a build was produced, use `1.2.0`: it is attested on
-both channels (`1.1.0` is attested on npm only). To check an attestation
+both channels, as is `1.1.0` on npm and PyPI. To check an attestation
 yourself:
 
 ```bash
@@ -105,6 +108,8 @@ curl -sS -o /dev/null -w '%{http_code}\n' \
   https://registry.npmjs.org/-/npm/v1/attestations/quantum-reasoning-skill@1.2.0   # 200
 curl -sS -o /dev/null -w '%{http_code}\n' \
   https://registry.npmjs.org/-/npm/v1/attestations/quantum-reasoning-skill@1.1.1   # 404
+curl -sS -o /dev/null -w '%{http_code}\n' \
+  https://pypi.org/integrity/quantum-reasoning-skill/1.1.1/quantum_reasoning_skill-1.1.1-py3-none-any.whl/provenance   # 200
 ```
 
 A missing attestation is not evidence of tampering. Versions are locked
@@ -192,7 +197,7 @@ stay inside it, and reads are bounded by `--max-bytes`. Both
 
 ## Tests, tooling and governance
 
-About **53% of the Python here is tests** — 6,900 of 12,967 lines across **30 test modules**,
+About **53% of the Python here is tests** — 6,901 of 12,968 lines across **30 test modules**,
 run with the standard library's `unittest` on Python 3.10–3.14 (Linux) and 3.12 (Windows, macOS).
 They cover the controller, the benchmark harness, import hardening, path boundaries,
 dependency-lock drift and release-gate polling; the documented benchmark command run as a
