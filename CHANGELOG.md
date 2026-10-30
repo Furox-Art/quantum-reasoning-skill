@@ -80,26 +80,32 @@ Measured against the live registry, not inferred:
 | --- | --- | --- |
 | `1.0.0` | npm | no |
 | `1.1.0` | npm | **yes** — `slsa.dev/provenance/v1` + `npm/attestation/publish/v0.1` |
+| `1.1.0` | PyPI | **yes** — PEP 740 per-file provenance |
 | `1.1.1` | npm | **no** |
-| `1.1.1` | PyPI | **no** |
+| `1.1.1` | PyPI | **yes** — PEP 740 per-file provenance |
 | `1.1.2` | npm | **no** |
+| `1.1.2` | PyPI | **yes** — PEP 740 per-file provenance |
 | `1.1.3` | npm | **no** |
+| `1.1.3` | PyPI | **yes** — PEP 740 per-file provenance |
 | `1.1.4` | npm | **no** |
+| `1.1.4` | PyPI | **yes** — PEP 740 per-file provenance |
 | `1.1.5` | npm | **no** |
+| `1.1.5` | PyPI | **yes** — PEP 740 per-file provenance |
 | `1.2.0` | npm | **yes** — `slsa.dev/provenance/v1` + `npm/attestation/publish/v0.1` |
 | `1.2.0` | PyPI | **yes** — PEP 740 per-file provenance |
 
-`1.1.1` was published through the `NPM_TOKEN` opt-in path, so npm never
-attempted an attestation. Attestations are bound to a publish event and cannot be
-backfilled, so the gap is permanent for that version. The PyPI upload used
-Trusted Publishing and is not covered by PEP 740 in this repository, so it carries
-no attestation either.
+`1.1.1` was published to npm through the `NPM_TOKEN` opt-in path, so npm never
+attempted an attestation. npm attestations are bound to a publish event and cannot be
+backfilled, so the gap is permanent for that version. The PyPI upload is a separate
+record: it used Trusted Publishing and carries PEP 740 per-file provenance, as every
+PyPI release from `1.1.0` through `1.2.0` does.
 
 Consequence for verification: `npm install quantum-reasoning-skill@1.1.1` gives
-you a byte-identical, contract-passing package with no provenance record. Anyone
-who needs to verify *how* a build was produced should use `1.1.0` on npm, which
-carries a real attestation. Do not treat the absence of an attestation on `1.1.1`
-as evidence of tampering, and do not treat it as evidence of integrity either.
+you a byte-identical, contract-passing package with no npm provenance record.
+Anyone who needs to verify *how* a build was produced should use `1.2.0`, which
+carries a real attestation on both npm and PyPI. Do not treat the absence of an
+npm attestation on `1.1.1` as evidence of tampering, and do not treat it as
+evidence of integrity either.
 
 ### Fixed
 
@@ -281,10 +287,11 @@ release, since 1.1.0 was built before those commits existed:
   which is attested; publishing with `NPM_TOKEN` is a deliberate opt-in and is
   never provenance-signed.
 
-  **This release was published with the token path and carries no attestation.**
-  `quantum-reasoning-skill@1.1.1` on npm has no Sigstore provenance attestation,
-  and PyPI 1.1.1 carries no PEP 740 attestation either. The release itself is
-  correct otherwise. See "npm attestation status" below for the full picture.
+  **This release was published to npm with the token path and carries no npm attestation.**
+  `quantum-reasoning-skill@1.1.1` on npm has no Sigstore provenance attestation;
+  PyPI 1.1.1, a separate upload path, carries PEP 740 per-file provenance. The
+  release itself is correct otherwise. See "npm attestation status" below for the
+  full picture.
 
 ### Added
 
