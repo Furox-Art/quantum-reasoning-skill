@@ -31,28 +31,26 @@ check, not a measurement.
 
 Captured on Windows 11 / AMD64, CPython 3.12.10, on an **LF checkout** (no
 `core.autocrlf` translation) at commit
-`9a78b15485c47f78a6274ec4e60470bc150532fd`, whose parent is `main`
-(`dc0a5930aa0098238adb3a0ab0e2fca01e30b1d4`), so the commit is obtainable by anyone
-reading this repository.
+`0f32ce20ac81bf7ad07c9b883eab41efaa5ebb63` on `main`, so the commit is obtainable by
+anyone reading this repository.
 
-The version lines below follow the current `VERSION` (1.2.0). The commit, digest and
-line counts were captured at 1.1.5; re-run `python docs/quickstart.py` on a 1.2.0
-checkout to refresh the whole block.
+The block below follows the current `VERSION` (1.2.0) and was captured on a 1.2.0
+checkout; re-run `python docs/quickstart.py` to refresh it.
 
 **Provenance for the block below:**
 
 - Script: `docs/quickstart.py`
 - Skill version: `1.2.0` (from `VERSION`)
-- Skill commit: `9a78b15485c47f78a6274ec4e60470bc150532fd`
+- Skill commit: `0f32ce20ac81bf7ad07c9b883eab41efaa5ebb63`
 - Controller: `quantum_reasoning_skill/reference/branch_controller.py`, `DEFAULT_THRESHOLDS`
 - Benchmark inputs: `quantum_reasoning_skill/benchmark/cases.jsonl`, evaluated by
   `quantum_reasoning_skill/benchmark/evaluate.py`
 - Platform: Windows 11 (AMD64), CPython 3.12.10
-- `SKILL.md` digest: **7145 bytes, `sha256:bd70f42ce11d1713`** — the git blob
+- `SKILL.md` digest: **7430 bytes, `sha256:38e23ee1a23ee254`** — the git blob
 
 On a checkout with CRLF translation (Windows `core.autocrlf=true`) the `SKILL.md` line
-instead reads `7291 bytes sha256:a63dd27330017a3c`. That is the same content with line
-endings converted, not a different `SKILL.md`; 7145 is the value CI and every Linux and
+instead reads `7578 bytes sha256:f1ee3c89a671c3f0`. That is the same content with line
+endings converted, not a different `SKILL.md`; 7430 is the value CI and every Linux and
 macOS user sees.
 
 The `commit` and `branch` lines name whichever checkout you ran, so they change between
@@ -66,10 +64,10 @@ Quantum Reasoning Skill - quickstart verification
 --------------------------------------------------------------
 
 [1/4] Checkout identity
-    commit      : 9a78b15485c47f78a6274ec4e60470bc150532fd
+    commit      : 0f32ce20ac81bf7ad07c9b883eab41efaa5ebb63
     VERSION     : 1.2.0
-    SKILL.md    : 7145 bytes  sha256:bd70f42ce11d1713
-    branch      : docs/readme-truthfulness
+    SKILL.md    : 7430 bytes  sha256:38e23ee1a23ee254
+    branch      : main
 
 [2/4] Agent Skill contract (SKILL.md)
     name        : quantum-reasoning
@@ -105,7 +103,7 @@ Provenance for every number printed above
 --------------------------------------------------------------
     script      : docs/quickstart.py
     skill ver   : 1.2.0   (VERSION)
-    commit      : 9a78b15485c47f78a6274ec4e60470bc150532fd
+    commit      : 0f32ce20ac81bf7ad07c9b883eab41efaa5ebb63
     platform    : Windows 11 (AMD64)
     python      : 3.12.10 (CPython)
     controller  : quantum_reasoning_skill/reference/branch_controller.py DEFAULT_THRESHOLDS
