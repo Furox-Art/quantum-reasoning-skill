@@ -48,7 +48,9 @@ KNOWN_UNATTESTED_NPM = frozenset({"1.0.0", "1.1.1", "1.1.2", "1.1.3", "1.1.4", "
 #: check, which must reason about any of these rather than only the ones whose
 #: status happens to be recorded below. CI passes the live registry set as well,
 #: so this remains the offline default.
-RELEASED_NPM_VERSIONS = frozenset({"1.0.0", "1.1.0", "1.1.1", "1.1.2", "1.1.3", "1.1.4", "1.1.5", "1.2.0"})
+RELEASED_NPM_VERSIONS = frozenset(
+    {"1.0.0", "1.1.0", "1.1.1", "1.1.2", "1.1.3", "1.1.4", "1.1.5", "1.2.0"}
+)
 
 #: A release-version token.
 VERSION_TOKEN = re.compile(r"\b1\.\d+\.\d+\b")
