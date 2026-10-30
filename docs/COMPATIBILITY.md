@@ -5,10 +5,8 @@ Quantum Reasoning is model-agnostic, but not every host exposes the same control
 ## What to install
 
 `SKILL.md` is the entire integration surface. It ships in every channel: a clone, the
-PyPI wheel (as `quantum_reasoning_skill/SKILL.md`), and the npm tarball. The npm
-tarball is currently 1.1.5, because the 1.2.0 npm publish failed at the registry
-(`E404` on `PUT`, a publisher/credential configuration issue); PyPI and `main` are
-at 1.2.0. Copy `SKILL.md`, keep its YAML front matter intact, then confirm the copy
+PyPI wheel (as `quantum_reasoning_skill/SKILL.md`), and the npm tarball. All three
+channels are at 1.2.0. Copy `SKILL.md`, keep its YAML front matter intact, then confirm the copy
 with `python docs/quickstart.py` or, for an installed package,
 `quantum-reasoning --validate`. Full channel comparison:
 [the distribution section](../README.md#distribution-and-the-surface-it-exposes).

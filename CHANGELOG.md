@@ -64,12 +64,13 @@ All notable changes to this project are documented here.
   cannot change a PR's outcome and is not a dependency of PR validation.
 - Added SHA-pinned OpenSSF Scorecard and dependency-review workflows.
 
-### npm 1.2.0 was not published
+### npm 1.2.0 publish delay
 
-PyPI serves 1.2.0; npm's `latest` remains 1.1.5. The npm publish for 1.2.0
-failed at the registry with `E404` on `PUT` (workflow run `39672649928`), a
-publisher/credential configuration issue rather than a packaging failure. No
-retry has been performed and no retry date is set.
+PyPI served 1.2.0 before npm did. The first npm publish attempt failed at the
+registry with `E404` on `PUT` (workflow run `39672649928`), a
+publisher/credential configuration issue rather than a packaging failure. npm
+`1.2.0` was published on 2026-10-22 through OIDC Trusted Publishing, and its
+`latest` tag now resolves to it.
 
 ### npm attestation status
 
@@ -85,6 +86,8 @@ Measured against the live registry, not inferred:
 | `1.1.3` | npm | **no** |
 | `1.1.4` | npm | **no** |
 | `1.1.5` | npm | **no** |
+| `1.2.0` | npm | **yes** — `slsa.dev/provenance/v1` + `npm/attestation/publish/v0.1` |
+| `1.2.0` | PyPI | **yes** — PEP 740 per-file provenance |
 
 `1.1.1` was published through the `NPM_TOKEN` opt-in path, so npm never
 attempted an attestation. Attestations are bound to a publish event and cannot be
