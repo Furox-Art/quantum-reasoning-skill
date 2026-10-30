@@ -31,7 +31,7 @@ python docs/quickstart.py
 pip install quantum-reasoning-skill
 quantum-reasoning --validate
 
-# 3. from npm — currently 1.1.5; npm 1.2.0 was never published
+# 3. from npm — all three channels are on 1.2.0
 npm i quantum-reasoning-skill
 npx quantum-reasoning --validate
 ```
@@ -51,9 +51,8 @@ drifts.
 
 ## Distribution and the surface it exposes
 
-Three channels ship `SKILL.md`, but they are not all on one version today: a
-`git clone` of `main` and the PyPI wheel are at **1.2.0**, while the npm tarball
-is at **1.1.5**.
+Three channels ship `SKILL.md`, and all three are on **1.2.0**: a `git clone` of
+`main`, the PyPI wheel and the npm tarball.
 
 ### Channel versions
 
@@ -61,20 +60,21 @@ is at **1.1.5**.
 | --- | --- |
 | `git clone` of `main` | `1.2.0` |
 | PyPI | `1.2.0` |
-| npm | `1.1.5` |
+| npm | `1.2.0` |
 
-The npm 1.2.0 publish failed at the registry with an `E404` response to the
+An earlier attempt to publish npm `1.2.0` failed with an `E404` response to the
 `PUT` request (publish workflow run `39672649928`), a publisher/credential
-configuration issue rather than a packaging failure. No retry date is set and
-the npm `latest` tag therefore still resolves to 1.1.5. The npm tarball carries
-the 1.1.5 content; use PyPI 1.2.0 or a clone of `main` for the 1.2.0 packaging.
+configuration issue rather than a packaging failure. That is resolved: npm
+serves `1.2.0`, its `latest` tag points at it, and the tarball carries the
+1.2.0 content.
 
 The PyPI wheel (1.2.0 packaging: `SKILL.md`, `VERSION`, `reference/`,
 `benchmark/`, `docs/` and `examples/` ship under the
 `quantum_reasoning_skill/` package namespace, plus a `quantum-reasoning` console
-script backed by `quantum_reasoning_skill.cli`); and the npm tarball (1.1.5:
-`SKILL.md`, `VERSION`, `index.js`, `LICENSE`, `README.md`, and a
-`quantum-reasoning` bin). Both packaged artifacts are verified against the
+script backed by `quantum_reasoning_skill.cli`); and the npm tarball (1.2.0:
+`SKILL.md`, `VERSION`, `index.js`, `package.json`, `LICENSE` and `README.md`;
+the `quantum-reasoning` bin is declared in `package.json` and points at
+`index.js`). Both packaged artifacts are verified against the
 **built** artifact, not a checkout. Checkouts and installed distributions use
 the same canonical paths: the reference controller and benchmark harness live
 under `quantum_reasoning_skill/`, so the wheel and the source tree expose one
@@ -88,6 +88,7 @@ Only some published versions carry a build attestation, so check before relying 
 | --- | --- | --- |
 | `1.1.0` (npm) | yes — SLSA provenance and npm publish attestation, Sigstore | n/a |
 | `1.1.1` (npm and PyPI) | **no** | **no** |
+| `1.2.0` (npm and PyPI) | yes — SLSA provenance and npm publish attestation, Sigstore | yes |
 
 `1.1.1` was published through the long-lived-token path, which cannot produce a Sigstore
 attestation. Attestations are bound to a publish event and cannot be added afterwards, so
@@ -95,12 +96,13 @@ this is permanent for that version. The package itself is unchanged and passes t
 release contract as every other version; only the provenance *record* is missing. The npm
 releases `1.1.2`, `1.1.3`, `1.1.4` and `1.1.5` have no attestation either.
 
-If you need to verify how a build was produced, use `1.1.0` on npm. To check an attestation
+If you need to verify how a build was produced, use `1.2.0`: it is attested on
+both channels (`1.1.0` is attested on npm only). To check an attestation
 yourself:
 
 ```bash
 curl -sS -o /dev/null -w '%{http_code}\n' \
-  https://registry.npmjs.org/-/npm/v1/attestations/quantum-reasoning-skill@1.1.0   # 200
+  https://registry.npmjs.org/-/npm/v1/attestations/quantum-reasoning-skill@1.2.0   # 200
 curl -sS -o /dev/null -w '%{http_code}\n' \
   https://registry.npmjs.org/-/npm/v1/attestations/quantum-reasoning-skill@1.1.1   # 404
 ```
