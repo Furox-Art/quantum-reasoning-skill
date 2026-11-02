@@ -233,7 +233,7 @@ jobs:
           fi
           echo "$out"
 
-          npx quantum-reasoning --validate
+          npx --no-install quantum-reasoning --validate
 
           # And assert `require()` works, which is what broke in 1.0.0.
           if ! out="$(node -e "const s = require('quantum-reasoning-skill'); if (!s.loadSkill().valid) { process.exit(1); } console.log('installed npm OK', s.version);")"; then

@@ -641,5 +641,5 @@ jobs:
           cd /tmp/qrs-consumer
           npm init -y > /dev/null
           npm install --silent "$OLDPWD/$tarball"
-          npx quantum-reasoning --validate
+          npx --no-install quantum-reasoning --validate
           node -e "const s = require('quantum-reasoning-skill'); if (!s.loadSkill().valid) { throw new Error('invalid'); } console.log('installed npm OK', s.version);"
