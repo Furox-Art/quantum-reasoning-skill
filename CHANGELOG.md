@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here.
 
+## [1.2.1] - 2026-11-07
+
+### Changed
+
+- Python 3.10 support dropped: `requires-python` is now `>=3.11`, the 3.10
+  classifier and the CI matrix entry are gone, and the ruff `target-version` and
+  mypy `python_version` follow (`py311` / `3.11`). No code change; the portfolio
+  is consolidating on a single support floor and 3.10 is out of upstream
+  support.
+- Version 1.2.1 in `VERSION`, `pyproject.toml`, `package.json`, `codemeta.json`,
+  `CITATION.cff` and the quickstart's three version lines. The
+  `skill_version` recorded in `scripts/determinism_workload.py` is deliberately
+  left at 1.2.0: it is a captured fixture from the 2026-10-27 run, not a live
+  version claim.
+
 ## [1.2.0] - 2026-10-21
 
 ### Packaging

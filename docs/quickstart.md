@@ -40,7 +40,7 @@ checkout; re-run `python docs/quickstart.py` to refresh it.
 **Provenance for the block below:**
 
 - Script: `docs/quickstart.py`
-- Skill version: `1.2.0` (from `VERSION`)
+- Skill version: `1.2.1` (from `VERSION`)
 - Skill commit: `0f32ce20ac81bf7ad07c9b883eab41efaa5ebb63`
 - Controller: `quantum_reasoning_skill/reference/branch_controller.py`, `DEFAULT_THRESHOLDS`
 - Benchmark inputs: `quantum_reasoning_skill/benchmark/cases.jsonl`, evaluated by
@@ -65,7 +65,7 @@ Quantum Reasoning Skill - quickstart verification
 
 [1/4] Checkout identity
     commit      : 0f32ce20ac81bf7ad07c9b883eab41efaa5ebb63
-    VERSION     : 1.2.0
+    VERSION     : 1.2.1
     SKILL.md    : 7430 bytes  sha256:38e23ee1a23ee254
     branch      : main
 
@@ -102,7 +102,7 @@ Quantum Reasoning Skill - quickstart verification
 Provenance for every number printed above
 --------------------------------------------------------------
     script      : docs/quickstart.py
-    skill ver   : 1.2.0   (VERSION)
+    skill ver   : 1.2.1   (VERSION)
     commit      : 0f32ce20ac81bf7ad07c9b883eab41efaa5ebb63
     platform    : Windows 11 (AMD64)
     python      : 3.12.10 (CPython)
