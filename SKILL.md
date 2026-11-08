@@ -2,7 +2,7 @@
 name: quantum-reasoning
 description: Maintain multiple genuinely different candidate hypotheses or solution paths, test them against evidence and tools, suppress weak or contradictory paths, revive useful alternatives when new evidence appears, and collapse to the best-supported answer only at the end.
 metadata:
-  version: "1.2.0"
+  version: "1.2.1"
 ---
 
 # Quantum Reasoning Skill
