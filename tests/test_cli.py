@@ -99,7 +99,7 @@ class LocateSkillFileTests(unittest.TestCase):
 
 class PackageVersionTests(unittest.TestCase):
     def test_reads_the_checkout_version_file(self):
-        self.assertEqual(cli.package_version(), "1.2.1")
+        self.assertEqual(cli.package_version(), "1.2.2")
 
     def test_skips_missing_and_empty_candidates(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -233,7 +233,7 @@ class MainTests(unittest.TestCase):
         self.assertEqual(report["body_lines"], 20)
         self.assertTrue(report["valid"])
         self.assertEqual(report["problems"], [])
-        self.assertEqual(report["package_version"], "1.2.1")
+        self.assertEqual(report["package_version"], "1.2.2")
 
     def test_explicit_skill_file_human_report(self):
         path = self.write_skill()
@@ -245,7 +245,7 @@ class MainTests(unittest.TestCase):
         self.assertIn("skill:   quantum-reasoning", stdout)
         self.assertIn("status:  valid", stdout)
         self.assertIn(f"file:    {path}", stdout)
-        self.assertIn("version: 1.2.1", stdout)
+        self.assertIn("version: 1.2.2", stdout)
         self.assertIn("body:    20 lines", stdout)
 
     def test_human_report_of_an_invalid_skill_uses_placeholders(self):
@@ -326,7 +326,7 @@ class MainTests(unittest.TestCase):
         report = json.loads(stdout)
         self.assertEqual(report["name"], "quantum-reasoning")
         self.assertTrue(report["valid"])
-        self.assertEqual(report["package_version"], "1.2.1")
+        self.assertEqual(report["package_version"], "1.2.2")
 
     def test_os_error_reading_the_skill_file_exits_two(self):
         path = self.write_skill()

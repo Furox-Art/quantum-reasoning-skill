@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented here.
 
+## [1.2.2] - 2026-11-08
+
+### Fixed
+
+- `SKILL.md` metadata.version was left at `1.2.0` by the 1.2.1 release commit; it
+  is a surface the publish guard reads, so the PyPI Release run failed in
+  `test_the_real_tree_is_in_lockstep_everywhere`. It now tracks `VERSION`.
+- The npm publish guard refuses to publish content that differs from the
+  version-bump commit, so this release ships the lockstep fix under its own
+  bump: `VERSION`, `pyproject.toml`, `package.json`, `codemeta.json`,
+  `CITATION.cff`, `SKILL.md` and the quickstart's three version lines all read
+  `1.2.2`.
+- Ruff: `bin/check_toolchain_pins.py` import block re-sorted (I001) and
+  `BranchState` now derives from `enum.StrEnum` (UP042), both surfaced by the
+  `py311` target-version bump.
+
 ## [1.2.1] - 2026-11-07
 
 ### Changed

@@ -11,12 +11,12 @@ They are meant to be calibrated with benchmark evidence.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from enum import Enum
+from enum import StrEnum
 from math import isfinite, log2
 from typing import Iterable, Sequence
 
 
-class BranchState(str, Enum):
+class BranchState(StrEnum):
     ACTIVE = "active"
     DORMANT = "dormant"
     REJECTED = "rejected"
