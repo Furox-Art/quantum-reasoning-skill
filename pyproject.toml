@@ -3,7 +3,7 @@
 # is what twine 7.0.0 still accepts; both are valid, but the pin must not go
 # backwards past the metadata version `twine check` can parse. See
 # .github/workflows/validate-skill.yml for the guard that enforces this.
-requires = ["hatchling==1.32.4"]
+requires = ["hatchling==1.33.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -50,10 +50,10 @@ quantum-reasoning = "quantum_reasoning_skill.cli:main"
 # declares no runtime dependencies.
 dev = [
   "build==1.6.1",
-  "coverage==7.16.2",
-  "mypy==2.4.0",
+  "coverage==7.17.2",
+  "mypy==2.4.1",
   "pyyaml==6.0.3",
-  "ruff==0.17.3",
+  "ruff==0.17.4",
   "twine==7.0.0",
 ]
 
