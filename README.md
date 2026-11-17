@@ -22,16 +22,16 @@ computing** — "measurement" means letting evidence collapse a branch.
 the same version today (see [Channel versions](#channel-versions)):
 
 ```bash
-# 1. from a clone — nothing to install (current packaging: 1.2.0)
+# 1. from a clone — nothing to install (current packaging: 1.2.2)
 git clone https://github.com/Furox-Art/quantum-reasoning-skill.git
 cd quantum-reasoning-skill
 python docs/quickstart.py
 
-# 2. from PyPI — SKILL.md ships inside the 1.2.0 wheel
+# 2. from PyPI — SKILL.md ships inside the 1.2.2 wheel
 pip install quantum-reasoning-skill
 quantum-reasoning --validate
 
-# 3. from npm — all three channels are on 1.2.0
+# 3. from npm — all three channels are on 1.2.2
 npm i quantum-reasoning-skill
 npx quantum-reasoning --validate
 ```
@@ -51,16 +51,16 @@ drifts.
 
 ## Distribution and the surface it exposes
 
-Three channels ship `SKILL.md`, and all three are on **1.2.0**: a `git clone` of
+Three channels ship `SKILL.md`, and all three are on **1.2.2**: a `git clone` of
 `main`, the PyPI wheel and the npm tarball.
 
 ### Channel versions
 
 | channel | current version |
 | --- | --- |
-| `git clone` of `main` | `1.2.0` |
-| PyPI | `1.2.0` |
-| npm | `1.2.0` |
+| `git clone` of `main` | `1.2.2` |
+| PyPI | `1.2.2` |
+| npm | `1.2.2` |
 
 An earlier attempt to publish npm `1.2.0` failed with an `E404` response to the
 `PUT` request (publish workflow run `39672649928`), a publisher/credential
