@@ -11,6 +11,7 @@ with what the documents claim, so each sentence is either true or red:
 
 * the README's tests-share sentence, against every Python source in the tree;
 * the quickstart's version lines, against the ``VERSION`` file;
+* the README's clone-channel version claims, against the ``VERSION`` file;
 * the lock-file entry count in ``CONTRIBUTING.md``, against ``constraints.txt``;
 * the latency quote in ``METHODOLOGY.md``, against the committed
   ``results.json`` it claims to quote.
@@ -164,6 +165,43 @@ class QuickstartVersionClaimTests(unittest.TestCase):
     def test_the_claim_is_actually_present(self):
         """A document that stopped stating a version must not pass silently."""
         self.assertTrue(self.claims, "no quickstart version claim was found")
+
+
+class ChannelVersionClaimTests(unittest.TestCase):
+    """The README's clone-channel claims follow the ``VERSION`` file.
+
+    The channel table drifted once already: every row still said 1.2.0 after
+    the tree and both registries had moved to 1.2.2. The PyPI and npm rows are
+    registry facts and can legitimately lag a fresh bump until the release
+    publishes, but the ``git clone`` of ``main`` row and the quick start's
+    "current packaging" comment describe *this tree* and must equal ``VERSION``
+    on every commit.
+    """
+
+    CLONE_ROW = re.compile(r"\|\s*`git clone` of `main`\s*\|\s*`(\d+\.\d+\.\d+)`\s*\|")
+    PACKAGING_COMMENT = re.compile(r"current packaging: (\d+\.\d+\.\d+)")
+
+    def setUp(self):
+        self.version = VERSION_FILE.read_text(encoding="utf-8").strip().lstrip("v")
+        self.text = README.read_text(encoding="utf-8")
+
+    def test_the_clone_channel_row_matches_version(self):
+        match = self.CLONE_ROW.search(self.text)
+        self.assertIsNotNone(match, "README.md no longer states the clone channel version")
+        self.assertEqual(
+            match.group(1),
+            self.version,
+            "the README channel table's `git clone` of `main` row must equal VERSION",
+        )
+
+    def test_the_quick_start_packaging_comment_matches_version(self):
+        match = self.PACKAGING_COMMENT.search(self.text)
+        self.assertIsNotNone(match, "README.md no longer states the current packaging")
+        self.assertEqual(
+            match.group(1),
+            self.version,
+            "the README quick start's 'current packaging' comment must equal VERSION",
+        )
 
 
 class ConstraintsEntryCountTests(unittest.TestCase):

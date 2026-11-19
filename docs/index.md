@@ -35,6 +35,7 @@ Start here, then pick the depth you need.
 | --- | --- |
 | [Benchmark protocol](../quantum_reasoning_skill/benchmark/README.md) | Cases, schemas, evaluator, controls, submission rules |
 | [Seed cases](../quantum_reasoning_skill/benchmark/cases.jsonl) | Six deterministic smoke-test cases |
+| [Synthetic reliability diagnostic](../quantum_reasoning_skill/benchmark/reliability.py) | Seeded score-outcome calibration check of the measurement machinery — explicitly synthetic, not a model evaluation |
 
 **No baseline-versus-skill model evaluation has been published.** The seed cases prove the
 harness runs; they are not evidence that this skill improves reasoning. Every contributed

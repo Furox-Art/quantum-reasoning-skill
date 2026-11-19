@@ -55,12 +55,16 @@ the artifact was published, not a defect in it:
 | `1.1.1` | PyPI | yes — PEP 740 per-file provenance |
 | `1.2.0` | npm | yes — SLSA provenance + npm publish attestation (Sigstore) |
 | `1.2.0` | PyPI | yes — PEP 740 per-file provenance |
+| `1.2.2` | npm | yes — SLSA provenance + npm publish attestation (Sigstore) |
+| `1.2.2` | PyPI | yes — PEP 740 per-file provenance |
 
 The npm releases `1.1.2` through `1.1.5` also carry no attestation, for the same
 token-path reason. `1.2.0` was published through OIDC trusted publishing on both
-registries, so it is attested on both. npm attestations are bound to a publish
+registries, so it is attested on both, as is `1.2.2`. `1.2.1` reached PyPI only
+(with PEP 740 per-file provenance); the npm publish guard refused it and it was
+never published to npm. npm attestations are bound to a publish
 event and cannot be backfilled, so the gaps on npm `1.1.1` through `1.1.5` are
-permanent. PyPI is separate: every release from `1.1.0` through `1.2.0` carries
+permanent. PyPI is separate: every release from `1.1.0` through `1.2.2` carries
 PEP 740 per-file provenance. The artifacts are otherwise unchanged and pass the
 same release contract as every other release.
 

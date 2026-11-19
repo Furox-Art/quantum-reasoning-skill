@@ -92,6 +92,33 @@ python -m quantum_reasoning_skill.benchmark.evaluate --skill skill-results.jsonl
 
 The evaluator reports exact-answer accuracy, mean token use, tool calls, latency, branch diversity, revival/error recovery, contradiction resolution, and baseline-to-skill deltas.
 
+## Synthetic reliability diagnostic (not a model evaluation)
+
+`reliability.py` is a **synthetic** score-outcome reliability diagnostic for the harness's
+measurement machinery. It calls no model and evaluates no real task: a seeded pseudo-random
+generator produces scores uniform on [0, 1) and Bernoulli outcomes whose probability is
+`clip(score + shift, 0, 1)`. With `shift = 0` the data is perfectly calibrated *by
+construction*; a nonzero `--miscalibration` injects a known defect the measurement must
+detect (the negative control).
+
+```bash
+python -m quantum_reasoning_skill.benchmark.reliability                          # calibrated
+python -m quantum_reasoning_skill.benchmark.reliability --miscalibration 0.25    # defective
+python quantum_reasoning_skill/benchmark/reliability.py --samples 20000 --output diag.json
+```
+
+It reports equal-width reliability bins (count, mean score, observed outcome rate; empty bins
+report `null`, never a fabricated zero), expected calibration error (ECE) and Brier score.
+Every artifact carries `"synthetic": true`, `"data": "synthetic"` and a disclaimer next to the
+numbers. Output is deterministic for a given seed, including across `PYTHONHASHSEED` values;
+`--output` must stay inside the working directory.
+
+**What it proves:** the binning/ECE/Brier machinery detects known miscalibration and is
+reproducible. **What it does not prove:** anything about a language model's reasoning. These
+numbers are not evidence of reasoning improvement and must not be cited as model performance;
+the real baseline-vs-skill evaluation is still pending (see the README's "Benchmark status"
+and the submission rules below).
+
 ## Required experimental controls
 
 For a publishable comparison, record at minimum:

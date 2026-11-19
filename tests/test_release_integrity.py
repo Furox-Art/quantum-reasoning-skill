@@ -417,6 +417,12 @@ class CurrentReleaseAttestationTests(unittest.TestCase):
             self.assertIn(version, guard.KNOWN_UNATTESTED_NPM)
             self.assertIn(version, guard.RELEASED_NPM_VERSIONS)
 
+    def test_1_2_2_is_known_attested_and_released(self):
+        """The registry reports npm 1.2.2 published and attested (probed live)."""
+        self.assertIn("1.2.2", guard.KNOWN_ATTESTED_NPM)
+        self.assertIn("1.2.2", guard.RELEASED_NPM_VERSIONS)
+        self.assertNotIn("1.2.2", guard.KNOWN_UNATTESTED_NPM)
+
 
 class RegistryDisagreementTests(TreeCase):
     """The live-data path: a registry set that contradicts the docs must fail.

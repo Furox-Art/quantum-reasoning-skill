@@ -35,13 +35,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 #: npm versions the registry reports as carrying an attestation.
-KNOWN_ATTESTED_NPM = frozenset({"1.1.0", "1.2.0"})
+KNOWN_ATTESTED_NPM = frozenset({"1.1.0", "1.2.0", "1.2.2"})
 
 #: npm versions the registry reports as having no attestation. Every 1.1.x
 #: release from 1.1.1 onwards was published through the token path, so none of
 #: them carries a Sigstore record. They are listed individually rather than as
 #: a range so the documentation check can require each one by name. 1.2.0 was
-#: published through OIDC again and is attested.
+#: published through OIDC again and is attested, as is 1.2.2 (1.2.1 never
+#: reached npm: the publish guard refused its lagging SKILL.md version).
 KNOWN_UNATTESTED_NPM = frozenset({"1.0.0", "1.1.1", "1.1.2", "1.1.3", "1.1.4", "1.1.5"})
 
 #: Every release this package has published to npm. Used by the registry-supplied
@@ -49,7 +50,7 @@ KNOWN_UNATTESTED_NPM = frozenset({"1.0.0", "1.1.1", "1.1.2", "1.1.3", "1.1.4", "
 #: status happens to be recorded below. CI passes the live registry set as well,
 #: so this remains the offline default.
 RELEASED_NPM_VERSIONS = frozenset(
-    {"1.0.0", "1.1.0", "1.1.1", "1.1.2", "1.1.3", "1.1.4", "1.1.5", "1.2.0"}
+    {"1.0.0", "1.1.0", "1.1.1", "1.1.2", "1.1.3", "1.1.4", "1.1.5", "1.2.0", "1.2.2"}
 )
 
 #: A release-version token.

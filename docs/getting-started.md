@@ -22,7 +22,7 @@ cd quantum-reasoning-skill
 python docs/quickstart.py
 ```
 
-Requires Python 3.10+. Exit code `0` means the skill contract parses and the shipped
+Requires Python 3.11+. Exit code `0` means the skill contract parses and the shipped
 tooling runs. Full output and provenance: [Quickstart](quickstart.md).
 
 If you installed from a package instead, verify the installed asset rather than the
@@ -36,7 +36,7 @@ npm i quantum-reasoning-skill
 npx quantum-reasoning --validate  # npm CLI
 ```
 
-All three channels — npm, PyPI and a clone of `main` — serve **1.2.0**. An
+All three channels — npm, PyPI and a clone of `main` — serve **1.2.2**. An
 earlier npm publish attempt failed with an `E404` response to the `PUT` request
 (a publisher/credential configuration issue); the version was published after
 that was resolved.

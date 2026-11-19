@@ -59,6 +59,37 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Documentation
+
+- The README channel-version table, quick-start comments and packaging labels,
+  `docs/getting-started.md` and `docs/COMPATIBILITY.md` said every channel was
+  on `1.2.0` while `VERSION` and both registries had moved to `1.2.2`. Verified
+  against the live registries (npm `latest` = `1.2.2`, PyPI = `1.2.2`) and
+  aligned. `tests/test_docs_counts.py` now pins the README's clone-channel row
+  and "current packaging" comment to `VERSION` so that drift fails the suite.
+- The supply-chain attestation tables (README, SECURITY, this changelog) and
+  `bin/check_release_integrity.py`'s offline defaults now record npm `1.2.2`
+  as published and attested, and PyPI `1.2.1`/`1.2.2` provenance, as probed
+  from the registries. npm never served `1.2.1`.
+- README documents the pending real-task model-evaluation protocol under
+  "Benchmark status": what a community run must control, compute and submit
+  before any performance claim exists. The no-performance-claim position is
+  unchanged.
+- Stale Python-floor claims (`3.10`) in the README, getting-started and
+  quickstart now read `3.11`, matching `requires-python` since 1.2.1.
+
+### Benchmark
+
+- New synthetic score-outcome reliability diagnostic,
+  `quantum_reasoning_skill/benchmark/reliability.py` (module and direct-script
+  entry points). It generates seeded pseudo-random scores and outcomes — no
+  model, no real task — and measures reliability bins, expected calibration
+  error and Brier score, with a `--miscalibration` negative control that must
+  raise the measured ECE. Every artifact is labeled `"synthetic": true` with a
+  disclaimer; it checks the measurement machinery only and is not evidence of
+  reasoning improvement. Deterministic for a given seed, including across
+  `PYTHONHASHSEED` values; covered by `tests/test_reliability_diagnostic.py`.
+
 ### Benchmark correctness
 
 - `validate_submission` reports bundles in raw-name order. Sorting `Path`
@@ -124,16 +155,19 @@ Measured against the live registry, not inferred:
 | `1.1.5` | PyPI | **yes** — PEP 740 per-file provenance |
 | `1.2.0` | npm | **yes** — `slsa.dev/provenance/v1` + `npm/attestation/publish/v0.1` |
 | `1.2.0` | PyPI | **yes** — PEP 740 per-file provenance |
+| `1.2.1` | PyPI | **yes** — PEP 740 per-file provenance (never published to npm) |
+| `1.2.2` | npm | **yes** — `slsa.dev/provenance/v1` + `npm/attestation/publish/v0.1` |
+| `1.2.2` | PyPI | **yes** — PEP 740 per-file provenance |
 
 `1.1.1` was published to npm through the `NPM_TOKEN` opt-in path, so npm never
 attempted an attestation. npm attestations are bound to a publish event and cannot be
 backfilled, so the gap is permanent for that version. The PyPI upload is a separate
 record: it used Trusted Publishing and carries PEP 740 per-file provenance, as every
-PyPI release from `1.1.0` through `1.2.0` does.
+PyPI release from `1.1.0` through `1.2.2` does.
 
 Consequence for verification: `npm install quantum-reasoning-skill@1.1.1` gives
 you a byte-identical, contract-passing package with no npm provenance record.
-Anyone who needs to verify *how* a build was produced should use `1.2.0`, which
+Anyone who needs to verify *how* a build was produced should use `1.2.2`, which
 carries a real attestation on both npm and PyPI. Do not treat the absence of an
 npm attestation on `1.1.1` as evidence of tampering, and do not treat it as
 evidence of integrity either.

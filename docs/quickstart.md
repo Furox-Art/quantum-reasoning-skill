@@ -11,7 +11,7 @@ cd quantum-reasoning-skill
 python docs/quickstart.py
 ```
 
-Requirements: Python 3.10 or newer. No third-party dependencies, no network access, no
+Requirements: Python 3.11 or newer. No third-party dependencies, no network access, no
 language-model calls. Exit code `0` means every structural check passed.
 
 ## What each step proves — and what it does not
@@ -34,8 +34,10 @@ Captured on Windows 11 / AMD64, CPython 3.12.10, on an **LF checkout** (no
 `0f32ce20ac81bf7ad07c9b883eab41efaa5ebb63` on `main`, so the commit is obtainable by
 anyone reading this repository.
 
-The block below follows the current `VERSION` (1.2.0) and was captured on a 1.2.0
-checkout; re-run `python docs/quickstart.py` to refresh it.
+The block below follows the current `VERSION` (1.2.2). It was captured on a 1.2.0
+checkout, and the 1.2.2 release synced its three version lines to `VERSION`; the
+commit line still names the capture commit. Re-run `python docs/quickstart.py` to
+refresh it.
 
 **Provenance for the block below:**
 
@@ -49,9 +51,11 @@ checkout; re-run `python docs/quickstart.py` to refresh it.
 - `SKILL.md` digest: **7430 bytes, `sha256:38e23ee1a23ee254`** — the git blob
 
 On a checkout with CRLF translation (Windows `core.autocrlf=true`) the `SKILL.md` line
-instead reads `7578 bytes sha256:f1ee3c89a671c3f0`. That is the same content with line
-endings converted, not a different `SKILL.md`; 7430 is the value CI and every Linux and
-macOS user sees.
+of the capture commit instead reads `7578 bytes sha256:f1ee3c89a671c3f0`. That is the same
+content with line endings converted, not a different `SKILL.md`; 7430 is the LF byte count
+CI and every Linux and macOS user sees. The 1.2.2 release synced `SKILL.md`'s front-matter
+version (same byte length), so the current tree's digests differ from the captured ones;
+re-run `python docs/quickstart.py` for the current values.
 
 The `commit` and `branch` lines name whichever checkout you ran, so they change between
 runs and cannot match a pasted copy forever. The version lines follow the current

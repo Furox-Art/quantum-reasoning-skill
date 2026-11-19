@@ -18,20 +18,20 @@ computing** — "measurement" means letting evidence collapse a branch.
 
 ## Quick start
 
-`SKILL.md` is the deliverable. Three channels reach it, though they are not all on
-the same version today (see [Channel versions](#channel-versions)):
+`SKILL.md` is the deliverable. Three channels reach it (current versions:
+[Channel versions](#channel-versions)):
 
 ```bash
-# 1. from a clone — nothing to install (current packaging: 1.2.0)
+# 1. from a clone — nothing to install (current packaging: 1.2.2)
 git clone https://github.com/Furox-Art/quantum-reasoning-skill.git
 cd quantum-reasoning-skill
 python docs/quickstart.py
 
-# 2. from PyPI — SKILL.md ships inside the 1.2.0 wheel
+# 2. from PyPI — SKILL.md ships inside the 1.2.2 wheel
 pip install quantum-reasoning-skill
 quantum-reasoning --validate
 
-# 3. from npm — all three channels are on 1.2.0
+# 3. from npm — all three channels are on 1.2.2
 npm i quantum-reasoning-skill
 npx quantum-reasoning --validate
 ```
@@ -51,27 +51,29 @@ drifts.
 
 ## Distribution and the surface it exposes
 
-Three channels ship `SKILL.md`, and all three are on **1.2.0**: a `git clone` of
+Three channels ship `SKILL.md`, and all three are on **1.2.2**: a `git clone` of
 `main`, the PyPI wheel and the npm tarball.
 
 ### Channel versions
 
 | channel | current version |
 | --- | --- |
-| `git clone` of `main` | `1.2.0` |
-| PyPI | `1.2.0` |
-| npm | `1.2.0` |
+| `git clone` of `main` | `1.2.2` |
+| PyPI | `1.2.2` |
+| npm | `1.2.2` |
 
 An earlier attempt to publish npm `1.2.0` failed with an `E404` response to the
 `PUT` request (publish workflow run `39672649928`), a publisher/credential
 configuration issue rather than a packaging failure. That is resolved: npm
-serves `1.2.0`, its `latest` tag points at it, and the tarball carries the
-1.2.0 content.
+serves `1.2.2`, its `latest` tag points at it, and the tarball carries the
+1.2.2 content. npm skipped `1.2.1`: that release commit left `SKILL.md`'s
+version behind, the publish guard refused, and `1.2.2` shipped the lockstep
+fix (see [CHANGELOG.md](CHANGELOG.md)); PyPI did serve `1.2.1`.
 
-The PyPI wheel (1.2.0 packaging: `SKILL.md`, `VERSION`, `reference/`,
+The PyPI wheel (1.2.2 packaging: `SKILL.md`, `VERSION`, `reference/`,
 `benchmark/`, `docs/` and `examples/` ship under the
 `quantum_reasoning_skill/` package namespace, plus a `quantum-reasoning` console
-script backed by `quantum_reasoning_skill.cli`); and the npm tarball (1.2.0:
+script backed by `quantum_reasoning_skill.cli`); and the npm tarball (1.2.2:
 `SKILL.md`, `VERSION`, `index.js`, `package.json`, `LICENSE` and `README.md`;
 the `quantum-reasoning` bin is declared in `package.json` and points at
 `index.js`). Both packaged artifacts are verified against the
@@ -90,20 +92,24 @@ Only some published versions carry a build attestation, so check before relying 
 | `1.1.1` (npm and PyPI) | **no** — token publish path | yes — PEP 740 per-file provenance |
 | `1.1.2`–`1.1.5` (npm and PyPI) | **no** — token publish path | yes — PEP 740 per-file provenance |
 | `1.2.0` (npm and PyPI) | yes — SLSA provenance and npm publish attestation, Sigstore | yes — PEP 740 per-file provenance |
+| `1.2.2` (npm and PyPI) | yes — SLSA provenance and npm publish attestation, Sigstore | yes — PEP 740 per-file provenance |
 
 Version `1.1.1` was published through the long-lived-token path on npm and has no attestation.
 That path cannot produce a Sigstore record. npm attestations are bound to a publish
 event and cannot be added afterwards, so
 this is permanent for that version. The npm package itself is unchanged and passes the same
 release contract as every other version; only the npm provenance *record* is missing. The npm
-releases `1.1.2`, `1.1.3`, `1.1.4` and `1.1.5` have no attestation either. Every PyPI release
-from `1.1.0` through `1.2.0` carries PEP 740 per-file provenance.
+releases `1.1.2`, `1.1.3`, `1.1.4` and `1.1.5` have no attestation either. `1.2.1` reached
+PyPI only, with PEP 740 per-file provenance; it was never published to npm. Every PyPI release
+from `1.1.0` through `1.2.2` carries PEP 740 per-file provenance.
 
-If you need to verify how a build was produced, use `1.2.0`: it is attested on
-both channels, as is `1.1.0` on npm and PyPI. To check an attestation
+If you need to verify how a build was produced, use `1.2.2`: it is attested on
+both channels, as are `1.2.0` and `1.1.0` on npm and PyPI. To check an attestation
 yourself:
 
 ```bash
+curl -sS -o /dev/null -w '%{http_code}\n' \
+  https://registry.npmjs.org/-/npm/v1/attestations/quantum-reasoning-skill@1.2.2   # 200
 curl -sS -o /dev/null -w '%{http_code}\n' \
   https://registry.npmjs.org/-/npm/v1/attestations/quantum-reasoning-skill@1.2.0   # 200
 curl -sS -o /dev/null -w '%{http_code}\n' \
@@ -195,10 +201,25 @@ stay inside it, and reads are bounded by `--max-bytes`. Both
 `python quantum_reasoning_skill/benchmark/evaluate.py` and
 `python -m quantum_reasoning_skill.benchmark.evaluate` work.
 
+The harness also ships a **synthetic** score-outcome reliability diagnostic,
+`quantum_reasoning_skill/benchmark/reliability.py`:
+
+```bash
+python -m quantum_reasoning_skill.benchmark.reliability            # calibrated by construction
+python -m quantum_reasoning_skill.benchmark.reliability --miscalibration 0.25   # negative control
+```
+
+It generates seeded pseudo-random scores and outcomes — **no model, no real task** — and
+measures reliability bins, expected calibration error and Brier score, checking that the
+measurement machinery detects a known, injected calibration defect. Every artifact it emits
+is labeled `"synthetic": true` with a disclaimer next to the numbers. It is a sanity check of
+the harness, **not evidence about reasoning performance**; see
+[`quantum_reasoning_skill/benchmark/README.md`](quantum_reasoning_skill/benchmark/README.md).
+
 ## Tests, tooling and governance
 
-About **53% of the Python here is tests** — 6,901 of 12,967 lines across **30 test modules**,
-run with the standard library's `unittest` on Python 3.10–3.14 (Linux) and 3.12 (Windows, macOS).
+About **53% of the Python here is tests** — 7,256 of 13,590 lines across **31 test modules**,
+run with the standard library's `unittest` on Python 3.11–3.14 (Linux) and 3.12 (Windows, macOS).
 They cover the controller, the benchmark harness, import hardening, path boundaries,
 dependency-lock drift and release-gate polling; the documented benchmark command run as a
 subprocess against a clean copy of the tree; the `paths` filters that decide when a release
@@ -250,6 +271,30 @@ compute.** Anyone can evaluate on models they have access to; every submitted
 number must carry provenance (script, skill commit, provider and exact model version, run date,
 sampling parameters, repetitions, platform), and one positive run establishes no general claim.
 Rules: [CONTRIBUTING.md](CONTRIBUTING.md#benchmark-provenance-requirements).
+
+### Pending: the real-task evaluation protocol
+
+The model evaluation above is **pending, not done**. No API access to a language model is
+assumed by this repository; real-task runs are community-run. The synthetic reliability
+diagnostic in the harness checks the measurement machinery only — it is explicitly synthetic
+and **cannot substitute for this protocol**. When a real evaluation is run, it must follow:
+
+1. **Task set** — difficult, held-out tasks with verifiable answers from the target domains,
+   kept separate from any prompt used while designing or tuning the skill. The packaged seed
+   cases are smoke tests, not an evaluation set.
+2. **Two conditions, one setup** — the same model and model version, task set, tool access,
+   sampling parameters and token budget, run once without `SKILL.md` (baseline) and once with
+   it (skill). Record one result row per case in the documented JSONL shape.
+3. **Repetitions and failures** — multiple repetitions per case for stochastic models, with
+   seeds where the provider supports them; refusals, timeouts and errors are retained, never
+   silently dropped.
+4. **Computed comparison** — `quantum_reasoning_skill/benchmark/evaluate.py` produces the
+   accuracy/cost comparison from the raw rows; `comparison.json` is never hand-edited.
+5. **Provenance and validation** — the full metadata and artifact bundle required by
+   [CONTRIBUTING.md](CONTRIBUTING.md#benchmark-provenance-requirements), checked with
+   `quantum_reasoning_skill/benchmark/validate_submission.py` before submission.
+6. **Claim gate** — a single positive run establishes no general claim. Until such runs are
+   published and replicated, the project's position stays: **no performance claim**.
 
 ## How it compares
 

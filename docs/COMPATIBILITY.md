@@ -6,7 +6,7 @@ Quantum Reasoning is model-agnostic, but not every host exposes the same control
 
 `SKILL.md` is the entire integration surface. It ships in every channel: a clone, the
 PyPI wheel (as `quantum_reasoning_skill/SKILL.md`), and the npm tarball. All three
-channels are at 1.2.0. Copy `SKILL.md`, keep its YAML front matter intact, then confirm the copy
+channels are at 1.2.2. Copy `SKILL.md`, keep its YAML front matter intact, then confirm the copy
 with `python docs/quickstart.py` or, for an installed package,
 `quantum-reasoning --validate`. Full channel comparison:
 [the distribution section](../README.md#distribution-and-the-surface-it-exposes).

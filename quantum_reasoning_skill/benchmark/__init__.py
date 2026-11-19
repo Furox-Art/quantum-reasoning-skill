@@ -10,7 +10,8 @@ by an unrelated third-party distribution can no longer shadow
 Both modules also remain runnable as plain scripts; they install the checkout
 root (three levels above this file) at the front of ``sys.path`` and then import
 the package-qualified module, so ``python
-quantum_reasoning_skill/benchmark/validate_submission.py`` keeps working.
+quantum_reasoning_skill/benchmark/validate_submission.py`` keeps working. The
+synthetic reliability diagnostic (``reliability.py``) follows the same pattern.
 """
 
 from __future__ import annotations
@@ -25,7 +26,7 @@ __all__ = ["REPO_ROOT", "package_root"]
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 #: Modules that must live beside this file for the package to be intact.
-_EXPECTED_MODULES = ("evaluate.py", "validate_submission.py", "paths.py")
+_EXPECTED_MODULES = ("evaluate.py", "validate_submission.py", "paths.py", "reliability.py")
 
 
 def _verify_integrity() -> None:
