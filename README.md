@@ -324,7 +324,7 @@ Part of the Furox scientific-computing portfolio: independently versioned projec
 - [axiomize](https://github.com/Furox-Art/axiomize) — unit-checked modeling engine with SBML, CellML and Modelica export.
 - [axiomize-quantum-skills-2.0](https://github.com/Furox-Art/axiomize-quantum-skills-2.0) — modeling engine plus quantum-inspired reasoning bundle.
 - [plan-auditor](https://github.com/Furox-Art/plan-auditor) — evidence-based completion gate for coding agents.
-- [nomosguard](https://github.com/Furox-Art/nomosguard) — deterministic security decision layer with a hash-chained ledger.
+- [nomosguard](https://github.com/Furox-Art/evidence-ledger-policy-gate) — deterministic security decision layer with a hash-chained ledger.
 - [eq-layer](https://github.com/Furox-Art/eq-layer) — interaction-policy layer that decides how an agent speaks.
 - [literature-evidence-mcp](https://github.com/Furox-Art/literature-evidence-mcp) — literature MCP server with a hash-chained evidence ledger.
-- [repocraft](https://github.com/Furox-Art/repocraft) — byte-deterministic project scaffolding.
+- [repocraft](https://github.com/Furox-Art/deterministic-recipe-scaffolder) — byte-deterministic project scaffolding.
